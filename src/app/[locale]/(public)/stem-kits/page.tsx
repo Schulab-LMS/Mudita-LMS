@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getProducts } from "@/services/product.service";
+import { Link } from "@/i18n/navigation";
 
 export const metadata: Metadata = {
   title: "STEM Kits | Mudita LMS",
@@ -55,12 +56,12 @@ export default async function StemKitsPage({ searchParams }: StemKitsPageProps) 
           Filter
         </button>
         {ageGroup && (
-          <a
+          <Link
             href="/stem-kits"
             className="inline-flex h-10 items-center rounded-lg border border-input px-4 text-sm transition-colors hover:bg-muted"
           >
             Clear
-          </a>
+          </Link>
         )}
       </form>
 

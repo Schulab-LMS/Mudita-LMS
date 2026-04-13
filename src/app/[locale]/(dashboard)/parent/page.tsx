@@ -39,7 +39,7 @@ export default async function ParentDashboardPage() {
           <p className="text-5xl">👦</p>
           <p className="mt-3 text-lg font-medium">No children linked yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Add your child's account to track their learning progress.
+            Add your child&apos;s account to track their learning progress.
           </p>
           <Link
             href="/parent/children"

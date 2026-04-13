@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getProductBySlug } from "@/services/product.service";
+import { Link } from "@/i18n/navigation";
 
 interface StemKitDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -23,12 +24,12 @@ export default async function StemKitDetailPage({ params }: StemKitDetailPagePro
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 space-y-8">
-      <a
+      <Link
         href="/stem-kits"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
       >
         ← Back to STEM Kits
-      </a>
+      </Link>
 
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Image */}

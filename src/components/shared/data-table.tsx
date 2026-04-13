@@ -3,11 +3,10 @@
 import { useState, useMemo } from "react";
 import type { ReactNode } from "react";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface DataTableColumn {
   key: string;
   label: string;
-  render?: (row: any) => ReactNode;
+  render?: (row: Record<string, unknown>) => ReactNode;
 }
 
 interface DataTableProps {

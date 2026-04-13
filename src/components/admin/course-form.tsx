@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCourse, updateCourse } from "@/actions/admin.actions";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { Link } from "@/i18n/navigation";
 
 const AGE_GROUPS = [
   { value: "AGES_3_5", label: "Ages 3-5" },
@@ -283,12 +284,12 @@ export default function CourseForm({ mode, initialData }: CourseFormProps) {
                 ? "Save Changes"
                 : "Create Course"}
           </button>
-          <a
+          <Link
             href="/admin/courses"
             className="inline-flex h-10 items-center justify-center rounded-lg border border-input px-6 text-sm font-medium transition-colors hover:bg-muted"
           >
             Cancel
-          </a>
+          </Link>
         </div>
       </form>
     </div>

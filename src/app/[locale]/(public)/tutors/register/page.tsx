@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { submitTutorApplication } from "@/actions/tutor.actions";
+import { Link } from "@/i18n/navigation";
 
 export default function TutorRegisterPage() {
   const [loading, setLoading] = useState(false);
@@ -51,12 +52,12 @@ export default function TutorRegisterPage() {
           Thank you for applying to be a tutor. Our team will review your application and
           notify you once you&apos;re verified.
         </p>
-        <a
+        <Link
           href="/tutor"
           className="mt-6 inline-flex items-center rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
         >
           Go to Tutor Dashboard
-        </a>
+        </Link>
       </div>
     );
   }

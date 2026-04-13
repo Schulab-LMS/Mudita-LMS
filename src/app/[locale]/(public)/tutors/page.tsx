@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTutors } from "@/services/tutor.service";
 import { TutorCard } from "@/components/booking/tutor-card";
+import { Link } from "@/i18n/navigation";
 
 export const metadata: Metadata = {
   title: "Find a Tutor | Mudita LMS",
@@ -68,12 +69,12 @@ export default async function TutorsPage({ searchParams }: TutorsPageProps) {
           Filter
         </button>
         {(subject || language) && (
-          <a
+          <Link
             href="/tutors"
             className="inline-flex h-10 items-center rounded-lg border border-input px-4 text-sm transition-colors hover:bg-muted"
           >
             Clear
-          </a>
+          </Link>
         )}
       </form>
 
