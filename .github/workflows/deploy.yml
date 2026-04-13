@@ -111,12 +111,17 @@ jobs:
           envs: IMAGE_TAG
           # Strict-mode bash so any failure short-circuits before we declare
           # success. The script:
-          #   1. Pulls the SHA-tagged image
-          #   2. Records the previously-running image so we can roll back
-          #   3. Runs `prisma migrate deploy` in a one-shot container against
-          #      the same env file the web service uses
-          #   4. Brings the new web container up
-          #   5. Polls /api/health for up to 60s; rolls back on failure
+          #   1. Writes the canonical docker-compose.yml (the one from the
+          #      repo at this SHA) so the server is never out of sync with
+          #      what we expect IMAGE_TAG to do.
+          #   2. Captures the currently-running image DIGEST (not tag) so
+          #      rollback can retag the actual previous bytes.
+          #   3. Pulls the SHA-tagged image.
+          #   4. Runs `prisma migrate deploy` in a one-shot container against
+          #      the same env file the web service uses.
+          #   5. Force-recreates the web container with IMAGE_TAG=${SHA}.
+          #   6. Polls /api/health for up to 60s; on failure, retags the
+          #      captured digest as :rollback and force-recreates back.
           script: |
             set -euo pipefail
 
@@ -127,13 +132,58 @@ jobs:
 
             export IMAGE_TAG="${IMAGE_TAG}"
 
+            echo "==> Writing docker-compose.yml (synced from repo @ ${IMAGE_TAG})"
+            cat > docker-compose.yml <<'COMPOSE_EOF'
+            services:
+              postgres:
+                image: postgres:15-alpine
+                restart: unless-stopped
+                environment:
+                  POSTGRES_USER: ${DB_USER}
+                  POSTGRES_PASSWORD: ${DB_PASSWORD}
+                  POSTGRES_DB: ${DB_NAME}
+                volumes:
+                  - postgres_data:/var/lib/postgresql/data
+                healthcheck:
+                  test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+                  interval: 10s
+                  timeout: 5s
+                  retries: 5
+
+              web:
+                image: ghcr.io/markwahba-git/mudita-lms:${IMAGE_TAG:-latest}
+                restart: unless-stopped
+                ports:
+                  - "127.0.0.1:3020:3000"
+                env_file: .env
+                depends_on:
+                  postgres:
+                    condition: service_healthy
+                healthcheck:
+                  test:
+                    - CMD-SHELL
+                    - "wget -qO- http://127.0.0.1:3000/api/health | grep -q '\"status\":\"ok\"' || exit 1"
+                  interval: 30s
+                  timeout: 5s
+                  retries: 5
+                  start_period: 20s
+
+            volumes:
+              postgres_data:
+            COMPOSE_EOF
+
+            # Capture the DIGEST (content hash) of the currently-running
+            # container's image. Using {{.Image}} instead of {{.Config.Image}}
+            # returns the sha256 ID, which survives tag reassignment. That
+            # matters because once we pull the new :latest, the old :latest
+            # tag points at new bytes — we need to remember the old bytes
+            # themselves so rollback can restore them.
+            PREVIOUS_IMAGE_ID=$(docker inspect --format='{{.Image}}' \
+              mudita-lms-web-1 2>/dev/null || echo "")
+            echo "==> Previous image digest: ${PREVIOUS_IMAGE_ID:-<none>}"
+
             echo "==> Pulling ${{ env.IMAGE }}:${IMAGE_TAG}"
             docker pull ${{ env.IMAGE }}:${IMAGE_TAG}
-
-            # Capture the currently-running image digest so we can roll back.
-            PREVIOUS_IMAGE=$(docker inspect --format='{{.Config.Image}}' \
-              mudita-lms-web-1 2>/dev/null || echo "")
-            echo "==> Previous image: ${PREVIOUS_IMAGE:-<none>}"
 
             echo "==> Running prisma migrate deploy"
             docker run --rm \
@@ -142,8 +192,8 @@ jobs:
               ${{ env.IMAGE }}:${IMAGE_TAG} \
               npx prisma migrate deploy
 
-            echo "==> Bringing up new web container"
-            docker compose up -d --remove-orphans web
+            echo "==> Force-recreating web container at ${IMAGE_TAG}"
+            docker compose up -d --force-recreate --remove-orphans web
 
             echo "==> Waiting for /api/health to report ok"
             HEALTHY=0
@@ -159,9 +209,12 @@ jobs:
 
             if [ "$HEALTHY" -ne 1 ]; then
               echo "!! Health check failed — rolling back"
-              if [ -n "$PREVIOUS_IMAGE" ]; then
-                docker tag "$PREVIOUS_IMAGE" ${{ env.IMAGE }}:rollback
-                IMAGE_TAG=rollback docker compose up -d --remove-orphans web
+              if [ -n "$PREVIOUS_IMAGE_ID" ]; then
+                docker tag "$PREVIOUS_IMAGE_ID" ${{ env.IMAGE }}:rollback
+                IMAGE_TAG=rollback docker compose up -d \
+                  --force-recreate --remove-orphans web
+              else
+                echo "!! No previous image to roll back to"
               fi
               exit 1
             fi
