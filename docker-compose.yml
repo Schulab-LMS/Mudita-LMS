@@ -15,7 +15,10 @@ services:
       retries: 5
 
   web:
-    image: ghcr.io/markwahba-git/mudita-lms:latest
+    # IMAGE_TAG is set by the deploy pipeline to the commit SHA, so each
+    # release is pinned to an immutable image. Falls back to `latest` for
+    # local / manual `docker compose up` invocations.
+    image: ghcr.io/markwahba-git/mudita-lms:${IMAGE_TAG:-latest}
     restart: unless-stopped
     ports:
       - "127.0.0.1:3020:3000"
@@ -23,6 +26,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget -qO- http://127.0.0.1:3000/api/health | grep -q '\"status\":\"ok\"' || exit 1"
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
 volumes:
   postgres_data:

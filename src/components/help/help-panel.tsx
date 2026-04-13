@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { X, BookOpen } from "lucide-react";
 import { useHelpStore } from "@/stores/help-store";
 import { HelpSearch } from "@/components/help/help-search";
@@ -39,22 +39,24 @@ export function HelpPanel({ articles }: HelpPanelProps) {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const locale = useLocale();
 
+  // Single close handler — resets local state and then closes the panel via
+  // the store. Wrapping closeHelp this way means we never have to reset state
+  // from inside an effect (which would force an extra render after unmount-
+  // animation completes).
+  const handleClose = useCallback(() => {
+    setSelectedArticle(null);
+    setActiveCategory("ALL");
+    closeHelp();
+  }, [closeHelp]);
+
   // Close panel on Escape key
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") closeHelp();
+      if (e.key === "Escape") handleClose();
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [closeHelp]);
-
-  // Reset state when closed
-  useEffect(() => {
-    if (!isOpen) {
-      setSelectedArticle(null);
-      setActiveCategory("ALL");
-    }
-  }, [isOpen]);
+  }, [handleClose]);
 
   // Prevent body scroll when panel is open
   useEffect(() => {
@@ -89,7 +91,7 @@ export function HelpPanel({ articles }: HelpPanelProps) {
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-          onClick={closeHelp}
+          onClick={handleClose}
           aria-hidden="true"
         />
       )}
@@ -114,7 +116,7 @@ export function HelpPanel({ articles }: HelpPanelProps) {
             <span className="font-display text-lg font-bold text-foreground">Help Center</span>
           </div>
           <button
-            onClick={closeHelp}
+            onClick={handleClose}
             className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label="Close Help Center"
           >
@@ -204,7 +206,7 @@ export function HelpPanel({ articles }: HelpPanelProps) {
         <div className="border-t px-5 py-3">
           <Link
             href="/help"
-            onClick={closeHelp}
+            onClick={handleClose}
             className="flex items-center justify-center gap-1.5 text-sm text-primary hover:underline"
           >
             <BookOpen className="h-3.5 w-3.5" />

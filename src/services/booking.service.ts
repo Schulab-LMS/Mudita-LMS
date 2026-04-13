@@ -95,12 +95,21 @@ export async function getAvailableSlots(tutorId: string, date: Date) {
       where: { tutorId, dayOfWeek },
     });
 
+    // Build the day window without mutating the caller's `date` object —
+    // calling `date.setHours` directly would have shifted it forward to the
+    // end of the day, so subsequent reads of `date` (or any caller holding a
+    // reference) would see the wrong value.
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
+
     const existingBookings = await db.booking.findMany({
       where: {
         tutorId,
         startTime: {
-          gte: new Date(date.setHours(0, 0, 0, 0)),
-          lt: new Date(date.setHours(23, 59, 59, 999)),
+          gte: dayStart,
+          lt: dayEnd,
         },
         status: { in: ["PENDING", "CONFIRMED"] },
       },

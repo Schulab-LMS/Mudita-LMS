@@ -100,14 +100,19 @@ export function DonutChart({
     );
   }
 
-  // Build conic-gradient
-  let accumulated = 0;
-  const stops = segments.map((s) => {
-    const start = accumulated;
-    const pct = (s.count / total) * 100;
-    accumulated += pct;
-    return `${s.color} ${start}% ${accumulated}%`;
-  });
+  // Build conic-gradient stops by walking the segments and snapshotting the
+  // running offset into each output entry. Using `reduce` keeps the running
+  // state inside the accumulator instead of mutating a free variable from
+  // inside `map`, which React would otherwise treat as an impure render.
+  const { stops } = segments.reduce<{ offset: number; stops: string[] }>(
+    (acc, s) => {
+      const start = acc.offset;
+      const end = start + (s.count / total) * 100;
+      acc.stops.push(`${s.color} ${start}% ${end}%`);
+      return { offset: end, stops: acc.stops };
+    },
+    { offset: 0, stops: [] }
+  );
 
   return (
     <div className="flex flex-col items-center gap-3">

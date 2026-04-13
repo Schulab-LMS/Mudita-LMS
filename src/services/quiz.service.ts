@@ -72,14 +72,50 @@ export async function submitAttempt(
       selectedAnswerId: string;
     }> = [];
 
+    // Normalise short-answer text the same way on both sides so trivial
+    // differences (case, surrounding whitespace) don't cause false negatives.
+    const normaliseShortAnswer = (value: string) =>
+      value.trim().toLowerCase().replace(/\s+/g, " ");
+
     for (const question of quiz.questions) {
       totalPoints += question.points;
-      const selectedAnswerId = answers[question.id];
-      const correctAnswer = question.answers.find((a) => a.isCorrect);
+      const submitted = answers[question.id];
+      const correctAnswers = question.answers.filter((a) => a.isCorrect);
+      // Display value: first correct answer is used by the review UI.
+      const primaryCorrect = correctAnswers[0];
 
-      const isCorrect = correctAnswer
-        ? selectedAnswerId === correctAnswer.id
-        : false;
+      let isCorrect = false;
+      let storedSelected = submitted ?? "";
+
+      if (submitted && correctAnswers.length > 0) {
+        switch (question.type) {
+          case "MULTIPLE_CHOICE":
+          case "TRUE_FALSE":
+            // The submitted value is an Answer.id. Accept any answer flagged
+            // as correct (supports edge-case quizzes with multiple right
+            // answers).
+            isCorrect = correctAnswers.some((a) => a.id === submitted);
+            break;
+          case "SHORT_ANSWER": {
+            // Submitted value is free text from the user. Compare against
+            // the text of every Answer row marked correct.
+            const normalised = normaliseShortAnswer(submitted);
+            isCorrect = correctAnswers.some(
+              (a) => normaliseShortAnswer(a.text) === normalised
+            );
+            // For the result payload, expose the matched correct answer's
+            // id when the response was right; otherwise leave the raw text
+            // so the review UI can still surface what the learner typed.
+            if (isCorrect) {
+              storedSelected =
+                correctAnswers.find(
+                  (a) => normaliseShortAnswer(a.text) === normalised
+                )?.id ?? submitted;
+            }
+            break;
+          }
+        }
+      }
 
       if (isCorrect) {
         earnedPoints += question.points;
@@ -88,8 +124,8 @@ export async function submitAttempt(
       questionResults.push({
         questionId: question.id,
         correct: isCorrect,
-        correctAnswerId: correctAnswer?.id ?? "",
-        selectedAnswerId: selectedAnswerId ?? "",
+        correctAnswerId: primaryCorrect?.id ?? "",
+        selectedAnswerId: storedSelected,
       });
     }
 

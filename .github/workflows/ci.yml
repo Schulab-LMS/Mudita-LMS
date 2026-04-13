@@ -1,0 +1,56 @@
+# Runs on every PR (and pushes to main as a sanity net) to enforce that the
+# code at least typechecks, lints, and produces a working Next.js build before
+# anything reaches the deploy pipeline.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Cancel in-flight runs on the same ref when a new commit arrives — saves CI
+# minutes and ensures the latest commit is the one that gates merging.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, typecheck, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # Prisma v7 needs a DATABASE_URL to generate the client and for `next
+      # build` to import generated types. No actual connection is made.
+      DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+      NEXT_TELEMETRY_DISABLED: "1"
+      # next-auth refuses to start without a secret in production builds.
+      NEXTAUTH_SECRET: ci-placeholder-not-a-real-secret
+      NEXTAUTH_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
