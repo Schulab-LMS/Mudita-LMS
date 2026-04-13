@@ -31,14 +31,21 @@ export async function getNotifications(userId: string, limit = 50) {
   }
 }
 
-export async function markAsRead(notificationId: string) {
+/**
+ * Mark a notification as read. Scoped to `userId` so users cannot
+ * read or modify another user's notifications by guessing the id.
+ * Returns the number of rows updated (0 when the id does not belong
+ * to this user).
+ */
+export async function markAsRead(notificationId: string, userId: string) {
   try {
-    return await db.notification.update({
-      where: { id: notificationId },
+    const result = await db.notification.updateMany({
+      where: { id: notificationId, userId },
       data: { isRead: true },
     });
+    return result.count;
   } catch {
-    return null;
+    return 0;
   }
 }
 

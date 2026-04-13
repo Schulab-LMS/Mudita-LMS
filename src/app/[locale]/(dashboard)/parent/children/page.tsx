@@ -9,6 +9,7 @@ export const metadata = { title: "Manage Children | Mudita LMS" };
 export default async function ParentChildrenPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+  if (session.user.role !== "PARENT") redirect("/dashboard");
 
   const children = await getChildren(session.user.id);
 

@@ -11,7 +11,8 @@ export async function markNotificationRead(id: string) {
   const parsed = markNotificationReadSchema.safeParse({ id });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  await markAsRead(parsed.data.id);
+  const updated = await markAsRead(parsed.data.id, session.user.id);
+  if (updated === 0) return { error: "Notification not found" };
   return { success: true };
 }
 

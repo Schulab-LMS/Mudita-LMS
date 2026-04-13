@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
-import CourseForm from "@/components/admin/CourseForm";
+import CourseForm from "@/components/admin/course-form";
 
 export const metadata = { title: "New Course | Admin" };
 

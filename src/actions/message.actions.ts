@@ -6,6 +6,7 @@ import { sendMessage, markThreadAsRead } from "@/services/message.service";
 import { sendMessageSchema, markThreadReadSchema } from "@/validators/action.schemas";
 import { createNotification } from "@/services/notification.service";
 import { db } from "@/lib/db";
+import { rateLimit, SEND_MESSAGE_RATE_LIMIT } from "@/lib/rate-limit";
 
 export async function sendMessageAction(data: {
   receiverId: string;
@@ -15,6 +16,14 @@ export async function sendMessageAction(data: {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Not authenticated" };
+
+    const limit = rateLimit(`send-message:${session.user.id}`, SEND_MESSAGE_RATE_LIMIT);
+    if (!limit.success) {
+      return {
+        success: false,
+        error: `Too many messages. Try again in ${limit.retryAfterSeconds}s.`,
+      };
+    }
 
     const parsed = sendMessageSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };

@@ -49,6 +49,20 @@ async function sendEmail({ to, subject, html }: SendEmailOptions) {
 
 // ── Email Templates ─────────────────────────────────────────────────
 
+/**
+ * Escape a user-supplied string so it cannot break out of an HTML context
+ * inside an email template. Always use this for any value that originated
+ * from a user (names, subjects, message bodies, etc.).
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function layout(content: string) {
   return `<!DOCTYPE html>
 <html>
@@ -125,12 +139,13 @@ export async function sendEmailVerification(email: string, token: string) {
 
 export async function sendWelcomeEmail(email: string, name: string) {
   const dashboardUrl = `${APP_URL}/en/student`;
+  const safeName = escapeHtml(name);
 
   return sendEmail({
     to: email,
     subject: `Welcome to Mudita LMS, ${name}!`,
     html: layout(`
-      <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Welcome, ${name}! 🎉</h2>
+      <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Welcome, ${safeName}! 🎉</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
         Your account is all set up. Start exploring our STEM courses designed for young learners ages 3–18.
       </p>
@@ -151,10 +166,11 @@ export async function sendWelcomeEmail(email: string, name: string) {
 export async function sendEnrollmentConfirmation(
   email: string,
   name: string,
-  courseTitle: string,
-  courseSlug: string
+  courseTitle: string
 ) {
   const courseUrl = `${APP_URL}/en/student/courses`;
+  const safeName = escapeHtml(name);
+  const safeCourseTitle = escapeHtml(courseTitle);
 
   return sendEmail({
     to: email,
@@ -162,7 +178,7 @@ export async function sendEnrollmentConfirmation(
     html: layout(`
       <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">You're enrolled! 📚</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
-        Hi ${name}, you've been enrolled in <strong>${courseTitle}</strong>.
+        Hi ${safeName}, you've been enrolled in <strong>${safeCourseTitle}</strong>.
         Start learning right away!
       </p>
       ${button("Start Learning", courseUrl)}
@@ -176,19 +192,22 @@ export async function sendCertificateEmail(
   courseTitle: string,
   certCode: string
 ) {
-  const certUrl = `${APP_URL}/en/verify/${certCode}`;
+  const certUrl = `${APP_URL}/en/verify/${encodeURIComponent(certCode)}`;
+  const safeName = escapeHtml(name);
+  const safeCourseTitle = escapeHtml(courseTitle);
+  const safeCertCode = escapeHtml(certCode);
 
   return sendEmail({
     to: email,
     subject: `Certificate earned: ${courseTitle} — Mudita LMS`,
     html: layout(`
-      <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Congratulations, ${name}! 🎓</h2>
+      <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Congratulations, ${safeName}! 🎓</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
-        You've completed <strong>${courseTitle}</strong> and earned a certificate of completion!
+        You've completed <strong>${safeCourseTitle}</strong> and earned a certificate of completion!
       </p>
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;text-align:center;margin:20px 0;">
         <p style="margin:0 0 4px;font-size:12px;color:#6b7280;">Verification Code</p>
-        <p style="margin:0;font-family:monospace;font-size:16px;font-weight:700;color:#15803d;letter-spacing:1px;">${certCode}</p>
+        <p style="margin:0;font-family:monospace;font-size:16px;font-weight:700;color:#15803d;letter-spacing:1px;">${safeCertCode}</p>
       </div>
       ${button("View Certificate", certUrl)}
     `),
@@ -197,12 +216,13 @@ export async function sendCertificateEmail(
 
 export async function sendTutorApprovedEmail(email: string, name: string) {
   const dashboardUrl = `${APP_URL}/en/tutor`;
+  const safeName = escapeHtml(name);
 
   return sendEmail({
     to: email,
     subject: "Your tutor application has been approved! — Mudita LMS",
     html: layout(`
-      <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Congratulations, ${name}!</h2>
+      <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Congratulations, ${safeName}!</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
         Your tutor application has been <strong style="color:#15803d;">approved</strong>.
         You can now set your availability and start accepting bookings from students.
@@ -222,12 +242,13 @@ export async function sendTutorApprovedEmail(email: string, name: string) {
 
 export async function sendTutorRejectedEmail(email: string, name: string) {
   const profileUrl = `${APP_URL}/en/tutor/profile`;
+  const safeName = escapeHtml(name);
 
   return sendEmail({
     to: email,
     subject: "Update on your tutor application — Mudita LMS",
     html: layout(`
-      <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Hi ${name},</h2>
+      <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Hi ${safeName},</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
         After review, your tutor verification has been <strong style="color:#dc2626;">revoked</strong>.
         This may be due to incomplete profile information or other requirements.
@@ -245,6 +266,8 @@ export async function sendTutorRejectedEmail(email: string, name: string) {
 
 export async function sendNewTutorApplicationEmail(tutorName: string, tutorEmail: string) {
   const adminEmail = process.env.CONTACT_EMAIL || "admin@mudita.io";
+  const safeTutorName = escapeHtml(tutorName);
+  const safeTutorEmail = escapeHtml(tutorEmail);
 
   return sendEmail({
     to: adminEmail,
@@ -252,8 +275,8 @@ export async function sendNewTutorApplicationEmail(tutorName: string, tutorEmail
     html: layout(`
       <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">New Tutor Application</h2>
       <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
-        <p style="margin:0 0 8px;font-size:13px;color:#6b7280;"><strong>Name:</strong> ${tutorName}</p>
-        <p style="margin:0;font-size:13px;color:#6b7280;"><strong>Email:</strong> ${tutorEmail}</p>
+        <p style="margin:0 0 8px;font-size:13px;color:#6b7280;"><strong>Name:</strong> ${safeTutorName}</p>
+        <p style="margin:0;font-size:13px;color:#6b7280;"><strong>Email:</strong> ${safeTutorEmail}</p>
       </div>
       ${button("Review Applications", `${APP_URL}/en/admin/tutors`)}
     `),
@@ -267,6 +290,10 @@ export async function sendContactFormEmail(
   message: string
 ) {
   const adminEmail = process.env.CONTACT_EMAIL || "admin@mudita.io";
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeSubject = escapeHtml(subject);
+  const safeMessage = escapeHtml(message);
 
   return sendEmail({
     to: adminEmail,
@@ -274,12 +301,12 @@ export async function sendContactFormEmail(
     html: layout(`
       <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">New Contact Form Submission</h2>
       <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
-        <p style="margin:0 0 8px;font-size:13px;color:#6b7280;"><strong>From:</strong> ${name} (${email})</p>
-        <p style="margin:0 0 8px;font-size:13px;color:#6b7280;"><strong>Subject:</strong> ${subject}</p>
+        <p style="margin:0 0 8px;font-size:13px;color:#6b7280;"><strong>From:</strong> ${safeName} (${safeEmail})</p>
+        <p style="margin:0 0 8px;font-size:13px;color:#6b7280;"><strong>Subject:</strong> ${safeSubject}</p>
         <p style="margin:0;font-size:13px;color:#6b7280;"><strong>Message:</strong></p>
-        <p style="margin:8px 0 0;font-size:14px;color:#1f2937;white-space:pre-wrap;">${message}</p>
+        <p style="margin:8px 0 0;font-size:14px;color:#1f2937;white-space:pre-wrap;">${safeMessage}</p>
       </div>
-      <p style="color:#9ca3af;font-size:12px;">Reply directly to this email to respond to ${email}.</p>
+      <p style="color:#9ca3af;font-size:12px;">Reply directly to this email to respond to ${safeEmail}.</p>
     `),
   });
 }

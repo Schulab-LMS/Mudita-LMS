@@ -3,7 +3,7 @@ import { isAdminRole } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import CourseForm from "@/components/admin/CourseForm";
+import CourseForm from "@/components/admin/course-form";
 
 export default async function EditCoursePage({
   params,

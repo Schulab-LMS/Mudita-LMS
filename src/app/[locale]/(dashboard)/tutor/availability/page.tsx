@@ -8,6 +8,7 @@ export const metadata = { title: "Availability | Mudita LMS" };
 export default async function TutorAvailabilityPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+  if (session.user.role !== "TUTOR") redirect("/dashboard");
 
   const tutor = await getTutorByUserId(session.user.id);
 

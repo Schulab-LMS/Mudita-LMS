@@ -52,8 +52,33 @@ export async function getBookingsForTutor(tutorId: string) {
   }
 }
 
-export async function cancelBooking(bookingId: string) {
+/**
+ * Cancel a booking. Requires the caller to be either the student who
+ * created the booking or the tutor whose profile owns it. Returns the
+ * updated booking, or `null` when the caller is not authorised, the
+ * booking does not exist, or it is already in a terminal state.
+ */
+export async function cancelBooking(bookingId: string, userId: string) {
   try {
+    const booking = await db.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        studentId: true,
+        status: true,
+        tutor: { select: { userId: true } },
+      },
+    });
+    if (!booking) return null;
+
+    const isStudent = booking.studentId === userId;
+    const isOwningTutor = booking.tutor.userId === userId;
+    if (!isStudent && !isOwningTutor) return null;
+
+    if (booking.status === "CANCELLED" || booking.status === "COMPLETED") {
+      return null;
+    }
+
     return await db.booking.update({
       where: { id: bookingId },
       data: { status: "CANCELLED" },

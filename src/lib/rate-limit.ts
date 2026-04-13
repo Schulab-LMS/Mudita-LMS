@@ -69,3 +69,7 @@ export function rateLimit(
 export const AUTH_RATE_LIMIT = { maxRequests: 5, windowSeconds: 60 };
 export const REGISTER_RATE_LIMIT = { maxRequests: 3, windowSeconds: 60 };
 export const FORGOT_PASSWORD_RATE_LIMIT = { maxRequests: 3, windowSeconds: 300 };
+export const EMAIL_VERIFY_SEND_RATE_LIMIT = { maxRequests: 3, windowSeconds: 300 };
+export const EMAIL_VERIFY_CONSUME_RATE_LIMIT = { maxRequests: 10, windowSeconds: 300 };
+export const SEND_MESSAGE_RATE_LIMIT = { maxRequests: 30, windowSeconds: 60 };
+export const HELP_FEEDBACK_RATE_LIMIT = { maxRequests: 10, windowSeconds: 300 };

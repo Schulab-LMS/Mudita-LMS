@@ -15,26 +15,38 @@ export async function addChildAccount(data: {
     if (!session?.user?.id) {
       return { success: false, error: "Not authenticated" };
     }
+    if (session.user.role !== "PARENT") {
+      return { success: false, error: "Only parents can add child accounts" };
+    }
 
     const parsed = addChildAccountSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const email = parsed.data.email.toLowerCase().trim();
+
+    const existing = await db.user.findUnique({ where: { email } });
+    if (existing) {
+      return { success: false, error: "An account with this email already exists" };
+    }
+
     const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+    const parentId = session.user.id;
 
-    const child = await db.user.create({
-      data: {
-        name: parsed.data.name,
-        email: parsed.data.email,
-        passwordHash,
-        role: "STUDENT",
-      },
-    });
-
-    await db.parentChild.create({
-      data: {
-        parentId: session.user.id,
-        childId: child.id,
-      },
+    // Create the child user and link them to the parent atomically so we
+    // never leave an orphaned child account if the link insert fails.
+    const child = await db.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          name: parsed.data.name,
+          email,
+          passwordHash,
+          role: "STUDENT",
+        },
+      });
+      await tx.parentChild.create({
+        data: { parentId, childId: created.id },
+      });
+      return created;
     });
 
     return { success: true, data: { childId: child.id } };

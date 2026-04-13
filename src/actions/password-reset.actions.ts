@@ -11,9 +11,11 @@ const requestResetSchema = z.object({
   email: z.string().email(),
 });
 
+const RESET_PREFIX = "pwd-reset:";
+
 const resetPasswordSchema = z.object({
   token: z.string().min(1),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 /**
@@ -45,22 +47,15 @@ export async function requestPasswordReset(email: string) {
       return { success: true };
     }
 
-    // Delete any existing tokens for this user
-    await db.verificationToken.deleteMany({
-      where: { identifier: `pwd-reset:${user.email}` },
-    });
-
-    // Generate token
     const token = randomBytes(32).toString("hex");
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const identifier = `${RESET_PREFIX}${user.email}`;
 
-    await db.verificationToken.create({
-      data: {
-        identifier: `pwd-reset:${user.email}`,
-        token,
-        expires,
-      },
-    });
+    // Replace any existing reset token for this user atomically.
+    await db.$transaction([
+      db.verificationToken.deleteMany({ where: { identifier } }),
+      db.verificationToken.create({ data: { identifier, token, expires } }),
+    ]);
 
     // Send email
     await sendPasswordResetEmail(user.email, token);
@@ -82,41 +77,44 @@ export async function resetPassword(token: string, password: string) {
   }
 
   try {
-    // Find the token
-    const verificationToken = await db.verificationToken.findUnique({
-      where: { token: parsed.data.token },
-    });
-
-    if (!verificationToken) {
-      return { success: false, error: "Invalid or expired reset link" };
-    }
-
-    // Check expiry
-    if (verificationToken.expires < new Date()) {
-      // Clean up expired token
-      await db.verificationToken.delete({
-        where: { token: parsed.data.token },
-      });
-      return { success: false, error: "Reset link has expired. Please request a new one." };
-    }
-
-    // Extract email from identifier
-    const email = verificationToken.identifier.replace("pwd-reset:", "");
-
-    // Hash new password
+    // Hash the new password BEFORE entering the transaction so we keep the
+    // transaction short — bcrypt is intentionally slow.
     const passwordHash = await bcrypt.hash(parsed.data.password, 12);
 
-    // Update user password
-    await db.user.update({
-      where: { email },
-      data: { passwordHash },
+    const result = await db.$transaction(async (tx) => {
+      const verificationToken = await tx.verificationToken.findUnique({
+        where: { token: parsed.data.token },
+      });
+
+      if (!verificationToken) {
+        return { ok: false as const, error: "Invalid or expired reset link" };
+      }
+
+      if (verificationToken.expires < new Date()) {
+        await tx.verificationToken.delete({ where: { token: parsed.data.token } });
+        return {
+          ok: false as const,
+          error: "Reset link has expired. Please request a new one.",
+        };
+      }
+
+      if (!verificationToken.identifier.startsWith(RESET_PREFIX)) {
+        return { ok: false as const, error: "Invalid or expired reset link" };
+      }
+
+      const email = verificationToken.identifier.slice(RESET_PREFIX.length);
+
+      await tx.user.update({
+        where: { email },
+        data: { passwordHash },
+      });
+
+      await tx.verificationToken.delete({ where: { token: parsed.data.token } });
+
+      return { ok: true as const };
     });
 
-    // Delete the used token
-    await db.verificationToken.delete({
-      where: { token: parsed.data.token },
-    });
-
+    if (!result.ok) return { success: false, error: result.error };
     return { success: true };
   } catch (error) {
     console.error("resetPassword error:", error);

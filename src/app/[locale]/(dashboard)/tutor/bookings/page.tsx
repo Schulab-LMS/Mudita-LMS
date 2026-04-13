@@ -17,6 +17,7 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
 export default async function TutorBookingsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+  if (session.user.role !== "TUTOR") redirect("/dashboard");
 
   const tutor = await getTutorByUserId(session.user.id);
   if (!tutor) redirect("/tutor");

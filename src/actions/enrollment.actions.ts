@@ -27,27 +27,29 @@ export async function enrollInCourse(courseId: string) {
     const parsed = enrollInCourseSchema.safeParse({ courseId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    // Only allow self-enrolment in published courses. Drafts and archived
+    // courses can still be administered via `adminEnrollUser`.
+    const course = await db.course.findUnique({
+      where: { id: parsed.data.courseId },
+      select: { title: true, slug: true, status: true },
+    });
+    if (!course) return { success: false, error: "Course not found" };
+    if (course.status !== "PUBLISHED") {
+      return { success: false, error: "This course is not available for enrolment" };
+    }
+
     const enrollment = await enrollUser(session.user.id, parsed.data.courseId);
     if (!enrollment) {
       return { success: false, error: "Failed to enroll" };
     }
 
     // Send enrollment confirmation email (non-blocking)
-    try {
-      const course = await db.course.findUnique({
-        where: { id: parsed.data.courseId },
-        select: { title: true, slug: true },
-      });
-      if (course && session.user.email) {
-        sendEnrollmentConfirmation(
-          session.user.email,
-          session.user.name || "Student",
-          course.title,
-          course.slug
-        ).catch(() => null);
-      }
-    } catch {
-      // non-critical
+    if (session.user.email) {
+      sendEnrollmentConfirmation(
+        session.user.email,
+        session.user.name || "Student",
+        course.title
+      ).catch(() => null);
     }
 
     return { success: true, data: enrollment };

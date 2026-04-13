@@ -10,6 +10,7 @@ export const metadata = { title: "Tutor Dashboard | Mudita LMS" };
 export default async function TutorDashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+  if (session.user.role !== "TUTOR") redirect("/dashboard");
 
   const tutor = await getTutorByUserId(session.user.id);
 

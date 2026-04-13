@@ -2,7 +2,9 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/lib/auth";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { rateLimit, HELP_FEEDBACK_RATE_LIMIT } from "@/lib/rate-limit";
 import {
   createHelpArticleSchema,
   updateHelpArticleSchema,
@@ -168,6 +170,18 @@ export async function submitHelpFeedback(data: {
     const parsed = helpFeedbackSchema.safeParse(data);
     if (!parsed.success) {
       return { success: false, error: parsed.error.issues[0].message };
+    }
+
+    // Rate-limit per (user|anon, article). Anonymous traffic shares a
+    // single bucket per article, so spam is bounded even without auth.
+    const session = await auth();
+    const identity = session?.user?.id ?? "anon";
+    const limit = rateLimit(
+      `help-feedback:${identity}:${parsed.data.articleId}`,
+      HELP_FEEDBACK_RATE_LIMIT
+    );
+    if (!limit.success) {
+      return { success: false, error: "Too many submissions. Please slow down." };
     }
 
     await db.helpFeedback.create({

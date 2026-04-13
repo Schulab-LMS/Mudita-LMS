@@ -14,7 +14,7 @@ const defaultOptions: sanitizeHtml.IOptions = {
     video: ["src", "controls", "width", "height"],
     source: ["src", "type"],
     time: ["datetime"],
-    "*": ["class", "id", "style"],
+    "*": ["class", "id"],
   },
   allowedIframeHostnames: ["www.youtube.com", "player.vimeo.com"],
   allowedSchemes: ["http", "https", "mailto"],

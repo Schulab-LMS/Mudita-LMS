@@ -21,7 +21,7 @@ import { Loader2, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
 
 const resetSchema = z
   .object({
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -113,7 +113,7 @@ export default function ResetPasswordPage() {
             <Input
               id="password"
               type="password"
-              placeholder="At least 6 characters"
+              placeholder="At least 8 characters"
               {...register("password")}
             />
             {errors.password && (

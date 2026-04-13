@@ -34,7 +34,7 @@ export async function cancelBooking(bookingId: string) {
   const parsed = cancelBookingSchema.safeParse({ bookingId });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  const result = await cancelBookingService(parsed.data.bookingId);
-  if (!result) return { error: "Failed to cancel booking" };
+  const result = await cancelBookingService(parsed.data.bookingId, session.user.id);
+  if (!result) return { error: "Unable to cancel this booking" };
   return { success: true };
 }

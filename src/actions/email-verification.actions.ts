@@ -3,6 +3,13 @@
 import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { sendEmailVerification } from "@/lib/email";
+import {
+  rateLimit,
+  EMAIL_VERIFY_SEND_RATE_LIMIT,
+  EMAIL_VERIFY_CONSUME_RATE_LIMIT,
+} from "@/lib/rate-limit";
+
+const VERIFY_PREFIX = "email-verify:";
 
 /**
  * Send a verification email to the user.
@@ -10,8 +17,20 @@ import { sendEmailVerification } from "@/lib/email";
  */
 export async function sendVerificationEmail(email: string) {
   try {
+    const normalised = email.toLowerCase().trim();
+
+    // Always respond with a generic success to prevent enumeration,
+    // but bail out early when the rate limit kicks in.
+    const limit = rateLimit(`verify-send:${normalised}`, EMAIL_VERIFY_SEND_RATE_LIMIT);
+    if (!limit.success) {
+      return {
+        success: false,
+        error: `Too many requests. Try again in ${limit.retryAfterSeconds}s.`,
+      };
+    }
+
     const user = await db.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: normalised },
       select: { id: true, email: true, emailVerified: true },
     });
 
@@ -19,22 +38,18 @@ export async function sendVerificationEmail(email: string) {
       return { success: true }; // Already verified or doesn't exist
     }
 
-    // Delete existing tokens
-    await db.verificationToken.deleteMany({
-      where: { identifier: `email-verify:${user.email}` },
-    });
-
-    // Generate token
     const token = randomBytes(32).toString("hex");
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const identifier = `${VERIFY_PREFIX}${user.email}`;
 
-    await db.verificationToken.create({
-      data: {
-        identifier: `email-verify:${user.email}`,
-        token,
-        expires,
-      },
-    });
+    // Replace any previous token for this identifier atomically so we
+    // never end up with two valid tokens at the same time.
+    await db.$transaction([
+      db.verificationToken.deleteMany({ where: { identifier } }),
+      db.verificationToken.create({
+        data: { identifier, token, expires },
+      }),
+    ]);
 
     await sendEmailVerification(user.email, token);
 
@@ -50,28 +65,46 @@ export async function sendVerificationEmail(email: string) {
  */
 export async function verifyEmail(token: string) {
   try {
-    const verificationToken = await db.verificationToken.findUnique({
-      where: { token },
-    });
-
-    if (!verificationToken) {
-      return { success: false, error: "Invalid verification link" };
+    // Rate-limit by token to prevent brute forcing valid tokens.
+    const limit = rateLimit(`verify-consume:${token}`, EMAIL_VERIFY_CONSUME_RATE_LIMIT);
+    if (!limit.success) {
+      return { success: false, error: "Too many attempts. Please try again shortly." };
     }
 
-    if (verificationToken.expires < new Date()) {
-      await db.verificationToken.delete({ where: { token } });
-      return { success: false, error: "Verification link has expired. Please request a new one." };
-    }
+    const result = await db.$transaction(async (tx) => {
+      const verificationToken = await tx.verificationToken.findUnique({
+        where: { token },
+      });
 
-    const email = verificationToken.identifier.replace("email-verify:", "");
+      if (!verificationToken) {
+        return { ok: false as const, error: "Invalid verification link" };
+      }
 
-    await db.user.update({
-      where: { email },
-      data: { emailVerified: new Date() },
+      if (verificationToken.expires < new Date()) {
+        await tx.verificationToken.delete({ where: { token } });
+        return {
+          ok: false as const,
+          error: "Verification link has expired. Please request a new one.",
+        };
+      }
+
+      if (!verificationToken.identifier.startsWith(VERIFY_PREFIX)) {
+        return { ok: false as const, error: "Invalid verification link" };
+      }
+
+      const email = verificationToken.identifier.slice(VERIFY_PREFIX.length);
+
+      await tx.user.update({
+        where: { email },
+        data: { emailVerified: new Date() },
+      });
+
+      await tx.verificationToken.delete({ where: { token } });
+
+      return { ok: true as const };
     });
 
-    await db.verificationToken.delete({ where: { token } });
-
+    if (!result.ok) return { success: false, error: result.error };
     return { success: true };
   } catch (error) {
     console.error("verifyEmail error:", error);
