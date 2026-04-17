@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { signIn } from "next-auth/react";
 import { useRouter } from "@/i18n/navigation";
@@ -28,6 +28,21 @@ const roles = [
   { value: "TUTOR" as const, icon: BookOpen, key: "roleTutor" },
 ];
 
+// Keep this in sync with CHILD_AGE_THRESHOLD in src/lib/compliance.ts —
+// client-side we only need it to decide whether to reveal the parent fields.
+const CHILD_AGE_THRESHOLD = 16;
+
+function ageFromDob(iso: string): number | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  const dob = new Date(iso);
+  if (Number.isNaN(dob.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const m = now.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age -= 1;
+  return age;
+}
+
 export default function RegisterPage() {
   const t = useTranslations("auth");
   const router = useRouter();
@@ -42,10 +57,19 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { role: "STUDENT" },
+    defaultValues: {
+      role: "STUDENT",
+      acceptedTerms: false as unknown as true,
+      acceptedPrivacy: false as unknown as true,
+      parentalConsent: false,
+      marketingOptIn: false,
+    },
   });
 
   const selectedRole = watch("role");
+  const dob = watch("dateOfBirth");
+  const age = useMemo(() => (dob ? ageFromDob(dob) : null), [dob]);
+  const requiresParent = selectedRole === "STUDENT" && age !== null && age < CHILD_AGE_THRESHOLD;
 
   async function onSubmit(data: RegisterInput) {
     setLoading(true);
@@ -53,7 +77,7 @@ export default function RegisterPage() {
 
     const result = await registerUser(data);
 
-    if (result.error) {
+    if ("error" in result && result.error) {
       setError(result.error);
       setLoading(false);
       return;
@@ -66,7 +90,6 @@ export default function RegisterPage() {
       redirect: false,
     });
 
-    // Redirect to verify email page
     router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
   }
 
@@ -84,7 +107,6 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Role Selection */}
           <div className="space-y-2">
             <Label>{t("role")}</Label>
             <div className="grid grid-cols-3 gap-2">
@@ -128,6 +150,19 @@ export default function RegisterPage() {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="dateOfBirth">Date of birth</Label>
+            <Input
+              id="dateOfBirth"
+              type="date"
+              max={new Date().toISOString().slice(0, 10)}
+              {...register("dateOfBirth")}
+            />
+            {errors.dateOfBirth && (
+              <p className="text-xs text-destructive">{errors.dateOfBirth.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="password">{t("password")}</Label>
             <Input id="password" type="password" {...register("password")} />
             {errors.password && (
@@ -149,6 +184,79 @@ export default function RegisterPage() {
                 {errors.confirmPassword.message}
               </p>
             )}
+          </div>
+
+          {requiresParent && (
+            <div className="space-y-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700/60 dark:bg-amber-900/20">
+              <p className="font-medium text-amber-900 dark:text-amber-200">
+                Because the learner is under {CHILD_AGE_THRESHOLD}, a parent or
+                guardian must confirm consent.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="parentEmail">Parent or guardian email</Label>
+                <Input
+                  id="parentEmail"
+                  type="email"
+                  placeholder="parent@example.com"
+                  {...register("parentEmail")}
+                />
+              </div>
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  {...register("parentalConsent")}
+                />
+                <span>
+                  I am the parent or legal guardian and I consent to Mudita
+                  creating this account and processing my child&apos;s data as
+                  described in the Privacy Policy.
+                </span>
+              </label>
+            </div>
+          )}
+
+          <div className="space-y-2 pt-2">
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1"
+                {...register("acceptedTerms")}
+              />
+              <span>
+                I agree to the{" "}
+                <Link href="/terms" className="underline">
+                  Terms of Service
+                </Link>
+              </span>
+            </label>
+            {errors.acceptedTerms && (
+              <p className="text-xs text-destructive">{errors.acceptedTerms.message}</p>
+            )}
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1"
+                {...register("acceptedPrivacy")}
+              />
+              <span>
+                I have read the{" "}
+                <Link href="/privacy" className="underline">
+                  Privacy Policy
+                </Link>
+              </span>
+            </label>
+            {errors.acceptedPrivacy && (
+              <p className="text-xs text-destructive">{errors.acceptedPrivacy.message}</p>
+            )}
+            <label className="flex items-start gap-2 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                className="mt-1"
+                {...register("marketingOptIn")}
+              />
+              <span>Send me occasional updates and learning tips.</span>
+            </label>
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>

@@ -1559,7 +1559,81 @@ async function main() {
     });
   }
 
-  console.log("✅ Seed complete — 25 courses, 75 modules, 225 lessons, 36 permissions, 16 settings");
+  // ── Plans ───────────────────────────────────────────────────────────────
+  // Stripe price IDs stay null until the catalog is connected to Stripe.
+  // checkout creation intentionally refuses to start a subscription for a
+  // plan with no stripePriceId, so missing data fails loudly.
+  const plans = [
+    {
+      slug: "free",
+      tier: "FREE" as const,
+      interval: null,
+      name: "Free",
+      description: "Sample lessons, certificate of participation on free courses, limited community access.",
+      amount: 0,
+      currency: "USD",
+      features: { sampleLessons: true, community: "read-only" },
+      isFeatured: false,
+      sortOrder: 0,
+    },
+    {
+      slug: "learner-monthly",
+      tier: "LEARNER" as const,
+      interval: "MONTHLY" as const,
+      name: "Learner — Monthly",
+      description: "Full access to every course, certificates, badges, and the community.",
+      amount: 29,
+      currency: "USD",
+      features: { allCourses: true, certificates: true, community: true },
+      sortOrder: 10,
+    },
+    {
+      slug: "learner-yearly",
+      tier: "LEARNER" as const,
+      interval: "YEARLY" as const,
+      name: "Learner — Annual",
+      description: "Everything in Monthly, billed annually. Includes offline access and priority support.",
+      amount: 199,
+      currency: "USD",
+      features: { allCourses: true, certificates: true, community: true, offline: true, prioritySupport: true },
+      isFeatured: true,
+      trialDays: 7,
+      sortOrder: 20,
+    },
+    {
+      slug: "pro-yearly",
+      tier: "PRO" as const,
+      interval: "YEARLY" as const,
+      name: "Pro — Annual",
+      description: "All Learner benefits plus a monthly 1:1 mentor session and proctored certification exams.",
+      amount: 399,
+      currency: "USD",
+      features: {
+        allCourses: true,
+        certificates: true,
+        community: true,
+        offline: true,
+        prioritySupport: true,
+        liveClasses: true,
+        mentorHoursPerMonth: 1,
+        proctoredExams: true,
+      },
+      trialDays: 7,
+      sortOrder: 30,
+    },
+  ];
+
+  for (const p of plans) {
+    await db.plan.upsert({
+      where: { slug: p.slug },
+      update: {},
+      create: p,
+    });
+  }
+
+  console.log(
+    `✅ Seed complete — 25 courses, 75 modules, 225 lessons, 36 permissions, 16 settings, ${plans.length} plans`
+  );
 }
 
 main()

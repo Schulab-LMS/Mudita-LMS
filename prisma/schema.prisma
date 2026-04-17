@@ -20,17 +20,19 @@ enum Role {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified DateTime?
-  passwordHash  String?
-  name          String
-  avatar        String?
-  role          Role      @default(STUDENT)
-  locale        String    @default("en")
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  email            String    @unique
+  emailVerified    DateTime?
+  passwordHash     String?
+  name             String
+  avatar           String?
+  role             Role      @default(STUDENT)
+  locale           String    @default("en")
+  isActive         Boolean   @default(true)
+  dateOfBirth      DateTime?
+  stripeCustomerId String?   @unique
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   profile      Profile?
   tutorProfile TutorProfile?
@@ -41,21 +43,28 @@ model User {
   badges       UserBadge[]
   points       PointTransaction[]
 
-  bookingsAsStudent Booking[] @relation("StudentBookings")
+  bookingsAsStudent Booking[]                 @relation("StudentBookings")
   orders            Order[]
+  coursePurchases   CoursePurchase[]
+  subscriptions     Subscription[]
+  invoices          Invoice[]
   notifications     Notification[]
-  sentMessages      Message[] @relation("SentMessages")
-  receivedMessages  Message[] @relation("ReceivedMessages")
+  sentMessages      Message[]                 @relation("SentMessages")
+  receivedMessages  Message[]                 @relation("ReceivedMessages")
   competitionRegs   CompetitionRegistration[]
+  consentRecords    ConsentRecord[]
+  analyticsEvents   AnalyticsEvent[]
 
-  parentOf ParentChild[] @relation("ParentRelation")
-  childOf  ParentChild[] @relation("ChildRelation")
+  parentOf      ParentChild[]   @relation("ParentRelation")
+  childOf       ParentChild[]   @relation("ChildRelation")
+  consentsGiven ConsentRecord[] @relation("ConsentGivenBy")
 
   accounts Account[]
   sessions Session[]
 
   @@index([email])
   @@index([role])
+  @@index([stripeCustomerId])
 }
 
 model Account {
@@ -175,13 +184,13 @@ model Course {
 }
 
 model Module {
-  id       String @id @default(cuid())
-  courseId  String
+  id       String   @id @default(cuid())
+  courseId String
   title    String
   titleAr  String?
   titleDe  String?
   order    Int
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons  Lesson[]
 
   @@index([courseId])
@@ -196,25 +205,27 @@ enum LessonType {
 }
 
 model Lesson {
-  id        String     @id @default(cuid())
-  moduleId  String
-  title     String
-  titleAr   String?
-  titleDe   String?
-  content   String?    @db.Text
-  contentAr String?    @db.Text
-  contentDe String?    @db.Text
-  videoUrl  String?
-  thumbnail String?
-  duration  Int?
-  type      LessonType @default(VIDEO)
-  order     Int
-  isFree    Boolean    @default(false)
-  module    Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  quiz      Quiz?
-  progress  LessonProgress[]
+  id           String           @id @default(cuid())
+  moduleId     String
+  title        String
+  titleAr      String?
+  titleDe      String?
+  content      String?          @db.Text
+  contentAr    String?          @db.Text
+  contentDe    String?          @db.Text
+  videoUrl     String?
+  videoAssetId String?
+  thumbnail    String?
+  duration     Int?
+  type         LessonType       @default(VIDEO)
+  order        Int
+  isFree       Boolean          @default(false)
+  module       Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  quiz         Quiz?
+  progress     LessonProgress[]
 
   @@index([moduleId])
+  @@index([videoAssetId])
 }
 
 // ========== QUIZZES ==========
@@ -226,12 +237,12 @@ enum QuestionType {
 }
 
 model Quiz {
-  id           String     @id @default(cuid())
-  lessonId     String     @unique
+  id           String        @id @default(cuid())
+  lessonId     String        @unique
   title        String
-  passingScore Int        @default(70)
+  passingScore Int           @default(70)
   timeLimit    Int?
-  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lesson       Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   questions    Question[]
   attempts     QuizAttempt[]
 }
@@ -293,7 +304,7 @@ enum EnrollmentStatus {
 model Enrollment {
   id          String           @id @default(cuid())
   userId      String
-  courseId     String
+  courseId    String
   status      EnrollmentStatus @default(ACTIVE)
   progress    Int              @default(0)
   enrolledAt  DateTime         @default(now())
@@ -323,7 +334,7 @@ model LessonProgress {
 model Certificate {
   id       String   @id @default(cuid())
   userId   String
-  courseId  String
+  courseId String
   code     String   @unique
   issuedAt DateTime @default(now())
   pdfUrl   String?
@@ -484,26 +495,26 @@ enum CompetitionStatus {
 }
 
 model Competition {
-  id                String            @id @default(cuid())
-  slug              String            @unique
+  id                String                    @id @default(cuid())
+  slug              String                    @unique
   title             String
   titleAr           String?
   titleDe           String?
-  description       String            @db.Text
-  descriptionAr     String?           @db.Text
-  descriptionDe     String?           @db.Text
+  description       String                    @db.Text
+  descriptionAr     String?                   @db.Text
+  descriptionDe     String?                   @db.Text
   thumbnail         String?
   ageGroup          AgeGroup
   category          String
-  status            CompetitionStatus @default(UPCOMING)
+  status            CompetitionStatus         @default(UPCOMING)
   registrationStart DateTime
   registrationEnd   DateTime
   startDate         DateTime
   endDate           DateTime
   maxParticipants   Int?
   prizes            Json?
-  rules             String?           @db.Text
-  createdAt         DateTime          @default(now())
+  rules             String?                   @db.Text
+  createdAt         DateTime                  @default(now())
   registrations     CompetitionRegistration[]
 
   @@index([slug])
@@ -528,15 +539,15 @@ model CompetitionRegistration {
 // ========== GAMIFICATION ==========
 
 model Badge {
-  id          String     @id @default(cuid())
-  slug        String     @unique
+  id          String      @id @default(cuid())
+  slug        String      @unique
   name        String
   nameAr      String?
   nameDe      String?
   description String
   icon        String
   criteria    Json
-  points      Int        @default(0)
+  points      Int         @default(0)
   userBadges  UserBadge[]
 }
 
@@ -634,24 +645,24 @@ enum HelpCategory {
 }
 
 model HelpArticle {
-  id          String       @id @default(cuid())
-  slug        String       @unique
+  id          String         @id @default(cuid())
+  slug        String         @unique
   category    HelpCategory
   title       String
   titleAr     String?
   titleDe     String?
-  excerpt     String       @db.Text
-  excerptAr   String?      @db.Text
-  excerptDe   String?      @db.Text
-  content     String       @db.Text
-  contentAr   String?      @db.Text
-  contentDe   String?      @db.Text
+  excerpt     String         @db.Text
+  excerptAr   String?        @db.Text
+  excerptDe   String?        @db.Text
+  content     String         @db.Text
+  contentAr   String?        @db.Text
+  contentDe   String?        @db.Text
   tags        String[]
-  order       Int          @default(0)
-  isPublished Boolean      @default(false)
-  isFeatured  Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  order       Int            @default(0)
+  isPublished Boolean        @default(false)
+  isFeatured  Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   feedback    HelpFeedback[]
 
   @@index([slug])
@@ -719,4 +730,257 @@ model SystemSetting {
 
   @@index([category])
   @@index([key])
+}
+
+// ========== BILLING & SUBSCRIPTIONS ==========
+
+enum PlanInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum PlanTier {
+  FREE
+  LEARNER
+  PRO
+  LIFETIME
+}
+
+// Catalog of purchasable plans. One Plan row per (tier, interval, currency).
+// Stripe price IDs are stored here so checkout sessions can reference them
+// without hard-coding identifiers in application code.
+model Plan {
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  tier            PlanTier
+  interval        PlanInterval?
+  name            String
+  nameAr          String?
+  nameDe          String?
+  description     String        @db.Text
+  descriptionAr   String?       @db.Text
+  descriptionDe   String?       @db.Text
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("USD")
+  stripePriceId   String?       @unique
+  stripeProductId String?
+  features        Json
+  isActive        Boolean       @default(true)
+  isFeatured      Boolean       @default(false)
+  trialDays       Int           @default(0)
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  subscriptions Subscription[]
+
+  @@index([tier])
+  @@index([isActive])
+}
+
+enum SubscriptionStatus {
+  INCOMPLETE
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  EXPIRED
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String
+  planId               String
+  status               SubscriptionStatus @default(INCOMPLETE)
+  stripeSubscriptionId String?            @unique
+  stripeCustomerId     String?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  canceledAt           DateTime?
+  trialEndsAt          DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id])
+  invoices Invoice[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([stripeCustomerId])
+}
+
+enum CoursePurchaseStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+// Represents a one-time course purchase separately from Order (STEM-kit
+// fulfilment flow). Keeps commerce semantics clean and makes refunds /
+// revenue reporting per-learner queryable.
+model CoursePurchase {
+  id                    String               @id @default(cuid())
+  userId                String
+  courseId              String
+  status                CoursePurchaseStatus @default(PENDING)
+  amount                Decimal              @db.Decimal(10, 2)
+  currency              String               @default("USD")
+  stripeCheckoutId      String?              @unique
+  stripePaymentIntentId String?              @unique
+  paidAt                DateTime?
+  refundedAt            DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id])
+  invoice Invoice?
+
+  @@unique([userId, courseId, status])
+  @@index([userId])
+  @@index([courseId])
+  @@index([status])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
+  REFUNDED
+}
+
+enum InvoiceKind {
+  SUBSCRIPTION
+  COURSE
+  ORDER
+}
+
+model Invoice {
+  id               String        @id @default(cuid())
+  userId           String
+  subscriptionId   String?
+  coursePurchaseId String?       @unique
+  orderId          String?       @unique
+  kind             InvoiceKind
+  status           InvoiceStatus @default(OPEN)
+  number           String        @unique
+  subtotal         Decimal       @db.Decimal(10, 2)
+  tax              Decimal       @default(0) @db.Decimal(10, 2)
+  total            Decimal       @db.Decimal(10, 2)
+  currency         String        @default("USD")
+  stripeInvoiceId  String?       @unique
+  hostedUrl        String?
+  pdfUrl           String?
+  paidAt           DateTime?
+  createdAt        DateTime      @default(now())
+
+  user           User            @relation(fields: [userId], references: [id])
+  subscription   Subscription?   @relation(fields: [subscriptionId], references: [id])
+  coursePurchase CoursePurchase? @relation(fields: [coursePurchaseId], references: [id])
+
+  @@index([userId])
+  @@index([subscriptionId])
+  @@index([status])
+}
+
+// ========== CONSENT & COMPLIANCE ==========
+
+enum ConsentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  PARENTAL_COPPA
+  PARENTAL_GDPR_K
+  MARKETING_EMAIL
+  MARKETING_SMS
+  COOKIES_ANALYTICS
+  COOKIES_MARKETING
+}
+
+// Single append-only ledger of every consent event. Withdrawal is modelled
+// as a new record with granted=false, so we retain the full audit trail.
+model ConsentRecord {
+  id          String      @id @default(cuid())
+  userId      String
+  grantedById String?
+  type        ConsentType
+  granted     Boolean
+  version     String
+  documentUrl String?
+  ipAddress   String?
+  userAgent   String?     @db.Text
+  grantedAt   DateTime    @default(now())
+  expiresAt   DateTime?
+
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grantedBy User? @relation("ConsentGivenBy", fields: [grantedById], references: [id])
+
+  @@index([userId, type])
+  @@index([type])
+}
+
+// ========== VIDEO ASSETS ==========
+
+enum VideoProvider {
+  MUX
+  CLOUDFLARE_STREAM
+  VIMEO
+  YOUTUBE
+  EXTERNAL
+}
+
+enum VideoStatus {
+  UPLOADING
+  PROCESSING
+  READY
+  ERROR
+}
+
+// Provider-agnostic record for every video in the system. Lessons point at
+// these instead of raw URLs so we can swap providers, rotate signed URLs,
+// and track DRM + captions uniformly.
+model VideoAsset {
+  id           String        @id @default(cuid())
+  provider     VideoProvider
+  providerId   String
+  playbackId   String?
+  uploadUrl    String?       @db.Text
+  thumbnail    String?
+  duration     Int?
+  status       VideoStatus   @default(UPLOADING)
+  hasCaptions  Boolean       @default(false)
+  drmProtected Boolean       @default(false)
+  languages    String[]
+  metadata     Json?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([provider, providerId])
+  @@index([status])
+}
+
+// ========== ANALYTICS EVENTS ==========
+
+// Local append-only mirror of key product-analytics events. Useful for
+// server-side funnels when the external provider (PostHog/GA4) is not yet
+// wired or for privacy-sensitive regions where client instrumentation is
+// restricted.
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  userId      String?
+  anonymousId String?
+  name        String
+  properties  Json?
+  context     Json?
+  occurredAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([name])
+  @@index([occurredAt])
 }

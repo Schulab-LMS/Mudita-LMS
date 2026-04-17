@@ -185,6 +185,12 @@ export const addChildAccountSchema = z.object({
 
 export const removeChildSchema = z.object({ childId: cuidSchema });
 
+// ── Billing ─────────────────────────────────────────────────────────────
+
+export const buyCourseSchema = z.object({ courseId: cuidSchema });
+
+export const startSubscriptionSchema = z.object({ planId: cuidSchema });
+
 // ── Modules ─────────────────────────────────────────────────────────────
 
 export const createModuleSchema = z.object({
