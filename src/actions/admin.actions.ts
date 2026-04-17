@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { audit } from "@/lib/audit";
 import {
   updateUserRoleSchema,
   toggleUserActiveSchema,
@@ -14,11 +15,22 @@ import {
 
 export async function updateUserRole(userId: string, role: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = updateUserRoleSchema.safeParse({ userId, role });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const prev = await db.user.findUnique({
+      where: { id: parsed.data.userId },
+      select: { role: true },
+    });
     await db.user.update({ where: { id: parsed.data.userId }, data: { role: parsed.data.role as never } });
+    await audit({
+      actorId: session.user!.id,
+      action: "user.update_role",
+      resource: "User",
+      resourceId: parsed.data.userId,
+      metadata: { from: prev?.role, to: parsed.data.role },
+    });
     revalidatePath("/admin/users");
     return { success: true };
   } catch (error) {
@@ -29,13 +41,19 @@ export async function updateUserRole(userId: string, role: string) {
 
 export async function toggleUserActive(userId: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = toggleUserActiveSchema.safeParse({ userId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
     const user = await db.user.findUnique({ where: { id: parsed.data.userId }, select: { isActive: true } });
     if (!user) return { success: false, error: "User not found" };
     await db.user.update({ where: { id: parsed.data.userId }, data: { isActive: !user.isActive } });
+    await audit({
+      actorId: session.user!.id,
+      action: user.isActive ? "user.deactivate" : "user.activate",
+      resource: "User",
+      resourceId: parsed.data.userId,
+    });
     revalidatePath("/admin/users");
     return { success: true };
   } catch (error) {
@@ -117,11 +135,22 @@ export async function updateCourse(
 
 export async function deleteCourse(courseId: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = deleteCourseSchema.safeParse({ courseId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const course = await db.course.findUnique({
+      where: { id: parsed.data.courseId },
+      select: { slug: true, title: true },
+    });
     await db.course.delete({ where: { id: parsed.data.courseId } });
+    await audit({
+      actorId: session.user!.id,
+      action: "course.delete",
+      resource: "Course",
+      resourceId: parsed.data.courseId,
+      metadata: course ?? null,
+    });
     revalidatePath("/admin/courses");
     return { success: true };
   } catch (error) {

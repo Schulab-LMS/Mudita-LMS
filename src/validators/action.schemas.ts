@@ -187,9 +187,41 @@ export const removeChildSchema = z.object({ childId: cuidSchema });
 
 // ── Billing ─────────────────────────────────────────────────────────────
 
-export const buyCourseSchema = z.object({ courseId: cuidSchema });
+const couponCodeSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(32)
+  .regex(/^[A-Za-z0-9_-]+$/)
+  .optional();
 
-export const startSubscriptionSchema = z.object({ planId: cuidSchema });
+export const buyCourseSchema = z.object({
+  courseId: cuidSchema,
+  couponCode: couponCodeSchema,
+});
+
+export const startSubscriptionSchema = z.object({
+  planId: cuidSchema,
+  couponCode: couponCodeSchema,
+});
+
+// ── Coupons (admin) ─────────────────────────────────────────────────────
+
+export const createCouponSchema = z.object({
+  code: z.string().min(3).max(32),
+  type: z.enum(["PERCENT", "FIXED"]),
+  value: z.number().positive(),
+  currency: z.string().length(3).optional(),
+  scope: z.enum(["ALL", "COURSE", "PLAN"]).default("ALL"),
+  appliesToId: cuidSchema.optional(),
+  maxRedemptions: z.number().int().positive().optional(),
+  perUserLimit: z.number().int().min(0).default(1),
+  minAmount: z.number().min(0).optional(),
+  validFrom: z.coerce.date().optional(),
+  validUntil: z.coerce.date().optional(),
+});
+
+export const deactivateCouponSchema = z.object({ couponId: cuidSchema });
 
 // ── Modules ─────────────────────────────────────────────────────────────
 

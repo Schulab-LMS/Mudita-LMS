@@ -25,7 +25,7 @@ function guard<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
     }));
 }
 
-export async function buyCourse(input: { courseId: string }) {
+export async function buyCourse(input: { courseId: string; couponCode?: string }) {
   if (!isStripeConfigured()) {
     return { success: false, error: "Billing is not configured yet" };
   }
@@ -44,11 +44,12 @@ export async function buyCourse(input: { courseId: string }) {
     createCourseCheckoutSession({
       userId: session.user!.id!,
       courseId: parsed.data.courseId,
+      couponCode: parsed.data.couponCode,
     })
   );
 }
 
-export async function startSubscription(input: { planId: string }) {
+export async function startSubscription(input: { planId: string; couponCode?: string }) {
   if (!isStripeConfigured()) {
     return { success: false, error: "Billing is not configured yet" };
   }
@@ -67,6 +68,7 @@ export async function startSubscription(input: { planId: string }) {
     createSubscriptionCheckoutSession({
       userId: session.user!.id!,
       planId: parsed.data.planId,
+      couponCode: parsed.data.couponCode,
     })
   );
 }

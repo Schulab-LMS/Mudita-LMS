@@ -59,6 +59,12 @@ model User {
   childOf       ParentChild[]   @relation("ChildRelation")
   consentsGiven ConsentRecord[] @relation("ConsentGivenBy")
 
+  courseReviews     CourseReview[]
+  couponRedemptions CouponRedemption[]
+  auditLogs         AuditLog[]
+  onboardingProfile OnboardingProfile?
+  dripStates        DripState[]
+
   accounts Account[]
   sessions Session[]
 
@@ -170,12 +176,15 @@ model Course {
   isFree        Boolean      @default(false)
   status        CourseStatus @default(DRAFT)
   duration      Int?
+  averageRating Decimal      @default(0) @db.Decimal(3, 2)
+  reviewCount   Int          @default(0)
   createdById   String
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   modules     Module[]
   enrollments Enrollment[]
+  reviews     CourseReview[]
 
   @@index([slug])
   @@index([category])
@@ -983,4 +992,159 @@ model AnalyticsEvent {
   @@index([userId])
   @@index([name])
   @@index([occurredAt])
+}
+
+// ========== COURSE REVIEWS ==========
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model CourseReview {
+  id           String       @id @default(cuid())
+  courseId     String
+  userId       String
+  rating       Int
+  title        String?
+  body         String?      @db.Text
+  status       ReviewStatus @default(PENDING)
+  helpfulCount Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
+  @@index([courseId, status])
+  @@index([userId])
+}
+
+// ========== COUPONS ==========
+
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
+enum CouponScope {
+  ALL
+  COURSE
+  PLAN
+}
+
+model Coupon {
+  id             String      @id @default(cuid())
+  code           String      @unique
+  type           CouponType
+  value          Decimal     @db.Decimal(10, 2)
+  currency       String?
+  scope          CouponScope @default(ALL)
+  appliesToId    String?
+  maxRedemptions Int?
+  usedCount      Int         @default(0)
+  perUserLimit   Int         @default(1)
+  minAmount      Decimal?    @db.Decimal(10, 2)
+  validFrom      DateTime?
+  validUntil     DateTime?
+  isActive       Boolean     @default(true)
+  stripeCouponId String?     @unique
+  stripePromoId  String?     @unique
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  redemptions CouponRedemption[]
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model CouponRedemption {
+  id               String   @id @default(cuid())
+  couponId         String
+  userId           String
+  coursePurchaseId String?
+  subscriptionId   String?
+  amountOff        Decimal  @db.Decimal(10, 2)
+  currency         String   @default("USD")
+  redeemedAt       DateTime @default(now())
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([couponId])
+  @@index([userId])
+}
+
+// ========== AUDIT LOG ==========
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  resource   String
+  resourceId String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([resource, resourceId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ========== ONBOARDING ==========
+
+model OnboardingProfile {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  goals             String[]
+  interests         String[]
+  preferredSubjects String[]
+  availableHours    Int?
+  experience        String?
+  completedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== LIFECYCLE DRIP ==========
+
+enum DripJourney {
+  ACTIVATION
+  PARENT_DIGEST
+  CART_ABANDONMENT
+  WIN_BACK
+}
+
+enum DripStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model DripState {
+  id         String      @id @default(cuid())
+  userId     String
+  journey    DripJourney
+  step       Int         @default(0)
+  status     DripStatus  @default(ACTIVE)
+  nextSendAt DateTime?
+  lastSentAt DateTime?
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, journey])
+  @@index([journey, status, nextSendAt])
 }

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { stripe, DEFAULT_CURRENCY } from "@/lib/stripe";
 import { enrollUser } from "@/services/enrollment.service";
 import { EVENTS, track } from "@/lib/analytics";
+import { recordRedemption, validateCoupon } from "@/services/coupon.service";
 
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -39,6 +40,7 @@ export type CheckoutSessionResult = {
 export async function createCourseCheckoutSession(params: {
   userId: string;
   courseId: string;
+  couponCode?: string | null;
   successPath?: string;
   cancelPath?: string;
 }): Promise<CheckoutSessionResult> {
@@ -75,6 +77,24 @@ export async function createCourseCheckoutSession(params: {
   const currency = (course.currency || DEFAULT_CURRENCY).toLowerCase();
   const amountMinor = Math.round(Number(course.price) * 100);
 
+  let couponPromoId: string | null = null;
+  let couponId: string | null = null;
+  let couponAmountOff = 0;
+  if (params.couponCode) {
+    const result = await validateCoupon({
+      code: params.couponCode,
+      userId,
+      scope: "COURSE",
+      targetId: courseId,
+      amount: Number(course.price),
+      currency: currency.toUpperCase(),
+    });
+    if (!result.valid) throw new Error(result.error);
+    couponPromoId = result.stripePromoId;
+    couponId = result.coupon.id;
+    couponAmountOff = result.amountOff;
+  }
+
   const purchase = await db.coursePurchase.create({
     data: {
       userId,
@@ -102,6 +122,7 @@ export async function createCourseCheckoutSession(params: {
         },
       },
     ],
+    discounts: couponPromoId ? [{ promotion_code: couponPromoId }] : undefined,
     success_url: absoluteUrl(
       params.successPath ?? `/courses/${course.slug}?purchase=success`
     ),
@@ -114,6 +135,9 @@ export async function createCourseCheckoutSession(params: {
       userId,
       courseId,
       purchaseId: purchase.id,
+      ...(couponId
+        ? { couponId, couponAmountOff: couponAmountOff.toFixed(2) }
+        : {}),
     },
     payment_intent_data: {
       metadata: {
@@ -148,6 +172,7 @@ export async function createCourseCheckoutSession(params: {
 export async function createSubscriptionCheckoutSession(params: {
   userId: string;
   planId: string;
+  couponCode?: string | null;
   successPath?: string;
   cancelPath?: string;
 }): Promise<CheckoutSessionResult> {
@@ -158,6 +183,8 @@ export async function createSubscriptionCheckoutSession(params: {
     select: {
       id: true,
       tier: true,
+      amount: true,
+      currency: true,
       stripePriceId: true,
       trialDays: true,
       isActive: true,
@@ -183,17 +210,40 @@ export async function createSubscriptionCheckoutSession(params: {
 
   const customerId = await getOrCreateStripeCustomer(userId);
 
+  let couponPromoId: string | null = null;
+  let couponMeta: Record<string, string> = {};
+  if (params.couponCode) {
+    const result = await validateCoupon({
+      code: params.couponCode,
+      userId,
+      scope: "PLAN",
+      targetId: planId,
+      amount: Number(plan.amount),
+      currency: plan.currency,
+    });
+    if (!result.valid) throw new Error(result.error);
+    couponPromoId = result.stripePromoId;
+    couponMeta = {
+      couponId: result.coupon.id,
+      couponAmountOff: result.amountOff.toFixed(2),
+    };
+  }
+
   const session = await stripe().checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: plan.stripePriceId, quantity: 1 }],
+    discounts: couponPromoId ? [{ promotion_code: couponPromoId }] : undefined,
     success_url: absoluteUrl(params.successPath ?? "/student?billing=success"),
     cancel_url: absoluteUrl(params.cancelPath ?? "/pricing?billing=cancelled"),
     subscription_data:
       plan.trialDays > 0
-        ? { trial_period_days: plan.trialDays, metadata: { userId, planId } }
-        : { metadata: { userId, planId } },
-    metadata: { kind: "subscription", userId, planId },
+        ? {
+            trial_period_days: plan.trialDays,
+            metadata: { userId, planId, ...couponMeta },
+          }
+        : { metadata: { userId, planId, ...couponMeta } },
+    metadata: { kind: "subscription", userId, planId, ...couponMeta },
   });
 
   if (!session.url) throw new Error("Stripe did not return a checkout URL");
@@ -280,6 +330,18 @@ async function handleCoursePurchaseCompleted(
   // Enrol the learner after the transaction commits. enrollUser is idempotent.
   await enrollUser(purchase.userId, purchase.courseId);
 
+  const couponId = session.metadata?.couponId;
+  const couponAmountOff = Number(session.metadata?.couponAmountOff ?? 0);
+  if (couponId && couponAmountOff > 0) {
+    await recordRedemption({
+      couponId,
+      userId: purchase.userId,
+      coursePurchaseId: purchase.id,
+      amountOff: couponAmountOff,
+      currency: purchase.currency,
+    }).catch((err) => console.error("[coupon] redemption record failed:", err));
+  }
+
   track({
     name: EVENTS.COURSE_PURCHASE_COMPLETED,
     userId: purchase.userId,
@@ -319,7 +381,7 @@ export async function upsertSubscriptionFromStripe(
   const trialEnd = sub.trial_end ? new Date(sub.trial_end * 1000) : null;
   const canceledAt = sub.canceled_at ? new Date(sub.canceled_at * 1000) : null;
 
-  await db.subscription.upsert({
+  const persisted = await db.subscription.upsert({
     where: { stripeSubscriptionId: sub.id },
     create: {
       userId,
@@ -344,6 +406,25 @@ export async function upsertSubscriptionFromStripe(
       trialEndsAt: trialEnd,
     },
   });
+
+  const couponId = sub.metadata?.couponId;
+  const couponAmountOff = Number(sub.metadata?.couponAmountOff ?? 0);
+  if (couponId && couponAmountOff > 0) {
+    const already = await db.couponRedemption.findFirst({
+      where: { couponId, subscriptionId: persisted.id },
+      select: { id: true },
+    });
+    if (!already) {
+      const currency = sub.items.data[0]?.price?.currency?.toUpperCase() ?? "USD";
+      await recordRedemption({
+        couponId,
+        userId,
+        subscriptionId: persisted.id,
+        amountOff: couponAmountOff,
+        currency,
+      }).catch((err) => console.error("[coupon] redemption record failed:", err));
+    }
+  }
 }
 
 export async function recordSubscriptionInvoicePaid(
