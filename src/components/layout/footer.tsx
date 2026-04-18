@@ -2,7 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Rocket } from "lucide-react";
+import { FlaskConical } from "lucide-react";
 
 export function Footer() {
   const t = useTranslations("footer");
@@ -18,8 +18,8 @@ export function Footer() {
               href="/"
               className="flex items-center gap-2 text-xl font-bold text-white"
             >
-              <Rocket className="h-6 w-6" />
-              <span>Mudita</span>
+              <FlaskConical className="h-6 w-6" />
+              <span>Schulab</span>
             </Link>
             <p className="text-sm leading-relaxed">{t("description")}</p>
           </div>

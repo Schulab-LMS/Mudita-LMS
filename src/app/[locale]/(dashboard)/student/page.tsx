@@ -16,7 +16,7 @@ import {
   Flame,
 } from "lucide-react";
 
-export const metadata = { title: "Student Dashboard | Mudita LMS" };
+export const metadata = { title: "Student Dashboard | Schulab" };
 
 export default async function StudentDashboardPage() {
   const session = await auth();

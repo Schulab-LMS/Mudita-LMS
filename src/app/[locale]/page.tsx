@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Mudita — Joyful STEM Learning for Children Ages 3–18",
+  title: "Schulab — Joyful STEM Learning for Children Ages 3–18",
   description:
     "Interactive STEM courses, live expert tutoring, and hands-on science kits for children ages 3 to 18. Available in English, Arabic, and German.",
 };
@@ -272,11 +272,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* What Makes Mudita Different */}
+      {/* What Makes Schulab Different */}
       <section className="bg-muted/30 py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-center font-display text-3xl font-bold text-foreground sm:text-4xl">
-            {t("whyMudita")}
+            {t("whySchulab")}
           </h2>
           <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {differentiators.map((item) => (

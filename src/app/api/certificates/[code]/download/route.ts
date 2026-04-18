@@ -191,7 +191,7 @@ export async function GET(
     <div class="border-outer"></div>
     <div class="border-inner"></div>
     <div class="content">
-      <div class="logo-text">Mudita LMS</div>
+      <div class="logo-text">Schulab</div>
       <h1 class="title">Certificate of Completion</h1>
       <p class="subtitle">This is to certify that</p>
       <p class="presented-to">Presented to</p>
@@ -211,7 +211,7 @@ export async function GET(
         </div>
       </div>
     </div>
-    <div class="verification">Verify at mudita-lms.com/verify/${cert.code}</div>
+    <div class="verification">Verify at schulab.com/verify/${cert.code}</div>
   </div>
 </body>
 </html>`;

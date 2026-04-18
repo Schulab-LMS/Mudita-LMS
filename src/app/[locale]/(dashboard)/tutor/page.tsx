@@ -5,7 +5,7 @@ import { getBookingsForTutor } from "@/services/booking.service";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 
-export const metadata = { title: "Tutor Dashboard | Mudita LMS" };
+export const metadata = { title: "Tutor Dashboard | Schulab" };
 
 export default async function TutorDashboardPage() {
   const session = await auth();

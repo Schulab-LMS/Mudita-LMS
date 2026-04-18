@@ -4,9 +4,9 @@ import { TutorCard } from "@/components/booking/tutor-card";
 import { Link } from "@/i18n/navigation";
 
 export const metadata: Metadata = {
-  title: "Find a Tutor | Mudita LMS",
+  title: "Find a Tutor | Schulab",
   description:
-    "Browse verified STEM tutors and book personalized sessions for children ages 3-18 on Mudita LMS.",
+    "Browse verified STEM tutors and book personalized sessions for children ages 3-18 on Schulab.",
 };
 
 interface TutorsPageProps {

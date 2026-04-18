@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps) {
   const { articleId } = await params;
   const article = await getArticleById(articleId);
   return {
-    title: article ? `Edit: ${article.title} | Admin | Mudita LMS` : "Edit Article",
+    title: article ? `Edit: ${article.title} | Admin | Schulab` : "Edit Article",
   };
 }
 

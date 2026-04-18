@@ -13,7 +13,7 @@ interface CoursesPageProps {
 }
 
 export const metadata = {
-  title: "Courses | Mudita LMS",
+  title: "Courses | Schulab",
   description: "Browse our STEM courses designed for children ages 3–18.",
 };
 

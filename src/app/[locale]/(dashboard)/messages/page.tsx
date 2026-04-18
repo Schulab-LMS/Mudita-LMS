@@ -4,7 +4,7 @@ import { getInbox, getMessageableUsers } from "@/services/message.service";
 import { Link } from "@/i18n/navigation";
 import { MessageSquare, Plus } from "lucide-react";
 
-export const metadata = { title: "Messages | Mudita LMS" };
+export const metadata = { title: "Messages | Schulab" };
 
 function timeAgo(date: Date): string {
   const now = new Date();

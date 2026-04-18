@@ -44,9 +44,9 @@ async function main() {
 
   // ── Users ────────────────────────────────────────────────────────────────
   const admin = await db.user.upsert({
-    where: { email: "admin@mudita.io" },
+    where: { email: "admin@schulab.com" },
     update: {},
-    create: { name: "Admin User", email: "admin@mudita.io", passwordHash, role: "ADMIN", isActive: true },
+    create: { name: "Admin User", email: "admin@schulab.com", passwordHash, role: "ADMIN", isActive: true },
   });
 
   const student1 = await db.user.upsert({
@@ -1390,7 +1390,7 @@ async function main() {
       slug: "young-coders-hackathon",
       description: "A 48-hour online hackathon for budding programmers aged 6-12.",
       rules: "Individual participation only. Use Scratch or Python.",
-      prizes: { first: "Mudita Pro 1-year", second: "STEM Kit", third: "Course voucher" },
+      prizes: { first: "Schulab Pro 1-year", second: "STEM Kit", third: "Course voucher" },
       status: "UPCOMING",
       category: "CODING",
       ageGroup: "AGES_6_8",
@@ -1406,7 +1406,7 @@ async function main() {
   const notifCount = await db.notification.count({ where: { userId: student1.id } });
   if (notifCount === 0) {
     await db.notification.create({
-      data: { userId: student1.id, title: "Welcome to Mudita!", body: "You've successfully joined Mudita LMS. Start exploring courses.", type: "INFO" },
+      data: { userId: student1.id, title: "Welcome to Schulab!", body: "You've successfully joined Schulab. Start exploring courses.", type: "INFO" },
     });
     await db.notification.create({
       data: { userId: student1.id, title: "Badge Earned!", body: "You earned the 'First Steps' badge. Keep learning!", type: "BADGE" },
@@ -1415,9 +1415,9 @@ async function main() {
 
   // ── Super Admin User ───────────────────────────────────────────────────
   await db.user.upsert({
-    where: { email: "superadmin@mudita.io" },
+    where: { email: "superadmin@schulab.com" },
     update: { role: "SUPER_ADMIN" },
-    create: { name: "Super Admin", email: "superadmin@mudita.io", passwordHash, role: "SUPER_ADMIN", isActive: true },
+    create: { name: "Super Admin", email: "superadmin@schulab.com", passwordHash, role: "SUPER_ADMIN", isActive: true },
   });
 
   // ── Default Permissions ───────────────────────────────────────────────
@@ -1533,13 +1533,13 @@ async function main() {
 
   // ── Default System Settings ───────────────────────────────────────────
   const defaultSettings = [
-    { key: "site.name", value: "Mudita LMS", type: "string", category: "general", label: "Site Name", description: "The name of the platform" },
+    { key: "site.name", value: "Schulab", type: "string", category: "general", label: "Site Name", description: "The name of the platform" },
     { key: "site.tagline", value: "STEM Education for Every Child", type: "string", category: "general", label: "Tagline", description: "Platform tagline shown on homepage" },
-    { key: "site.supportEmail", value: "support@mudita.io", type: "string", category: "general", label: "Support Email", description: "Email address for support inquiries" },
+    { key: "site.supportEmail", value: "support@schulab.com", type: "string", category: "general", label: "Support Email", description: "Email address for support inquiries" },
     { key: "site.defaultLocale", value: "en", type: "string", category: "general", label: "Default Locale", description: "Default language for the platform" },
     { key: "site.maintenanceMode", value: "false", type: "boolean", category: "general", label: "Maintenance Mode", description: "Put the site in maintenance mode" },
-    { key: "email.fromName", value: "Mudita LMS", type: "string", category: "email", label: "From Name", description: "Sender name for outgoing emails" },
-    { key: "email.fromAddress", value: "noreply@mudita.io", type: "string", category: "email", label: "From Address", description: "Sender email for outgoing emails" },
+    { key: "email.fromName", value: "Schulab", type: "string", category: "email", label: "From Name", description: "Sender name for outgoing emails" },
+    { key: "email.fromAddress", value: "noreply@schulab.com", type: "string", category: "email", label: "From Address", description: "Sender email for outgoing emails" },
     { key: "email.smtpHost", value: "", type: "string", category: "email", label: "SMTP Host", description: "SMTP server hostname" },
     { key: "email.smtpPort", value: "587", type: "number", category: "email", label: "SMTP Port", description: "SMTP server port" },
     { key: "payments.currency", value: "USD", type: "string", category: "payments", label: "Currency", description: "Default payment currency" },

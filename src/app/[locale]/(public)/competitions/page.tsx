@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { getCompetitions } from "@/services/competition.service";
 
 export const metadata: Metadata = {
-  title: "Competitions | Mudita LMS",
+  title: "Competitions | Schulab",
   description:
-    "Join STEM competitions on Mudita LMS. Showcase your skills and compete with students worldwide.",
+    "Join STEM competitions on Schulab. Showcase your skills and compete with students worldwide.",
 };
 
 const statusConfig: Record<string, { label: string; color: string }> = {

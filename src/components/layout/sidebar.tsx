@@ -19,7 +19,7 @@ import {
   Trophy,
   FileText,
   Settings,
-  Rocket,
+  FlaskConical,
   LogOut,
   X,
   ShieldCheck,
@@ -65,8 +65,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     <div className="flex h-full flex-col bg-white border-r">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 border-b px-6">
-        <Rocket className="h-7 w-7 text-primary" />
-        <span className="text-xl font-bold tracking-tight">Mudita</span>
+        <FlaskConical className="h-7 w-7 text-primary" />
+        <span className="text-xl font-bold tracking-tight">Schulab</span>
         {/* Close button on mobile */}
         <button
           onClick={onClose}

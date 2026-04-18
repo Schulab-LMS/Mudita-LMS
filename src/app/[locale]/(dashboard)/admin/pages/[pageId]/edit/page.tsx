@@ -4,7 +4,7 @@ import { isAdminRole } from "@/lib/auth-helpers";
 import { getPageById } from "@/services/page.service";
 import { PageForm } from "../../page-form";
 
-export const metadata = { title: "Edit Page | Admin | Mudita LMS" };
+export const metadata = { title: "Edit Page | Admin | Schulab" };
 
 export default async function EditPagePage({
   params,

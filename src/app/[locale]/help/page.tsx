@@ -7,8 +7,8 @@ import { getLocale } from "next-intl/server";
 
 export async function generateMetadata() {
   return {
-    title: "Help Center | Mudita",
-    description: "Find answers, guides, and support for using Mudita LMS.",
+    title: "Help Center | Schulab",
+    description: "Find answers, guides, and support for using Schulab.",
   };
 }
 
@@ -59,7 +59,7 @@ export default async function HelpCenterPage() {
             Help Center
           </h1>
           <p className="mt-3 text-lg text-muted-foreground">
-            Find answers, guides, and support to get the most out of Mudita.
+            Find answers, guides, and support to get the most out of Schulab.
           </p>
           <div className="mx-auto mt-6 max-w-xl">
             <HelpSearchPageWrapper locale={locale} />

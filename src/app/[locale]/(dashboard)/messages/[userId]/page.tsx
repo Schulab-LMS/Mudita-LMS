@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props) {
     where: { id: userId },
     select: { name: true },
   });
-  return { title: `${user?.name ?? "Messages"} | Mudita LMS` };
+  return { title: `${user?.name ?? "Messages"} | Schulab` };
 }
 
 function formatTime(date: Date): string {

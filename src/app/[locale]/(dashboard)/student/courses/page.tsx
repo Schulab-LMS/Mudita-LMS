@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen } from "lucide-react";
 
-export const metadata = { title: "My Courses | Mudita LMS" };
+export const metadata = { title: "My Courses | Schulab" };
 
 export default async function StudentCoursesPage() {
   const session = await auth();

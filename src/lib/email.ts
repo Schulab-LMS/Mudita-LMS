@@ -8,7 +8,7 @@ function getResend() {
   return _resend;
 }
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "Mudita LMS <noreply@mudita-lms.com>";
+const FROM_EMAIL = process.env.EMAIL_FROM || "Schulab <noreply@schulab.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 interface SendEmailOptions {
@@ -70,14 +70,14 @@ function layout(content: string) {
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:560px;margin:40px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#2563eb,#7c3aed);padding:24px 32px;">
-      <h1 style="margin:0;color:white;font-size:20px;font-weight:700;letter-spacing:0.5px;">Mudita LMS</h1>
+      <h1 style="margin:0;color:white;font-size:20px;font-weight:700;letter-spacing:0.5px;">Schulab</h1>
     </div>
     <div style="padding:32px;">
       ${content}
     </div>
     <div style="padding:16px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
       <p style="margin:0;font-size:12px;color:#9ca3af;">
-        &copy; ${new Date().getFullYear()} Mudita LMS. All rights reserved.
+        &copy; ${new Date().getFullYear()} Schulab. All rights reserved.
       </p>
     </div>
   </div>
@@ -100,7 +100,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 
   return sendEmail({
     to: email,
-    subject: "Reset your password — Mudita LMS",
+    subject: "Reset your password — Schulab",
     html: layout(`
       <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Reset your password</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
@@ -123,11 +123,11 @@ export async function sendEmailVerification(email: string, token: string) {
 
   return sendEmail({
     to: email,
-    subject: "Verify your email — Mudita LMS",
+    subject: "Verify your email — Schulab",
     html: layout(`
       <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Verify your email</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
-        Welcome to Mudita LMS! Please verify your email address by clicking the button below.
+        Welcome to Schulab! Please verify your email address by clicking the button below.
       </p>
       ${button("Verify Email", verifyUrl)}
       <p style="color:#9ca3af;font-size:12px;line-height:1.5;">
@@ -143,7 +143,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
 
   return sendEmail({
     to: email,
-    subject: `Welcome to Mudita LMS, ${name}!`,
+    subject: `Welcome to Schulab, ${name}!`,
     html: layout(`
       <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Welcome, ${safeName}! 🎉</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
@@ -174,7 +174,7 @@ export async function sendEnrollmentConfirmation(
 
   return sendEmail({
     to: email,
-    subject: `Enrolled: ${courseTitle} — Mudita LMS`,
+    subject: `Enrolled: ${courseTitle} — Schulab`,
     html: layout(`
       <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">You're enrolled! 📚</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
@@ -199,7 +199,7 @@ export async function sendCertificateEmail(
 
   return sendEmail({
     to: email,
-    subject: `Certificate earned: ${courseTitle} — Mudita LMS`,
+    subject: `Certificate earned: ${courseTitle} — Schulab`,
     html: layout(`
       <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Congratulations, ${safeName}! 🎓</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
@@ -220,7 +220,7 @@ export async function sendTutorApprovedEmail(email: string, name: string) {
 
   return sendEmail({
     to: email,
-    subject: "Your tutor application has been approved! — Mudita LMS",
+    subject: "Your tutor application has been approved! — Schulab",
     html: layout(`
       <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Congratulations, ${safeName}!</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
@@ -246,7 +246,7 @@ export async function sendTutorRejectedEmail(email: string, name: string) {
 
   return sendEmail({
     to: email,
-    subject: "Update on your tutor application — Mudita LMS",
+    subject: "Update on your tutor application — Schulab",
     html: layout(`
       <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Hi ${safeName},</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
@@ -265,7 +265,7 @@ export async function sendTutorRejectedEmail(email: string, name: string) {
 }
 
 export async function sendNewTutorApplicationEmail(tutorName: string, tutorEmail: string) {
-  const adminEmail = process.env.CONTACT_EMAIL || "admin@mudita.io";
+  const adminEmail = process.env.CONTACT_EMAIL || "admin@schulab.com";
   const safeTutorName = escapeHtml(tutorName);
   const safeTutorEmail = escapeHtml(tutorEmail);
 
@@ -289,7 +289,7 @@ export async function sendContactFormEmail(
   subject: string,
   message: string
 ) {
-  const adminEmail = process.env.CONTACT_EMAIL || "admin@mudita.io";
+  const adminEmail = process.env.CONTACT_EMAIL || "admin@schulab.com";
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
   const safeSubject = escapeHtml(subject);

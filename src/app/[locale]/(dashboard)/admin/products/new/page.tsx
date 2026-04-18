@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import ProductForm from "../product-form";
 
-export const metadata = { title: "New Product | Admin | Mudita LMS" };
+export const metadata = { title: "New Product | Admin | Schulab" };
 
 export default async function NewProductPage() {
   const session = await auth();

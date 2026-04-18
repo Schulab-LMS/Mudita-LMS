@@ -21,9 +21,9 @@ import {
 
 
 export const metadata: Metadata = {
-  title: "How It Works | Mudita LMS",
+  title: "How It Works | Schulab",
   description:
-    "Discover how Mudita's STEM education platform works. Browse courses, learn interactively, and achieve real results.",
+    "Discover how Schulab's STEM education platform works. Browse courses, learn interactively, and achieve real results.",
 };
 
 const steps = [
@@ -91,7 +91,7 @@ export default function HowItWorksPage() {
       {/* Hero Section */}
       <section className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-          How Mudita Works
+          How Schulab Works
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
           A simple, structured approach to STEM education that makes learning
@@ -178,7 +178,7 @@ export default function HowItWorksPage() {
             Ready to Get Started?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-primary-foreground/90">
-            Join thousands of families already learning with Mudita.
+            Join thousands of families already learning with Schulab.
           </p>
           <Link
             href="/register"

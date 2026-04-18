@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Plus } from "lucide-react";
 
-export const metadata = { title: "Competitions | Admin | Mudita LMS" };
+export const metadata = { title: "Competitions | Admin | Schulab" };
 
 export default async function AdminCompetitionsPage() {
   const session = await auth();

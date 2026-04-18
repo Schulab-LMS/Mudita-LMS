@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "Mudita",
-    "tagline": "Joyful STEM Learning",
+    "appName": "Schulab",
+    "tagline": "The Next Era of Learning",
     "login": "Log In",
     "register": "Sign Up",
     "logout": "Log Out",
@@ -104,7 +104,7 @@
     "howStep2Desc": "Interactive video lessons, quizzes, and hands-on STEM kits. Plus live tutoring when needed.",
     "howStep3Title": "Achieve & Grow",
     "howStep3Desc": "Track progress, earn badges and certificates. Watch your child build real STEM skills.",
-    "whyMudita": "What Makes Mudita Different",
+    "whySchulab": "What Makes Schulab Different",
     "whyReason1Title": "Live Expert Tutoring",
     "whyReason1Desc": "One-on-one sessions with verified STEM educators. Personalized support at your child's pace.",
     "whyReason2Title": "Hands-On STEM Kits",
@@ -114,13 +114,13 @@
     "whyReason4Title": "Multilingual Learning",
     "whyReason4Desc": "Full platform in English, Arabic, and German. Learn in the language your child is most comfortable with.",
     "testimonials": "What Parents Say",
-    "testimonial1Quote": "My daughter went from being afraid of math to building her own calculator app. Mudita made STEM feel like play, not work.",
+    "testimonial1Quote": "My daughter went from being afraid of math to building her own calculator app. Schulab made STEM feel like play, not work.",
     "testimonial1Name": "Sarah M.",
     "testimonial1Role": "Parent of 2, Dubai",
     "testimonial2Quote": "The STEM kits are incredible. My son looks forward to his weekend science experiments more than anything else.",
     "testimonial2Name": "Ahmed K.",
     "testimonial2Role": "Parent of 1, Berlin",
-    "testimonial3Quote": "As a homeschooling parent, Mudita gives me a structured STEM curriculum I can trust. The progress tracking is a game-changer.",
+    "testimonial3Quote": "As a homeschooling parent, Schulab gives me a structured STEM curriculum I can trust. The progress tracking is a game-changer.",
     "testimonial3Name": "Lisa R.",
     "testimonial3Role": "Homeschool Parent, London",
     "forSchools": "STEM Education for Schools",
@@ -137,10 +137,10 @@
     }
   },
   "about": {
-    "title": "About Mudita",
+    "title": "About Schulab",
     "subtitle": "We believe every child deserves access to joyful, high-quality STEM education — no matter where they live or what language they speak.",
     "storyTitle": "Our Story",
-    "storyText": "Mudita was born from a simple observation: children are naturally curious, but too often, STEM education feels intimidating or inaccessible. We set out to change that. By combining expert instruction, interactive technology, and hands-on learning, we created a platform where science, coding, and engineering feel like an adventure — not a chore.",
+    "storyText": "Schulab was born from a simple belief: traditional school teaches facts, but the next era of learning teaches children how to build the future. We set out to turn every classroom into a lab — where science, coding, and engineering feel like an adventure, not a chore. By combining expert instruction, interactive technology, and hands-on experiments, we created a platform where curiosity becomes capability.",
     "mission": {
       "title": "Our Mission",
       "text": "To make STEM education accessible, engaging, and fun for every child worldwide. We combine expert instruction with interactive technology and hands-on kits to spark curiosity and build future-ready skills."
@@ -162,7 +162,7 @@
     },
     "methodology": {
       "title": "Our Approach to Learning",
-      "text": "Every Mudita course follows a proven learn-practice-apply framework. Children watch engaging video lessons, reinforce concepts through interactive quizzes, and then apply what they've learned through hands-on projects and STEM kit activities. This multi-modal approach ensures deeper understanding and retention."
+      "text": "Every Schulab course follows a proven learn-practice-apply framework. Children watch engaging video lessons, reinforce concepts through interactive quizzes, and then apply what they've learned through hands-on projects and STEM kit activities. This multi-modal approach ensures deeper understanding and retention."
     },
     "team": {
       "title": "Our Team",
@@ -271,7 +271,7 @@
   },
   "contact": {
     "title": "Get in Touch",
-    "subtitle": "Have a question about Mudita? We'd love to hear from you. Our team typically responds within 24 hours.",
+    "subtitle": "Have a question about Schulab? We'd love to hear from you. Our team typically responds within 24 hours.",
     "form": {
       "name": "Your Name",
       "namePlaceholder": "John Doe",
@@ -286,7 +286,7 @@
     },
     "info": {
       "emailTitle": "Email Us",
-      "email": "hello@mudita.edu",
+      "email": "hello@schulab.com",
       "phoneTitle": "Call Us",
       "phone": "+1 (555) 123-4567",
       "addressTitle": "Visit Us",
@@ -297,7 +297,7 @@
     "loginTitle": "Welcome Back",
     "loginSubtitle": "Sign in to continue your learning journey.",
     "registerTitle": "Create Your Account",
-    "registerSubtitle": "Join Mudita and start your STEM adventure.",
+    "registerSubtitle": "Join Schulab and start your STEM adventure.",
     "email": "Email",
     "password": "Password",
     "confirmPassword": "Confirm Password",
@@ -360,7 +360,7 @@
     "deadline": "Registration Deadline"
   },
   "footer": {
-    "description": "Joyful STEM learning for children ages 3–18. Interactive courses, live tutoring, and hands-on kits.",
+    "description": "The next era of learning for children ages 3–18. Interactive STEM courses, live tutoring, and hands-on kits — where school becomes a lab.",
     "quickLinks": "Quick Links",
     "support": "Support",
     "legal": "Legal",
@@ -370,6 +370,6 @@
     "helpCenter": "Help Center",
     "howItWorks": "How It Works",
     "forSchools": "For Schools",
-    "copyright": "© {year} Mudita. All rights reserved."
+    "copyright": "© {year} Schulab. All rights reserved."
   }
 }

@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { getUserBadges, getAllBadges } from "@/services/gamification.service";
 import { BadgeDisplay } from "@/components/gamification/badge-display";
 
-export const metadata = { title: "My Badges | Mudita LMS" };
+export const metadata = { title: "My Badges | Schulab" };
 
 export default async function StudentBadgesPage() {
   const session = await auth();

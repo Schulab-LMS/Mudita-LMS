@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { HelpArticleForm } from "../help-article-form";
 
-export const metadata = { title: "New Help Article | Admin | Mudita LMS" };
+export const metadata = { title: "New Help Article | Admin | Schulab" };
 
 export default async function NewHelpArticlePage() {
   const session = await auth();

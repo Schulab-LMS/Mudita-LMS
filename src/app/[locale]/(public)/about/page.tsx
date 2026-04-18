@@ -3,9 +3,9 @@ import { useTranslations } from "next-intl";
 import { User, Heart, Globe, Shield, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "About Us | Mudita LMS",
+  title: "About Us | Schulab",
   description:
-    "Learn about Mudita's mission, vision, team, and approach to joyful STEM education for children ages 3-18.",
+    "Learn about Schulab's mission, vision, team, and approach to joyful STEM education for children ages 3-18.",
 };
 
 const values = [

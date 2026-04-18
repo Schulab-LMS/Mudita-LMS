@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { getCertificates } from "@/services/certificate.service";
 import { Card, CardContent } from "@/components/ui/card";
 
-export const metadata = { title: "My Certificates | Mudita LMS" };
+export const metadata = { title: "My Certificates | Schulab" };
 
 export default async function StudentCertificatesPage() {
   const session = await auth();

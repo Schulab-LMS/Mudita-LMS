@@ -4,7 +4,7 @@ import { getChildren } from "@/services/user.service";
 import { ChildCard } from "@/components/dashboard/child-card";
 import { AddChildForm } from "./add-child-form";
 
-export const metadata = { title: "Manage Children | Mudita LMS" };
+export const metadata = { title: "Manage Children | Schulab" };
 
 export default async function ParentChildrenPage() {
   const session = await auth();

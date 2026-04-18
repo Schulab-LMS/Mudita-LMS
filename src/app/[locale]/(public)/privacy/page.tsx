@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Mudita LMS",
+  title: "Privacy Policy | Schulab",
   description:
-    "Privacy policy for Mudita LMS. Learn how we collect, use, and protect your data.",
+    "Privacy policy for Schulab. Learn how we collect, use, and protect your data.",
 };
 
 export default function PrivacyPolicyPage() {
@@ -22,7 +22,7 @@ export default function PrivacyPolicyPage() {
         </h2>
         <p className="mb-4 leading-relaxed text-muted-foreground">
           We collect information that you provide directly to us when using
-          Mudita LMS. This includes:
+          Schulab. This includes:
         </p>
         <ul className="mb-4 list-disc space-y-1 pl-6 text-muted-foreground">
           <li>Name and contact information (email address)</li>
@@ -99,10 +99,10 @@ export default function PrivacyPolicyPage() {
           If you have any questions about this Privacy Policy or our data
           practices, please contact us at{" "}
           <a
-            href="mailto:hello@mudita.edu"
+            href="mailto:hello@schulab.com"
             className="text-primary underline underline-offset-4 hover:text-primary/80"
           >
-            hello@mudita.edu
+            hello@schulab.com
           </a>
           .
         </p>

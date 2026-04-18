@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | Mudita LMS",
-  description: "Terms of service for Mudita LMS platform.",
+  title: "Terms of Service | Schulab",
+  description: "Terms of service for Schulab platform.",
 };
 
 export default function TermsOfServicePage() {
@@ -20,7 +20,7 @@ export default function TermsOfServicePage() {
           Acceptance of Terms
         </h2>
         <p className="mb-4 leading-relaxed text-muted-foreground">
-          By accessing or using Mudita LMS, you agree to be bound by these Terms
+          By accessing or using Schulab, you agree to be bound by these Terms
           of Service and all applicable laws and regulations. If you do not agree
           with any of these terms, you may not use the platform.
         </p>
@@ -38,7 +38,7 @@ export default function TermsOfServicePage() {
 
         <h2 className="mt-8 mb-3 text-xl font-semibold">Use of Services</h2>
         <p className="mb-4 leading-relaxed text-muted-foreground">
-          Mudita LMS is intended for educational purposes. You agree to use the
+          Schulab is intended for educational purposes. You agree to use the
           platform responsibly and not to:
         </p>
         <ul className="mb-4 list-disc space-y-1 pl-6 text-muted-foreground">
@@ -67,10 +67,10 @@ export default function TermsOfServicePage() {
           Content &amp; Intellectual Property
         </h2>
         <p className="mb-4 leading-relaxed text-muted-foreground">
-          All course content, materials, and platform design are owned by Mudita
+          All course content, materials, and platform design are owned by Schulab
           LMS and protected by intellectual property laws. By submitting
           user-generated content (such as forum posts or project submissions),
-          you grant Mudita a non-exclusive, royalty-free license to use, display,
+          you grant Schulab a non-exclusive, royalty-free license to use, display,
           and distribute that content within the platform.
         </p>
 
@@ -78,8 +78,8 @@ export default function TermsOfServicePage() {
           Tutoring Services
         </h2>
         <p className="mb-4 leading-relaxed text-muted-foreground">
-          Tutors on Mudita are vetted but operate as independent educators.
-          Mudita facilitates the connection between tutors and learners but does
+          Tutors on Schulab are vetted but operate as independent educators.
+          Schulab facilitates the connection between tutors and learners but does
           not guarantee specific learning outcomes. Any disputes between tutors
           and users should be reported to our support team.
         </p>
@@ -96,7 +96,7 @@ export default function TermsOfServicePage() {
           Limitation of Liability
         </h2>
         <p className="mb-4 leading-relaxed text-muted-foreground">
-          To the maximum extent permitted by law, Mudita LMS shall not be liable
+          To the maximum extent permitted by law, Schulab shall not be liable
           for any indirect, incidental, special, consequential, or punitive
           damages arising from your use of the platform. Our total liability
           shall not exceed the amount you have paid to us in the twelve months
@@ -124,10 +124,10 @@ export default function TermsOfServicePage() {
           If you have any questions about these Terms of Service, please contact
           us at{" "}
           <a
-            href="mailto:hello@mudita.edu"
+            href="mailto:hello@schulab.com"
             className="text-primary underline underline-offset-4 hover:text-primary/80"
           >
-            hello@mudita.edu
+            hello@schulab.com
           </a>
           .
         </p>

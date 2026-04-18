@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Mudita for Schools | STEM Education Solutions",
+  title: "Schulab for Schools | STEM Education Solutions",
   description:
     "Bring engaging STEM education to your school or organization. Custom solutions, admin tools, and dedicated support for educational institutions.",
 };
@@ -39,7 +39,7 @@ const features = [
   {
     title: "Flexible Implementation",
     description:
-      "Use Mudita as a standalone platform, supplement your existing curriculum, or integrate via our API. Custom branding available.",
+      "Use Schulab as a standalone platform, supplement your existing curriculum, or integrate via our API. Custom branding available.",
     icon: Settings,
     color: "text-green-600 bg-green-100",
   },
@@ -99,7 +99,7 @@ export default function ForSchoolsPage() {
             Bring STEM Education to Your School
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            Mudita provides schools, learning centers, and organizations with a
+            Schulab provides schools, learning centers, and organizations with a
             complete STEM education platform — interactive courses, live
             tutoring, hands-on kits, and powerful admin tools.
           </p>
@@ -121,10 +121,10 @@ export default function ForSchoolsPage() {
         </div>
       </section>
 
-      {/* Why Schools Choose Mudita */}
+      {/* Why Schools Choose Schulab */}
       <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
         <h2 className="mb-12 text-center text-3xl font-bold tracking-tight">
-          Why Schools Choose Mudita
+          Why Schools Choose Schulab
         </h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {features.map((feature) => {
@@ -211,7 +211,7 @@ export default function ForSchoolsPage() {
             Let&apos;s Build the Future Together
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-background/80">
-            Join schools and organizations worldwide using Mudita to inspire the
+            Join schools and organizations worldwide using Schulab to inspire the
             next generation of STEM leaders.
           </p>
           <Link
@@ -222,7 +222,7 @@ export default function ForSchoolsPage() {
             <ArrowRight className="h-5 w-5" />
           </Link>
           <p className="mt-4 text-sm text-background/60">
-            Or email us directly at hello@mudita.edu
+            Or email us directly at hello@schulab.com
           </p>
         </div>
       </section>

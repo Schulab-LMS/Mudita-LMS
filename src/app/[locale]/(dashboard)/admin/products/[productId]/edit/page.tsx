@@ -4,7 +4,7 @@ import { isAdminRole } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import ProductForm from "../../product-form";
 
-export const metadata = { title: "Edit Product | Admin | Mudita LMS" };
+export const metadata = { title: "Edit Product | Admin | Schulab" };
 
 export default async function EditProductPage({ params }: { params: Promise<{ productId: string }> }) {
   const session = await auth();

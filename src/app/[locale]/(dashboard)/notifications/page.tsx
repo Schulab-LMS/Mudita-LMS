@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { getNotifications } from "@/services/notification.service";
 import { markAllNotificationsRead } from "@/actions/notification.actions";
 
-export const metadata = { title: "Notifications | Mudita LMS" };
+export const metadata = { title: "Notifications | Schulab" };
 
 function timeAgo(date: Date): string {
   const now = new Date();

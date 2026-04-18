@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Plus, Pencil, ExternalLink } from "lucide-react";
 import { DeletePageButton, TogglePublishButton } from "./page-actions";
 
-export const metadata = { title: "CMS Pages | Admin | Mudita LMS" };
+export const metadata = { title: "CMS Pages | Admin | Schulab" };
 
 export default async function AdminPagesPage() {
   const session = await auth();

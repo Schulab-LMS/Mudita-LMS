@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Package, Plus, Pencil } from "lucide-react";
 import { DeleteProductButton } from "./product-actions";
 
-export const metadata = { title: "Products | Admin | Mudita LMS" };
+export const metadata = { title: "Products | Admin | Schulab" };
 
 const statusColors: Record<string, "default" | "secondary" | "destructive"> = {
   ACTIVE: "default",

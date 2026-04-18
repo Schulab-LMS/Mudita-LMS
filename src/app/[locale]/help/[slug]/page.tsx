@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps) {
   const article = await getArticleBySlug(slug);
   if (!article) return { title: "Article Not Found" };
   return {
-    title: `${article.title} | Help Center | Mudita`,
+    title: `${article.title} | Help Center | Schulab`,
     description: article.excerpt,
   };
 }

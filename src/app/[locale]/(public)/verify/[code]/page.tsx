@@ -7,7 +7,7 @@ export async function generateMetadata({
   params: Promise<{ code: string }>;
 }) {
   const { code } = await params;
-  return { title: `Verify Certificate ${code} | Mudita LMS` };
+  return { title: `Verify Certificate ${code} | Schulab` };
 }
 
 export default async function VerifyCertificatePage({

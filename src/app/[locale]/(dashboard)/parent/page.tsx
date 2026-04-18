@@ -4,7 +4,7 @@ import { getChildren } from "@/services/user.service";
 import { ChildCard } from "@/components/dashboard/child-card";
 import { Link } from "@/i18n/navigation";
 
-export const metadata = { title: "Parent Dashboard | Mudita LMS" };
+export const metadata = { title: "Parent Dashboard | Schulab" };
 
 export default async function ParentDashboardPage() {
   const session = await auth();

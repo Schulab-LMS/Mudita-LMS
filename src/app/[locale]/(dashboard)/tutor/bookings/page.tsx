@@ -5,7 +5,7 @@ import { getBookingsForTutor } from "@/services/booking.service";
 import { Badge } from "@/components/ui/badge";
 import { cancelBooking } from "@/actions/booking.actions";
 
-export const metadata = { title: "Tutor Bookings | Mudita LMS" };
+export const metadata = { title: "Tutor Bookings | Schulab" };
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" }> = {
   PENDING: { label: "Pending", variant: "default" },

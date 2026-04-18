@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Pricing | Mudita LMS",
+  title: "Pricing | Schulab",
   description:
-    "Simple, transparent pricing for Mudita LMS. Free, Pro, and School plans for STEM education.",
+    "Simple, transparent pricing for Schulab. Free, Pro, and School plans for STEM education.",
 };
 
 export default function PricingPage() {

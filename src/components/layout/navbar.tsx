@@ -5,7 +5,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
-import { Menu, X, Rocket, Globe, ChevronDown, User } from "lucide-react";
+import { Menu, X, FlaskConical, Globe, ChevronDown, User } from "lucide-react";
 import { HelpButton } from "@/components/help/help-button";
 import { locales, localeNames, type Locale } from "@/i18n/config";
 import { publicNavItems } from "@/config/navigation";
@@ -23,8 +23,8 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-display text-xl font-extrabold">
-          <Rocket className="h-6 w-6 text-primary" />
-          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Mudita</span>
+          <FlaskConical className="h-6 w-6 text-primary" />
+          <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Schulab</span>
         </Link>
 
         {/* Desktop Navigation */}

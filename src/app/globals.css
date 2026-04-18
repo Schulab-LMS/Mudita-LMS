@@ -32,48 +32,48 @@
 }
 
 /*
- * MUDITA DESIGN SYSTEM — STEM-Inspired Child-Friendly Palette
+ * SCHULAB DESIGN SYSTEM — The Next Era of Learning
  *
- * Primary: Deep Space Blue (#4F46E5) — trust, knowledge, space theme
+ * Primary:   Lab Indigo  (#3B2FD9) — trust, intellect, tech
  * Secondary: Cosmic Purple (#7C3AED) — creativity, imagination
- * Accent: Solar Orange (#F59E0B) — energy, achievement, warmth
- * Success: Nature Green (#10B981) — growth, progress, correct
- * Info: Sky Cyan (#06B6D4) — science, water, technology
- * Pink: Nebula Pink (#EC4899) — fun, playful, rewards
+ * Accent:    Spark Lime  (#B8F02D) — energy, discovery, "next"
+ * Success:   Nature Green (#10B981) — growth, progress, correct
+ * Info:      Sky Cyan    (#06B6D4) — science, water, technology
+ * Coral:     Flask Coral (#FF6B6B) — warmth, playfulness, kids
  *
  * Backgrounds use very soft tints for a warm, inviting feel.
  * Rounded corners are generous for a friendly aesthetic.
  */
 
 :root {
-  --background: #fefcfb;
-  --foreground: #1e1b4b;
-  --primary: #4f46e5;
+  --background: #f8f9fc;
+  --foreground: #1a1b3a;
+  --primary: #3b2fd9;
   --primary-foreground: #ffffff;
   --secondary: #7c3aed;
   --secondary-foreground: #ffffff;
-  --accent: #f59e0b;
-  --accent-foreground: #ffffff;
-  --muted: #f1f0fb;
-  --muted-foreground: #6366a0;
+  --accent: #b8f02d;
+  --accent-foreground: #1a1b3a;
+  --muted: #eeeef8;
+  --muted-foreground: #5c5f8a;
   --card: #ffffff;
-  --card-foreground: #1e1b4b;
+  --card-foreground: #1a1b3a;
   --popover: #ffffff;
-  --popover-foreground: #1e1b4b;
+  --popover-foreground: #1a1b3a;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #e0dff5;
-  --input: #e0dff5;
-  --ring: #4f46e5;
+  --border: #dddbf3;
+  --input: #dddbf3;
+  --ring: #3b2fd9;
   --radius: 1rem;
 
   /* STEM theme colors */
-  --stem-space: #4f46e5;
+  --stem-space: #3b2fd9;
   --stem-robot: #7c3aed;
   --stem-science: #06b6d4;
   --stem-code: #10b981;
-  --stem-math: #f59e0b;
-  --stem-rocket: #ec4899;
+  --stem-math: #b8f02d;
+  --stem-rocket: #ff6b6b;
 }
 
 body {
@@ -104,8 +104,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.3); }
-  50% { box-shadow: 0 0 20px 4px rgba(79, 70, 229, 0.15); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 47, 217, 0.3); }
+  50% { box-shadow: 0 0 20px 4px rgba(59, 47, 217, 0.15); }
 }
 
 @keyframes wiggle {
@@ -152,7 +152,7 @@ body {
 }
 .hover-lift:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px -8px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 12px 24px -8px rgba(59, 47, 217, 0.15);
 }
 
 .hover-grow {
@@ -172,21 +172,21 @@ body {
 
 .bg-stem-grid {
   background-image:
-    linear-gradient(rgba(79, 70, 229, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(79, 70, 229, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(59, 47, 217, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 47, 217, 0.03) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
 /* ===== GAMIFICATION STYLES ===== */
 
 .xp-bar {
-  background: linear-gradient(90deg, #4f46e5, #7c3aed, #ec4899);
+  background: linear-gradient(90deg, #3b2fd9, #7c3aed, #b8f02d);
   border-radius: 9999px;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .level-badge {
-  background: linear-gradient(135deg, #f59e0b, #f97316);
+  background: linear-gradient(135deg, #b8f02d, #ff6b6b);
   color: white;
   font-weight: 700;
   border-radius: 9999px;
@@ -198,8 +198,8 @@ body {
 
 .achievement-unlocked {
   animation: bounce-in 0.6s ease-out;
-  border: 2px solid #f59e0b;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  border: 2px solid #b8f02d;
+  box-shadow: 0 0 20px rgba(184, 240, 45, 0.35);
 }
 
 /* ===== CARD ENHANCEMENTS ===== */
@@ -220,13 +220,13 @@ body {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #4f46e5, #7c3aed, #06b6d4, #10b981, #f59e0b);
+  background: linear-gradient(90deg, #3b2fd9, #7c3aed, #06b6d4, #10b981, #b8f02d);
   border-radius: 1.25rem 1.25rem 0 0;
 }
 
 .card-stem:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 32px -8px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 16px 32px -8px rgba(59, 47, 217, 0.12);
 }
 
 /* Font imports loaded at top of file */

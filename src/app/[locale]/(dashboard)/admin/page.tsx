@@ -18,7 +18,7 @@ import {
   BarChart3,
 } from "lucide-react";
 
-export const metadata = { title: "Admin Dashboard | Mudita LMS" };
+export const metadata = { title: "Admin Dashboard | Schulab" };
 
 const roleColors: Record<string, string> = {
   STUDENT: "#3b82f6",

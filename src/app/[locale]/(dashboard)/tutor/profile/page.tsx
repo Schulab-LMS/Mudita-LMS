@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { getTutorByUserId } from "@/services/tutor.service";
 import { ProfileForm } from "./profile-form";
 
-export const metadata = { title: "Tutor Profile | Mudita LMS" };
+export const metadata = { title: "Tutor Profile | Schulab" };
 
 export default async function TutorProfilePage() {
   const session = await auth();

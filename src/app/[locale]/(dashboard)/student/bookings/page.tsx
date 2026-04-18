@@ -4,7 +4,7 @@ import { getBookingsForStudent } from "@/services/booking.service";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 
-export const metadata = { title: "My Bookings | Mudita LMS" };
+export const metadata = { title: "My Bookings | Schulab" };
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" }> = {
   PENDING: { label: "Pending", variant: "default" },

@@ -3,7 +3,7 @@ import { getProducts } from "@/services/product.service";
 import { Link } from "@/i18n/navigation";
 
 export const metadata: Metadata = {
-  title: "STEM Kits | Mudita LMS",
+  title: "STEM Kits | Schulab",
   description:
     "Browse hands-on STEM kits for children ages 3-18. Science, engineering, and technology kits delivered to your door.",
 };

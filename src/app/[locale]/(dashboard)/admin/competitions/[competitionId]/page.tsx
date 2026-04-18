@@ -8,7 +8,7 @@ import { ScoreForm } from "./score-form";
 export async function generateMetadata({ params }: { params: Promise<{ competitionId: string }> }) {
   const { competitionId } = await params;
   const competition = await getCompetitionWithScores(competitionId);
-  return { title: `${competition?.title ?? "Competition"} | Admin | Mudita LMS` };
+  return { title: `${competition?.title ?? "Competition"} | Admin | Schulab` };
 }
 
 const statusColor: Record<string, string> = {

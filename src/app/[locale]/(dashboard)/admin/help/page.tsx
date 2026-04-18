@@ -8,7 +8,7 @@ import { HelpCircle, Plus, Pencil, ExternalLink, Star } from "lucide-react";
 import { CATEGORY_CONFIG, getCategoryLabel } from "@/components/help/category-config";
 import { DeleteHelpArticleButton, ToggleHelpPublishButton } from "./help-article-actions";
 
-export const metadata = { title: "Help Articles | Admin | Mudita LMS" };
+export const metadata = { title: "Help Articles | Admin | Schulab" };
 
 export default async function AdminHelpPage() {
   const session = await auth();

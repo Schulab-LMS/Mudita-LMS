@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import { ChevronDown } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "FAQ | Mudita LMS",
+  title: "FAQ | Schulab",
   description:
-    "Frequently asked questions about Mudita LMS STEM education platform for children ages 3-18.",
+    "Frequently asked questions about Schulab STEM education platform for children ages 3-18.",
 };
 
 const faqs = [
   {
-    q: "What age groups does Mudita support?",
-    a: "Mudita offers STEM courses for children ages 3 to 18, organized into four learning paths: Early Learners (3–5), Kids (6–8), Juniors (9–12), and Teens (13–18). Each path features age-appropriate content and teaching methods.",
+    q: "What age groups does Schulab support?",
+    a: "Schulab offers STEM courses for children ages 3 to 18, organized into four learning paths: Early Learners (3–5), Kids (6–8), Juniors (9–12), and Teens (13–18). Each path features age-appropriate content and teaching methods.",
   },
   {
     q: "What subjects are available?",
@@ -25,12 +25,12 @@ const faqs = [
     a: "STEM Kits are hands-on science and engineering kits shipped to your door. Each kit includes all the materials needed for practical experiments and projects, paired with online guided lessons. They make learning tangible and fun.",
   },
   {
-    q: "Is Mudita available in multiple languages?",
-    a: "Yes! Mudita currently supports English, Arabic, and German. We're continuously working to add more languages to make STEM education accessible worldwide.",
+    q: "Is Schulab available in multiple languages?",
+    a: "Yes! Schulab currently supports English, Arabic, and German. We're continuously working to add more languages to make STEM education accessible worldwide.",
   },
   {
-    q: "How much does Mudita cost?",
-    a: "Mudita offers a free tier with access to select courses, a Pro plan at $19/month with full access and certificates, and custom School plans for educational institutions. Visit our Pricing page for details.",
+    q: "How much does Schulab cost?",
+    a: "Schulab offers a free tier with access to select courses, a Pro plan at $19/month with full access and certificates, and custom School plans for educational institutions. Visit our Pricing page for details.",
   },
   {
     q: "Can I track my child's progress?",
@@ -45,7 +45,7 @@ const faqs = [
     a: "Yes. We take data privacy seriously, especially for children. We follow strict data protection practices and comply with relevant regulations. See our Privacy Policy for full details.",
   },
   {
-    q: "Can schools use Mudita?",
+    q: "Can schools use Schulab?",
     a: "Yes! We offer dedicated plans for schools and educational institutions with features like bulk enrollment, admin dashboards, custom branding, and dedicated support. Contact us to learn more.",
   },
 ];
@@ -59,7 +59,7 @@ export default function FAQPage() {
           Frequently Asked Questions
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Find answers to common questions about Mudita LMS and our STEM
+          Find answers to common questions about Schulab and our STEM
           education platform.
         </p>
       </section>

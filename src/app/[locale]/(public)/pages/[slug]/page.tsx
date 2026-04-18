@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = getLocalizedField(page, "title", locale);
   return {
-    title: `${title} | Mudita LMS`,
+    title: `${title} | Schulab`,
   };
 }
 

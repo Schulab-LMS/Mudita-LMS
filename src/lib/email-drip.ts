@@ -13,7 +13,7 @@ function getResend() {
 }
 
 const FROM_EMAIL =
-  process.env.EMAIL_FROM || "Mudita LMS <noreply@mudita-lms.com>";
+  process.env.EMAIL_FROM || "Schulab <noreply@schulab.com>";
 
 export async function sendDripEmail(input: {
   to: string;

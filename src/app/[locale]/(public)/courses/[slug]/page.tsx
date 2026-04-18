@@ -29,7 +29,7 @@ export async function generateMetadata({
   const course = await getCourseBySlug(slug);
   if (!course) return { title: "Course Not Found" };
   return {
-    title: `${course.title} | Mudita LMS`,
+    title: `${course.title} | Schulab`,
     description: course.description,
   };
 }

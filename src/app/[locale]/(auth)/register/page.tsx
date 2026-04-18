@@ -208,7 +208,7 @@ export default function RegisterPage() {
                   {...register("parentalConsent")}
                 />
                 <span>
-                  I am the parent or legal guardian and I consent to Mudita
+                  I am the parent or legal guardian and I consent to Schulab
                   creating this account and processing my child&apos;s data as
                   described in the Privacy Policy.
                 </span>

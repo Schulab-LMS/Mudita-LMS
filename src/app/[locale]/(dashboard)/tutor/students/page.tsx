@@ -4,7 +4,7 @@ import { getTutorByUserId } from "@/services/tutor.service";
 import { getBookingsForTutor } from "@/services/booking.service";
 import { Avatar } from "@/components/ui/avatar";
 
-export const metadata = { title: "My Students | Mudita LMS" };
+export const metadata = { title: "My Students | Schulab" };
 
 export default async function TutorStudentsPage() {
   const session = await auth();

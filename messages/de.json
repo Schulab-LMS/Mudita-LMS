@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "Mudita",
-    "tagline": "Freudvolles STEM-Lernen",
+    "appName": "Schulab",
+    "tagline": "Die nächste Ära des Lernens",
     "login": "Anmelden",
     "register": "Registrieren",
     "logout": "Abmelden",
@@ -104,7 +104,7 @@
     "howStep2Desc": "Interaktive Videolektionen, Quizze und praktische STEM-Kits. Plus Live-Nachhilfe bei Bedarf.",
     "howStep3Title": "Erreichen & Wachsen",
     "howStep3Desc": "Fortschritte verfolgen, Abzeichen und Zertifikate verdienen. Sehen Sie, wie Ihr Kind STEM-Fähigkeiten aufbaut.",
-    "whyMudita": "Was Mudita besonders macht",
+    "whySchulab": "Was Schulab besonders macht",
     "whyReason1Title": "Live-Nachhilfe mit Experten",
     "whyReason1Desc": "Einzelsitzungen mit verifizierten STEM-Pädagogen. Personalisierte Unterstützung im Tempo Ihres Kindes.",
     "whyReason2Title": "Praktische STEM-Kits",
@@ -114,13 +114,13 @@
     "whyReason4Title": "Mehrsprachiges Lernen",
     "whyReason4Desc": "Komplette Plattform auf Deutsch, Englisch und Arabisch.",
     "testimonials": "Was Eltern sagen",
-    "testimonial1Quote": "Meine Tochter hatte Angst vor Mathe und baut jetzt ihre eigene Taschenrechner-App. Mudita hat STEM wie Spielen wirken lassen.",
+    "testimonial1Quote": "Meine Tochter hatte Angst vor Mathe und baut jetzt ihre eigene Taschenrechner-App. Schulab hat STEM wie Spielen wirken lassen.",
     "testimonial1Name": "Sarah M.",
     "testimonial1Role": "Mutter von 2, Dubai",
     "testimonial2Quote": "Die STEM-Kits sind unglaublich. Mein Sohn freut sich auf seine Wochenend-Experimente mehr als auf alles andere.",
     "testimonial2Name": "Ahmed K.",
     "testimonial2Role": "Vater von 1, Berlin",
-    "testimonial3Quote": "Als Homeschool-Elternteil gibt mir Mudita einen strukturierten STEM-Lehrplan, dem ich vertrauen kann.",
+    "testimonial3Quote": "Als Homeschool-Elternteil gibt mir Schulab einen strukturierten STEM-Lehrplan, dem ich vertrauen kann.",
     "testimonial3Name": "Lisa R.",
     "testimonial3Role": "Homeschool-Elternteil, London",
     "forSchools": "STEM-Bildung für Schulen",
@@ -137,10 +137,10 @@
     }
   },
   "about": {
-    "title": "Über Mudita",
+    "title": "Über Schulab",
     "subtitle": "Wir glauben, dass jedes Kind Zugang zu freudvollem, hochwertigem STEM-Unterricht verdient — egal wo es lebt oder welche Sprache es spricht.",
     "storyTitle": "Unsere Geschichte",
-    "storyText": "Mudita entstand aus einer einfachen Beobachtung: Kinder sind von Natur aus neugierig, aber STEM-Bildung fühlt sich oft einschüchternd oder unzugänglich an. Wir wollten das ändern.",
+    "storyText": "Schulab entstand aus einer einfachen Überzeugung: Die klassische Schule vermittelt Fakten, doch die nächste Ära des Lernens zeigt Kindern, wie sie die Zukunft gestalten. Wir machen aus jedem Klassenzimmer ein Labor — wo Wissenschaft, Coding und Technik zum Abenteuer werden.",
     "mission": {
       "title": "Unsere Mission",
       "text": "STEM-Bildung weltweit zugänglich, ansprechend und unterhaltsam für jedes Kind zu machen. Wir kombinieren Expertenunterricht mit interaktiver Technologie und praktischen Kits."
@@ -162,7 +162,7 @@
     },
     "methodology": {
       "title": "Unser Lernansatz",
-      "text": "Jeder Mudita-Kurs folgt einem bewährten Lernen-Üben-Anwenden-Rahmen. Kinder schauen fesselnde Videolektionen und verstärken Konzepte durch interaktive Quizze."
+      "text": "Jeder Schulab-Kurs folgt einem bewährten Lernen-Üben-Anwenden-Rahmen. Kinder schauen fesselnde Videolektionen und verstärken Konzepte durch interaktive Quizze."
     },
     "team": {
       "title": "Unser Team",
@@ -271,7 +271,7 @@
   },
   "contact": {
     "title": "Kontakt aufnehmen",
-    "subtitle": "Haben Sie eine Frage zu Mudita? Wir freuen uns von Ihnen zu hören. Unser Team antwortet normalerweise innerhalb von 24 Stunden.",
+    "subtitle": "Haben Sie eine Frage zu Schulab? Wir freuen uns von Ihnen zu hören. Unser Team antwortet normalerweise innerhalb von 24 Stunden.",
     "form": {
       "name": "Ihr Name",
       "namePlaceholder": "Max Mustermann",
@@ -286,7 +286,7 @@
     },
     "info": {
       "emailTitle": "E-Mail",
-      "email": "hello@mudita.edu",
+      "email": "hello@schulab.com",
       "phoneTitle": "Telefon",
       "phone": "+1 (555) 123-4567",
       "addressTitle": "Adresse",
@@ -297,7 +297,7 @@
     "loginTitle": "Willkommen zurück",
     "loginSubtitle": "Melden Sie sich an, um Ihre Lernreise fortzusetzen.",
     "registerTitle": "Konto erstellen",
-    "registerSubtitle": "Treten Sie Mudita bei und starten Sie Ihr STEM-Abenteuer.",
+    "registerSubtitle": "Treten Sie Schulab bei und starten Sie Ihr STEM-Abenteuer.",
     "email": "E-Mail",
     "password": "Passwort",
     "confirmPassword": "Passwort bestätigen",
@@ -360,7 +360,7 @@
     "deadline": "Anmeldeschluss"
   },
   "footer": {
-    "description": "Freudvolles STEM-Lernen für Kinder von 3–18 Jahren. Interaktive Kurse, Live-Nachhilfe und praktische Kits.",
+    "description": "Die nächste Ära des Lernens für Kinder von 3–18 Jahren. Interaktive STEM-Kurse, Live-Nachhilfe und praktische Kits — wo Schule zum Labor wird.",
     "quickLinks": "Schnelllinks",
     "support": "Support",
     "legal": "Rechtliches",
@@ -370,6 +370,6 @@
     "helpCenter": "Hilfezentrum",
     "howItWorks": "So funktioniert's",
     "forSchools": "Für Schulen",
-    "copyright": "© {year} Mudita. Alle Rechte vorbehalten."
+    "copyright": "© {year} Schulab. Alle Rechte vorbehalten."
   }
 }

@@ -20,7 +20,7 @@ export function stripe(): Stripe {
   if (!instance) {
     instance = new Stripe(secretKey, {
       typescript: true,
-      appInfo: { name: "Mudita LMS", version: "0.1.0" },
+      appInfo: { name: "Schulab", version: "0.1.0" },
     });
   }
   return instance;

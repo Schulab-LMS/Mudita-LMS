@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { getTutorByUserId } from "@/services/tutor.service";
 import { AvailabilityGrid } from "./availability-grid";
 
-export const metadata = { title: "Availability | Mudita LMS" };
+export const metadata = { title: "Availability | Schulab" };
 
 export default async function TutorAvailabilityPage() {
   const session = await auth();

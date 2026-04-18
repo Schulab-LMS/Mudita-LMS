@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { PageForm } from "../page-form";
 
-export const metadata = { title: "New Page | Admin | Mudita LMS" };
+export const metadata = { title: "New Page | Admin | Schulab" };
 
 export default async function NewPagePage() {
   const session = await auth();

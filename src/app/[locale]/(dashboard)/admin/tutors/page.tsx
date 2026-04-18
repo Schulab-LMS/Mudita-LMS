@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { GraduationCap } from "lucide-react";
 import { VerifyTutorButton, RejectTutorButton, DeleteTutorButton } from "./tutor-actions";
 
-export const metadata = { title: "Tutor Verification | Admin | Mudita LMS" };
+export const metadata = { title: "Tutor Verification | Admin | Schulab" };
 
 export default async function AdminTutorsPage() {
   const session = await auth();
