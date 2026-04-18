@@ -20,6 +20,9 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { FloatingStar, RocketIllustration } from "@/components/illustrations/stem-icons";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { GradientText } from "@/components/ui/gradient-text";
+import { AuroraBlobs } from "@/components/ui/aurora-blobs";
 
 
 export const metadata: Metadata = {
@@ -36,6 +39,7 @@ const steps = [
       "Explore our catalog of STEM courses organized by age group, subject, and skill level. Find the perfect course for your child and enroll in seconds.",
     icon: Search,
     color: "bg-[#4f3ff0]",
+    ring: "ring-[#4f3ff0]/30",
   },
   {
     number: 2,
@@ -44,6 +48,7 @@ const steps = [
       "Your child learns through interactive video lessons, quizzes, and hands-on STEM kit activities. Live tutoring sessions provide personalized support when needed.",
     icon: BookOpen,
     color: "bg-[#8b5cf6]",
+    ring: "ring-[#8b5cf6]/30",
   },
   {
     number: 3,
@@ -52,6 +57,7 @@ const steps = [
       "Track progress through your parent dashboard. Earn badges and certificates as your child masters new skills and builds confidence in STEM.",
     icon: Trophy,
     color: "bg-[#ff8a3d]",
+    ring: "ring-[#ff8a3d]/30",
   },
 ];
 
@@ -103,24 +109,30 @@ export default function HowItWorksPage() {
     <div>
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-orange-50 py-20 sm:py-24">
+        <AuroraBlobs variant="hero" />
+        <div className="pointer-events-none absolute inset-0 bg-stem-grid-fade opacity-40" />
         <div className="pointer-events-none absolute inset-0">
           <FloatingStar size={24} className="absolute top-12 left-[10%] animate-float opacity-40" />
           <FloatingStar size={16} className="absolute top-20 right-[15%] animate-float-delayed opacity-30" />
-          <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-[#4f3ff0] opacity-[0.05] blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-[#ff8a3d] opacity-[0.05] blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-1.5 text-sm font-semibold shadow-sm">
-            <Sparkles className="h-4 w-4 text-[var(--stem-rocket)]" />
-            <span className="text-launch-gradient">How it works</span>
-          </div>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-            How Schulab Works
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            A simple, structured approach to STEM education that makes learning
-            joyful and effective.
-          </p>
+          <ScrollReveal mode="scale">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-4 py-1.5 text-sm font-semibold shadow-sm backdrop-blur">
+              <Sparkles className="h-4 w-4 text-[var(--stem-rocket)]" />
+              <GradientText animated>How it works</GradientText>
+            </div>
+          </ScrollReveal>
+          <ScrollReveal mode="up" delay={80}>
+            <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+              How Schulab Works
+            </h1>
+          </ScrollReveal>
+          <ScrollReveal mode="fade" delay={180}>
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+              A simple, structured approach to STEM education that makes learning
+              joyful and effective.
+            </p>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -130,21 +142,25 @@ export default function HowItWorksPage() {
           {steps.map((step, i) => {
             const Icon = step.icon;
             return (
-              <div key={step.number} className="group relative text-center">
-                {i < steps.length - 1 && (
-                  <div className="absolute top-8 left-[calc(50%+40px)] hidden h-0.5 w-[calc(100%-80px)] bg-launch-gradient-horizontal opacity-40 md:block" />
-                )}
-                <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${step.color} text-2xl font-bold text-white shadow-lg transition-transform group-hover:scale-110`}>
-                  {step.number}
+              <ScrollReveal key={step.number} mode="up" delay={i * 140}>
+                <div className="group relative text-center">
+                  {i < steps.length - 1 && (
+                    <div className="absolute top-8 left-[calc(50%+40px)] hidden h-0.5 w-[calc(100%-80px)] bg-launch-gradient-horizontal opacity-40 md:block" />
+                  )}
+                  <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${step.color} text-2xl font-bold text-white shadow-lg ring-8 ${step.ring} transition-transform group-hover:scale-110 group-hover:rotate-3`}>
+                    {step.number}
+                  </div>
+                  <div className="mt-6 flex justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted/60 transition-transform group-hover:scale-110">
+                      <Icon className="h-6 w-6 text-foreground/70" />
+                    </div>
+                  </div>
+                  <h3 className="mt-4 font-display text-xl font-semibold">{step.title}</h3>
+                  <p className="mt-3 leading-relaxed text-muted-foreground">
+                    {step.description}
+                  </p>
                 </div>
-                <div className="mt-6 flex justify-center">
-                  <Icon className="h-8 w-8 text-foreground/70" />
-                </div>
-                <h3 className="mt-4 font-display text-xl font-semibold">{step.title}</h3>
-                <p className="mt-3 leading-relaxed text-muted-foreground">
-                  {step.description}
-                </p>
-              </div>
+              </ScrollReveal>
             );
           })}
         </div>
@@ -152,28 +168,32 @@ export default function HowItWorksPage() {
 
       {/* Learning Approach Section */}
       <section className="mx-auto mt-20 max-w-6xl px-4 sm:px-6 lg:px-8">
-        <h2 className="mb-12 text-center font-display text-3xl font-bold tracking-tight sm:text-4xl">
-          Our Learning Approach
-        </h2>
+        <ScrollReveal mode="up">
+          <h2 className="mb-12 text-center font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            Our Learning Approach
+          </h2>
+        </ScrollReveal>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {approaches.map((approach) => {
+          {approaches.map((approach, i) => {
             const Icon = approach.icon;
             return (
-              <Card key={approach.title} className="transition-all hover-lift">
-                <CardHeader>
-                  <div className="flex items-center gap-4">
-                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${approach.bg}`}>
-                      <Icon className={`h-6 w-6 ${approach.color}`} />
+              <ScrollReveal key={approach.title} mode="up" delay={i * 100}>
+                <Card className="group h-full transition-all hover-lift shine">
+                  <CardHeader>
+                    <div className="flex items-center gap-4">
+                      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${approach.bg} transition-transform group-hover:scale-110 group-hover:rotate-3`}>
+                        <Icon className={`h-6 w-6 ${approach.color}`} />
+                      </div>
+                      <CardTitle className="font-display text-xl">{approach.title}</CardTitle>
                     </div>
-                    <CardTitle className="font-display text-xl">{approach.title}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="leading-relaxed text-muted-foreground">
-                    {approach.description}
-                  </p>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="leading-relaxed text-muted-foreground">
+                      {approach.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
             );
           })}
         </div>
@@ -181,49 +201,61 @@ export default function HowItWorksPage() {
 
       {/* Safety & Trust Section */}
       <section className="mx-auto mt-20 max-w-4xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-launch-gradient-soft p-8 sm:p-10">
-          <div className="flex items-center justify-center gap-3">
-            <Shield className="h-8 w-8 text-[#4f3ff0]" />
-            <h2 className="font-display text-3xl font-bold tracking-tight">
-              Your Child&apos;s Safety Comes First
-            </h2>
+        <ScrollReveal mode="scale">
+          <div className="relative overflow-hidden rounded-3xl bg-launch-gradient-soft p-8 sm:p-10">
+            <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-[#4f3ff0]/15 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[#34d399]/15 blur-3xl" />
+            <div className="relative">
+              <div className="flex items-center justify-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 shadow-sm backdrop-blur">
+                  <Shield className="h-6 w-6 text-[#4f3ff0]" />
+                </div>
+                <h2 className="font-display text-3xl font-bold tracking-tight">
+                  Your Child&apos;s Safety Comes First
+                </h2>
+              </div>
+              <ul className="mx-auto mt-8 max-w-2xl space-y-4">
+                {safetyPoints.map((point, i) => (
+                  <ScrollReveal key={point} mode="left" delay={i * 70}>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#34d399]" />
+                      <span className="text-foreground/80">{point}</span>
+                    </li>
+                  </ScrollReveal>
+                ))}
+              </ul>
+            </div>
           </div>
-          <ul className="mx-auto mt-8 max-w-2xl space-y-4">
-            {safetyPoints.map((point) => (
-              <li key={point} className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#34d399]" />
-                <span className="text-foreground/80">{point}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* CTA Section */}
       <section className="mx-auto mt-20 mb-16 max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-launch-gradient px-8 py-16 text-center text-white">
-          <div className="pointer-events-none absolute inset-0">
-            <FloatingStar size={20} className="absolute top-8 left-[10%] animate-float opacity-30" />
-            <FloatingStar size={14} className="absolute top-20 right-[20%] animate-float-slow opacity-20" />
-            <FloatingStar size={18} className="absolute bottom-8 left-[30%] animate-float-delayed opacity-25" />
+        <ScrollReveal mode="scale">
+          <div className="relative overflow-hidden rounded-3xl bg-launch-gradient-animated px-8 py-16 text-center text-white bg-noise">
+            <div className="pointer-events-none absolute inset-0">
+              <FloatingStar size={20} className="absolute top-8 left-[10%] animate-float opacity-30" />
+              <FloatingStar size={14} className="absolute top-20 right-[20%] animate-float-slow opacity-20" />
+              <FloatingStar size={18} className="absolute bottom-8 left-[30%] animate-float-delayed opacity-25" />
+            </div>
+            <div className="relative">
+              <RocketIllustration size={72} className="mx-auto mb-6 opacity-80" />
+              <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+                Ready to Get Started?
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-lg text-white/85">
+                Join thousands of families already learning with Schulab.
+              </p>
+              <Link
+                href="/register"
+                className="group mt-8 inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-bold text-primary shadow-lg transition-all hover:shadow-xl hover-blastoff shine"
+              >
+                Start Learning for Free
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
           </div>
-          <div className="relative">
-            <RocketIllustration size={72} className="mx-auto mb-6 opacity-80" />
-            <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-              Ready to Get Started?
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-lg text-white/85">
-              Join thousands of families already learning with Schulab.
-            </p>
-            <Link
-              href="/register"
-              className="group mt-8 inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-bold text-primary shadow-lg transition-all hover:shadow-xl"
-            >
-              Start Learning for Free
-              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
-        </div>
+        </ScrollReveal>
       </section>
     </div>
   );
