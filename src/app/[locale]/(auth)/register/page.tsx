@@ -8,24 +8,44 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterInput } from "@/validators/auth.schema";
 import { registerUser } from "@/actions/auth.actions";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/navigation";
-import { Loader2, GraduationCap, Users, BookOpen } from "lucide-react";
+import {
+  Loader2,
+  GraduationCap,
+  Users,
+  BookOpen,
+  Mail,
+  Lock,
+  User,
+  Calendar,
+  AlertCircle,
+  ArrowRight,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 const roles = [
-  { value: "STUDENT" as const, icon: GraduationCap, key: "roleStudent" },
-  { value: "PARENT" as const, icon: Users, key: "roleParent" },
-  { value: "TUTOR" as const, icon: BookOpen, key: "roleTutor" },
+  {
+    value: "STUDENT" as const,
+    icon: GraduationCap,
+    key: "roleStudent",
+    blurb: "Explore, earn XP, and learn",
+  },
+  {
+    value: "PARENT" as const,
+    icon: Users,
+    key: "roleParent",
+    blurb: "Track your child's progress",
+  },
+  {
+    value: "TUTOR" as const,
+    icon: BookOpen,
+    key: "roleTutor",
+    blurb: "Teach and inspire",
+  },
 ];
 
 // Keep this in sync with CHILD_AGE_THRESHOLD in src/lib/compliance.ts —
@@ -43,11 +63,30 @@ function ageFromDob(iso: string): number | null {
   return age;
 }
 
+function passwordStrength(pw: string | undefined): { score: number; label: string; tone: string } {
+  if (!pw) return { score: 0, label: "", tone: "bg-muted" };
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const labels = ["Too short", "Weak", "Okay", "Strong", "Excellent"];
+  const tones = [
+    "bg-destructive",
+    "bg-destructive",
+    "bg-amber-400",
+    "bg-emerald-400",
+    "bg-[var(--stem-science)]",
+  ];
+  return { score, label: labels[score], tone: tones[score] };
+}
+
 export default function RegisterPage() {
   const t = useTranslations("auth");
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -68,8 +107,11 @@ export default function RegisterPage() {
 
   const selectedRole = watch("role");
   const dob = watch("dateOfBirth");
+  const password = watch("password");
   const age = useMemo(() => (dob ? ageFromDob(dob) : null), [dob]);
-  const requiresParent = selectedRole === "STUDENT" && age !== null && age < CHILD_AGE_THRESHOLD;
+  const requiresParent =
+    selectedRole === "STUDENT" && age !== null && age < CHILD_AGE_THRESHOLD;
+  const strength = passwordStrength(password);
 
   async function onSubmit(data: RegisterInput) {
     setLoading(true);
@@ -94,204 +136,315 @@ export default function RegisterPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle>{t("registerTitle")}</CardTitle>
-        <CardDescription>{t("registerSubtitle")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {error && (
-            <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
+    <div className="w-full">
+      <div className="mb-6">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          {t("registerTitle")}
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {t("registerSubtitle")}
+        </p>
+      </div>
 
-          <div className="space-y-2">
-            <Label>{t("role")}</Label>
-            <div className="grid grid-cols-3 gap-2">
-              {roles.map((role) => (
+      {error && (
+        <div
+          role="alert"
+          className="mb-5 flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-sm text-destructive animate-slide-down"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+          <p>{error}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Role picker */}
+        <div className="space-y-2">
+          <Label>{t("role")}</Label>
+          <div role="radiogroup" className="grid grid-cols-3 gap-2">
+            {roles.map((role) => {
+              const active = selectedRole === role.value;
+              return (
                 <button
                   key={role.value}
                   type="button"
+                  role="radio"
+                  aria-checked={active}
                   onClick={() => setValue("role", role.value)}
-                  className={`flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-sm transition-colors ${
-                    selectedRole === role.value
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
+                  className={`group relative flex flex-col items-center gap-1 rounded-xl border-2 p-3 text-xs transition-all ${
+                    active
+                      ? "border-primary bg-primary/5 text-primary shadow-sm"
+                      : "border-border text-muted-foreground hover:border-primary/40 hover:bg-muted/50"
                   }`}
                 >
-                  <role.icon className="h-5 w-5" />
-                  {t(role.key)}
+                  <role.icon
+                    className={`h-5 w-5 transition-transform group-hover:scale-110 ${active ? "" : ""}`}
+                  />
+                  <span className="font-semibold">{t(role.key)}</span>
+                  <span className="text-[10px] text-muted-foreground/80 leading-tight">
+                    {role.blurb}
+                  </span>
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="name">{t("name")}</Label>
-            <Input id="name" placeholder="John Doe" {...register("name")} />
-            {errors.name && (
-              <p className="text-xs text-destructive">{errors.name.message}</p>
-            )}
+        {/* Name */}
+        <div className="space-y-1.5">
+          <Label htmlFor="name">{t("name")}</Label>
+          <div className="relative">
+            <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="name"
+              placeholder="John Doe"
+              autoComplete="name"
+              className="pl-10"
+              {...register("name")}
+            />
           </div>
+          {errors.name && (
+            <p className="text-xs text-destructive">{errors.name.message}</p>
+          )}
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">{t("email")}</Label>
+        {/* Email */}
+        <div className="space-y-1.5">
+          <Label htmlFor="email">{t("email")}</Label>
+          <div className="relative">
+            <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="email"
               type="email"
               placeholder="name@example.com"
+              autoComplete="email"
+              className="pl-10"
               {...register("email")}
             />
-            {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
-            )}
           </div>
+          {errors.email && (
+            <p className="text-xs text-destructive">{errors.email.message}</p>
+          )}
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dateOfBirth">Date of birth</Label>
+        {/* DOB */}
+        <div className="space-y-1.5">
+          <Label htmlFor="dateOfBirth">Date of birth</Label>
+          <div className="relative">
+            <Calendar className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="dateOfBirth"
               type="date"
               max={new Date().toISOString().slice(0, 10)}
+              className="pl-10"
               {...register("dateOfBirth")}
             />
-            {errors.dateOfBirth && (
-              <p className="text-xs text-destructive">{errors.dateOfBirth.message}</p>
+          </div>
+          {errors.dateOfBirth && (
+            <p className="text-xs text-destructive">
+              {errors.dateOfBirth.message}
+            </p>
+          )}
+        </div>
+
+        {/* Password with strength meter */}
+        <div className="space-y-1.5">
+          <Label htmlFor="password">{t("password")}</Label>
+          <div className="relative">
+            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              className="pl-10 pr-10"
+              {...register("password")}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+          {/* Strength meter */}
+          <div className="flex items-center gap-1 pt-1" aria-hidden>
+            {[0, 1, 2, 3].map((i) => (
+              <span
+                key={i}
+                className={`h-1 flex-1 rounded-full transition-colors ${
+                  i < strength.score ? strength.tone : "bg-muted"
+                }`}
+              />
+            ))}
+            {password && (
+              <span className="ml-2 text-[11px] font-medium text-muted-foreground">
+                {strength.label}
+              </span>
             )}
           </div>
+          {errors.password && (
+            <p className="text-xs text-destructive">{errors.password.message}</p>
+          )}
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">{t("password")}</Label>
-            <Input id="password" type="password" {...register("password")} />
-            {errors.password && (
-              <p className="text-xs text-destructive">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
+        {/* Confirm */}
+        <div className="space-y-1.5">
+          <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
+          <div className="relative">
+            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="confirmPassword"
-              type="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              className="pl-10"
               {...register("confirmPassword")}
             />
-            {errors.confirmPassword && (
-              <p className="text-xs text-destructive">
-                {errors.confirmPassword.message}
-              </p>
-            )}
           </div>
-
-          {requiresParent && (
-            <div className="space-y-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700/60 dark:bg-amber-900/20">
-              <p className="font-medium text-amber-900 dark:text-amber-200">
-                Because the learner is under {CHILD_AGE_THRESHOLD}, a parent or
-                guardian must confirm consent.
-              </p>
-              <div className="space-y-2">
-                <Label htmlFor="parentEmail">Parent or guardian email</Label>
-                <Input
-                  id="parentEmail"
-                  type="email"
-                  placeholder="parent@example.com"
-                  {...register("parentEmail")}
-                />
-              </div>
-              <label className="flex items-start gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  className="mt-1"
-                  {...register("parentalConsent")}
-                />
-                <span>
-                  I am the parent or legal guardian and I consent to Schulab
-                  creating this account and processing my child&apos;s data as
-                  described in the Privacy Policy.
-                </span>
-              </label>
-            </div>
+          {errors.confirmPassword && (
+            <p className="text-xs text-destructive">
+              {errors.confirmPassword.message}
+            </p>
           )}
+        </div>
 
-          <div className="space-y-2 pt-2">
-            <label className="flex items-start gap-2 text-sm">
+        {requiresParent && (
+          <div className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm animate-slide-down">
+            <p className="font-medium text-amber-900">
+              Because the learner is under {CHILD_AGE_THRESHOLD}, a parent or
+              guardian must confirm consent.
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="parentEmail" className="text-amber-900">
+                Parent or guardian email
+              </Label>
+              <Input
+                id="parentEmail"
+                type="email"
+                placeholder="parent@example.com"
+                className="bg-white"
+                {...register("parentEmail")}
+              />
+            </div>
+            <label className="flex items-start gap-2 text-sm text-amber-900">
               <input
                 type="checkbox"
-                className="mt-1"
-                {...register("acceptedTerms")}
+                className="mt-1 accent-amber-600"
+                {...register("parentalConsent")}
               />
               <span>
-                I agree to the{" "}
-                <Link href="/terms" className="underline">
-                  Terms of Service
-                </Link>
+                I am the parent or legal guardian and I consent to Schulab
+                creating this account and processing my child&apos;s data as
+                described in the Privacy Policy.
               </span>
             </label>
-            {errors.acceptedTerms && (
-              <p className="text-xs text-destructive">{errors.acceptedTerms.message}</p>
-            )}
-            <label className="flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-1"
-                {...register("acceptedPrivacy")}
-              />
-              <span>
-                I have read the{" "}
-                <Link href="/privacy" className="underline">
-                  Privacy Policy
-                </Link>
-              </span>
-            </label>
-            {errors.acceptedPrivacy && (
-              <p className="text-xs text-destructive">{errors.acceptedPrivacy.message}</p>
-            )}
-            <label className="flex items-start gap-2 text-sm text-muted-foreground">
-              <input
-                type="checkbox"
-                className="mt-1"
-                {...register("marketingOptIn")}
-              />
-              <span>Send me occasional updates and learning tips.</span>
-            </label>
           </div>
+        )}
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {t("registerTitle")}
-          </Button>
-        </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">
-              {t("orContinueWith")}
+        <div className="space-y-2 pt-1">
+          <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              className="mt-1 accent-primary"
+              {...register("acceptedTerms")}
+            />
+            <span>
+              I agree to the{" "}
+              <Link href="/terms" className="text-primary hover:underline">
+                Terms of Service
+              </Link>
             </span>
-          </div>
+          </label>
+          {errors.acceptedTerms && (
+            <p className="text-xs text-destructive">
+              {errors.acceptedTerms.message}
+            </p>
+          )}
+          <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              className="mt-1 accent-primary"
+              {...register("acceptedPrivacy")}
+            />
+            <span>
+              I have read the{" "}
+              <Link href="/privacy" className="text-primary hover:underline">
+                Privacy Policy
+              </Link>
+            </span>
+          </label>
+          {errors.acceptedPrivacy && (
+            <p className="text-xs text-destructive">
+              {errors.acceptedPrivacy.message}
+            </p>
+          )}
+          <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              className="mt-1 accent-primary"
+              {...register("marketingOptIn")}
+            />
+            <span>Send me occasional updates and learning tips.</span>
+          </label>
         </div>
 
         <Button
-          variant="outline"
+          type="submit"
+          variant="launch"
+          size="lg"
           className="w-full"
-          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+          disabled={loading}
         >
-          {t("google")}
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              {t("registerTitle")}
+              <ArrowRight className="h-4 w-4" />
+            </>
+          )}
         </Button>
-      </CardContent>
-      <CardFooter className="justify-center">
-        <p className="text-sm text-muted-foreground">
-          {t("hasAccount")}{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
-            {t("loginTitle")}
-          </Link>
-        </p>
-      </CardFooter>
-    </Card>
+      </form>
+
+      <div className="relative my-6">
+        <div aria-hidden className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase tracking-wider">
+          <span className="bg-background px-3 text-muted-foreground">
+            {t("orContinueWith")}
+          </span>
+        </div>
+      </div>
+
+      <Button
+        variant="outline"
+        type="button"
+        className="w-full"
+        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+      >
+        <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+        </svg>
+        {t("google")}
+      </Button>
+
+      <p className="mt-8 text-center text-sm text-muted-foreground">
+        {t("hasAccount")}{" "}
+        <Link
+          href="/login"
+          className="font-semibold text-primary hover:underline"
+        >
+          {t("loginTitle")}
+        </Link>
+      </p>
+    </div>
   );
 }
