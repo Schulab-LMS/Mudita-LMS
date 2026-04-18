@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, MapPin, CheckCircle } from "lucide-react";
+import { Mail, Phone, MapPin, CheckCircle, Sparkles } from "lucide-react";
 import { submitContactForm } from "@/actions/contact.actions";
 
 const contactSchema = z.object({
@@ -44,22 +44,34 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+    <div>
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-orange-50 py-20">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-[#4f3ff0] opacity-[0.05] blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-[#ff8a3d] opacity-[0.05] blur-3xl" />
+        </div>
+        <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-1.5 text-sm font-semibold shadow-sm">
+            <Sparkles className="h-4 w-4 text-[var(--stem-rocket)]" />
+            <span className="text-launch-gradient">Get in touch</span>
+          </div>
+          <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
             {t("title")}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
             {t("subtitle")}
           </p>
         </div>
+      </section>
 
+      <div className="mx-auto max-w-5xl px-4 pb-20 sm:px-6 lg:px-8">
         {sent ? (
-          <div className="mt-12 mx-auto max-w-md rounded-xl border bg-card p-8 text-center">
-            <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-            <h2 className="mt-4 text-xl font-semibold">Message sent!</h2>
+          <div className="mt-12 mx-auto max-w-md rounded-2xl border bg-card p-8 text-center shadow-sm">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#34d399]/15">
+              <CheckCircle className="h-10 w-10 text-[#34d399]" />
+            </div>
+            <h2 className="mt-5 font-display text-xl font-semibold">Message sent!</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Thank you for reaching out. We&apos;ll get back to you soon.
             </p>
@@ -143,44 +155,44 @@ export default function ContactPage() {
                 </div>
               )}
 
-              <Button type="submit" size="lg" disabled={isSubmitting}>
+              <Button type="submit" variant="launch" size="lg" disabled={isSubmitting}>
                 {isSubmitting ? t("form.sending") : t("form.submit")}
               </Button>
             </form>
           </div>
 
           {/* Contact Info Sidebar */}
-          <div className="space-y-8">
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <Mail className="h-5 w-5 text-primary" />
+          <div className="space-y-6">
+            <div className="flex items-start gap-4 rounded-2xl border bg-card p-5 shadow-sm transition-all hover-lift">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#4f3ff0]/10">
+                <Mail className="h-5 w-5 text-[#4f3ff0]" />
               </div>
               <div>
-                <h3 className="font-medium">{t("info.emailTitle")}</h3>
+                <h3 className="font-display font-semibold">{t("info.emailTitle")}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {t("info.email")}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <Phone className="h-5 w-5 text-primary" />
+            <div className="flex items-start gap-4 rounded-2xl border bg-card p-5 shadow-sm transition-all hover-lift">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#8b5cf6]/10">
+                <Phone className="h-5 w-5 text-[#8b5cf6]" />
               </div>
               <div>
-                <h3 className="font-medium">{t("info.phoneTitle")}</h3>
+                <h3 className="font-display font-semibold">{t("info.phoneTitle")}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {t("info.phone")}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <MapPin className="h-5 w-5 text-primary" />
+            <div className="flex items-start gap-4 rounded-2xl border bg-card p-5 shadow-sm transition-all hover-lift">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#ff8a3d]/10">
+                <MapPin className="h-5 w-5 text-[#ff8a3d]" />
               </div>
               <div>
-                <h3 className="font-medium">{t("info.addressTitle")}</h3>
+                <h3 className="font-display font-semibold">{t("info.addressTitle")}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {t("info.address")}
                 </p>

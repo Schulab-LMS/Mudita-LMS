@@ -162,6 +162,47 @@ body {
   transform: scale(1.03);
 }
 
+/* ===== LAUNCHMIND GRADIENT SYSTEM ===== */
+
+/* Signature launch arc: Indigo → Purple → Orange */
+.bg-launch-gradient {
+  background: linear-gradient(135deg, #4f3ff0 0%, #8b5cf6 55%, #ff8a3d 100%);
+}
+
+.bg-launch-gradient-soft {
+  background: linear-gradient(135deg, rgba(79, 63, 240, 0.08) 0%, rgba(139, 92, 246, 0.08) 55%, rgba(255, 138, 61, 0.08) 100%);
+}
+
+.bg-launch-gradient-horizontal {
+  background: linear-gradient(90deg, #4f3ff0 0%, #8b5cf6 55%, #ff8a3d 100%);
+}
+
+.text-launch-gradient {
+  background: linear-gradient(135deg, #4f3ff0 0%, #8b5cf6 55%, #ff8a3d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.ring-launch-gradient {
+  position: relative;
+}
+.ring-launch-gradient::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, #4f3ff0, #8b5cf6, #ff8a3d);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
 /* ===== STEM THEMED BACKGROUNDS ===== */
 
 .bg-stem-dots {

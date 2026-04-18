@@ -138,9 +138,9 @@ export default function HomePage() {
           <div className="grid items-center gap-12 lg:grid-cols-2">
             {/* Left — Text */}
             <div className="text-center lg:text-left">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-                <Sparkles className="h-4 w-4" />
-                {tc("tagline")}
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-1.5 text-sm font-semibold shadow-sm">
+                <Sparkles className="h-4 w-4 text-[var(--stem-rocket)]" />
+                <span className="text-launch-gradient">{tc("tagline")}</span>
               </div>
               <h1 className="font-display text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
                 {t("heroTitle")}
@@ -151,7 +151,7 @@ export default function HomePage() {
               <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row lg:justify-start">
                 <Link
                   href="/courses"
-                  className="group inline-flex items-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-bold text-white shadow-lg transition-all hover:bg-primary/90 hover:shadow-xl hover-lift"
+                  className="group inline-flex items-center gap-2 rounded-2xl bg-launch-gradient px-8 py-4 text-base font-bold text-white shadow-lg transition-all hover:shadow-xl hover-lift"
                 >
                   {t("heroCta")}
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -223,7 +223,7 @@ export default function HomePage() {
               <div key={step.num} className="group relative text-center">
                 {/* Connector line */}
                 {i < howSteps.length - 1 && (
-                  <div className="absolute top-8 left-[calc(50%+40px)] hidden h-0.5 w-[calc(100%-80px)] bg-gradient-to-r from-primary/30 to-secondary/30 md:block" />
+                  <div className="absolute top-8 left-[calc(50%+40px)] hidden h-0.5 w-[calc(100%-80px)] bg-launch-gradient-horizontal opacity-40 md:block" />
                 )}
                 <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${step.color} text-2xl font-bold text-white shadow-lg transition-transform group-hover:scale-110`}>
                   {step.num}
@@ -313,7 +313,7 @@ export default function HomePage() {
                   &ldquo;{t(item.quoteKey)}&rdquo;
                 </p>
                 <div className="mt-6 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-launch-gradient font-bold text-white shadow-sm">
                     {t(item.nameKey).charAt(0)}
                   </div>
                   <div>
@@ -371,7 +371,7 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA — Gradient with illustration */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-primary via-secondary to-[var(--stem-rocket)] py-24">
+      <section className="relative overflow-hidden bg-launch-gradient py-24">
         <div className="pointer-events-none absolute inset-0">
           <FloatingStar size={20} className="absolute top-8 left-[10%] animate-float opacity-30" />
           <FloatingStar size={14} className="absolute top-20 right-[20%] animate-float-slow opacity-20" />

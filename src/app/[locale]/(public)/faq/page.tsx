@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, HelpCircle } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "FAQ | Schulab",
@@ -52,28 +52,38 @@ const faqs = [
 
 export default function FAQPage() {
   return (
-    <div className="py-16">
+    <div>
       {/* Hero Section */}
-      <section className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          Frequently Asked Questions
-        </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
-          Find answers to common questions about Schulab and our STEM
-          education platform.
-        </p>
+      <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-orange-50 py-20">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-[#4f3ff0] opacity-[0.05] blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-[#ff8a3d] opacity-[0.05] blur-3xl" />
+        </div>
+        <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-1.5 text-sm font-semibold shadow-sm">
+            <HelpCircle className="h-4 w-4 text-[var(--stem-rocket)]" />
+            <span className="text-launch-gradient">We&apos;re here to help</span>
+          </div>
+          <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
+            Frequently Asked Questions
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+            Find answers to common questions about Schulab and our STEM
+            education platform.
+          </p>
+        </div>
       </section>
 
       {/* FAQ Items */}
-      <section className="mx-auto mt-12 max-w-4xl px-4 sm:px-6 lg:px-8">
-        <div className="divide-y rounded-xl border">
+      <section className="mx-auto mt-12 mb-20 max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div className="divide-y rounded-2xl border bg-card shadow-sm">
           {faqs.map((faq, index) => (
             <details key={index} className="group">
-              <summary className="flex cursor-pointer items-center justify-between px-5 py-4 hover:bg-muted">
-                <span className="font-medium">{faq.q}</span>
+              <summary className="flex cursor-pointer items-center justify-between px-6 py-5 hover:bg-muted/50">
+                <span className="font-display font-semibold">{faq.q}</span>
                 <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
               </summary>
-              <p className="px-5 pb-4 text-muted-foreground">{faq.a}</p>
+              <p className="px-6 pb-5 leading-relaxed text-muted-foreground">{faq.a}</p>
             </details>
           ))}
         </div>

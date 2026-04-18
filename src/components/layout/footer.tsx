@@ -16,10 +16,10 @@ export function Footer() {
           <div className="space-y-4">
             <Link
               href="/"
-              className="flex items-center gap-2 text-xl font-bold text-white"
+              className="flex items-center gap-2 font-display text-xl font-extrabold"
             >
-              <SchulabLogo size={26} className="text-white" />
-              <span>Schulab</span>
+              <SchulabLogo size={26} variant="tile" />
+              <span className="text-launch-gradient">Schulab</span>
             </Link>
             <p className="text-sm leading-relaxed">{t("description")}</p>
           </div>
