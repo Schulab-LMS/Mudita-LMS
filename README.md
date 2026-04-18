@@ -1,13 +1,14 @@
-# Schulab — The Next Era of Learning
+# Schulab — Launch Young Minds
 
-Schulab is a modern STEM Learning Management System for children ages 3–18. It combines interactive courses, live expert tutoring, and hands-on science kits so that school becomes a lab — where curiosity becomes capability.
+Schulab is a modern STEM Learning Management System for children ages 3–18. It combines interactive courses, live expert tutoring, and hands-on science kits to launch young minds into the future of learning.
 
 ## Brand
 
 - **Name:** Schulab (from *schola* — school — and *lab* — laboratory)
-- **Tagline:** The Next Era of Learning
-- **Palette:** Lab Indigo `#3B2FD9` · Spark Lime `#B8F02D` · Flask Coral `#FF6B6B`
-- **Typography:** Fredoka (display) · Nunito (body)
+- **Tagline:** Launch Young Minds.
+- **Logo:** LaunchMind — rocket + book + brain + spark
+- **Palette:** Electric Indigo `#4F3FF0` · Sunburst Orange `#FF8A3D` · Royal Purple `#8B5CF6` · Fresh Green `#34D399`
+- **Typography:** Space Grotesk (display) · Inter (body) · Nunito (kids accent)
 
 ## Stack
 

@@ -6,7 +6,9 @@ interface SchulabLogoProps {
   variant?: "mark" | "tile";
 }
 
-const SPARK = "#B8F02D";
+const INDIGO = "#4F3FF0";
+const PURPLE = "#8B5CF6";
+const ORANGE = "#FF8A3D";
 
 export function SchulabLogo({
   className,
@@ -27,42 +29,63 @@ export function SchulabLogo({
       >
         <defs>
           <linearGradient id="schulab-tile-bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#3B2FD9" />
-            <stop offset="100%" stopColor="#7C3AED" />
+            <stop offset="0%" stopColor={INDIGO} />
+            <stop offset="55%" stopColor={PURPLE} />
+            <stop offset="100%" stopColor={ORANGE} />
           </linearGradient>
         </defs>
         <rect width="40" height="40" rx="10" fill="url(#schulab-tile-bg)" />
-        {/* Flask rim */}
+        {/* Rocket body */}
         <path
-          d="M15 10 H25"
-          stroke="white"
-          strokeWidth="2"
-          strokeLinecap="round"
+          d="M20 7 C17 9.5 15.2 13 15.2 17 L15.2 23 L24.8 23 L24.8 17 C24.8 13 23 9.5 20 7 Z"
+          fill="white"
         />
-        {/* Flask body */}
+        {/* Brain hemisphere line */}
+        <line
+          x1="20"
+          y1="7"
+          x2="20"
+          y2="17"
+          stroke={INDIGO}
+          strokeWidth="0.9"
+          strokeLinecap="round"
+          opacity="0.35"
+        />
+        {/* Window (idea light) */}
+        <circle cx="20" cy="16" r="1.8" fill={ORANGE} />
+        {/* Fins */}
+        <path d="M15.2 20 L11.5 26 L15.2 24.5 Z" fill="white" />
+        <path d="M24.8 20 L28.5 26 L24.8 24.5 Z" fill="white" />
+        {/* Flame */}
         <path
-          d="M16.5 10 V17 L11.5 27 A3 3 0 0 0 14 31 H26 A3 3 0 0 0 28.5 27 L23.5 17 V10"
+          d="M17.5 23 L20 27 L22.5 23 Z"
+          fill={ORANGE}
+        />
+        {/* Open book V (launchpad) */}
+        <path
+          d="M8 33 L20 30 L32 33"
           stroke="white"
-          strokeWidth="2"
+          strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"
-          fill="none"
         />
-        {/* Liquid */}
-        <path
-          d="M13.2 24 L26.8 24 A3 3 0 0 1 26 31 H14 A3 3 0 0 1 13.2 24 Z"
-          fill={SPARK}
-          opacity="0.9"
+        <line
+          x1="20"
+          y1="30"
+          x2="20"
+          y2="33"
+          stroke="white"
+          strokeWidth="1.8"
+          strokeLinecap="round"
         />
-        {/* Bubble */}
-        <circle cx="18" cy="21" r="1.4" fill={SPARK} />
-        {/* Sparkle */}
+        {/* Idea sparkle */}
         <path
-          d="M31 9 L31.6 11 M31 9 L30.4 7 M31 9 L33 9.6 M31 9 L29 8.4"
-          stroke={SPARK}
+          d="M32 8 L32 12 M30 10 L34 10"
+          stroke={ORANGE}
           strokeWidth="1.4"
           strokeLinecap="round"
         />
+        <circle cx="32" cy="10" r="1.1" fill={ORANGE} />
       </svg>
     );
   }
@@ -78,37 +101,56 @@ export function SchulabLogo({
       role="img"
       aria-label="Schulab"
     >
-      {/* Flask rim */}
+      {/* Rocket body */}
       <path
-        d="M8.5 3 H15.5"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
+        d="M12 2.5 C10 4 8.8 6.5 8.8 9.5 L8.8 14 L15.2 14 L15.2 9.5 C15.2 6.5 14 4 12 2.5 Z"
+        fill="currentColor"
       />
-      {/* Flask body */}
+      {/* Brain hemisphere line */}
+      <line
+        x1="12"
+        y1="2.5"
+        x2="12"
+        y2="10"
+        stroke="white"
+        strokeWidth="0.6"
+        strokeLinecap="round"
+        opacity="0.45"
+      />
+      {/* Window */}
+      <circle cx="12" cy="9" r="1.2" fill={ORANGE} />
+      {/* Fins */}
+      <path d="M8.8 12 L6.3 16 L8.8 15 Z" fill="currentColor" />
+      <path d="M15.2 12 L17.7 16 L15.2 15 Z" fill="currentColor" />
+      {/* Flame */}
+      <path d="M10.3 14 L12 17 L13.7 14 Z" fill={ORANGE} />
+      {/* Open book V launchpad */}
       <path
-        d="M9.5 3 V8.5 L6 16 A2.5 2.5 0 0 0 8.3 19.5 H15.7 A2.5 2.5 0 0 0 18 16 L14.5 8.5 V3"
+        d="M3 21 L12 18.5 L21 21"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        fill="none"
+        opacity="0.7"
       />
-      {/* Liquid */}
-      <path
-        d="M7.1 14 L16.9 14 A2.5 2.5 0 0 1 15.7 19.5 H8.3 A2.5 2.5 0 0 1 7.1 14 Z"
-        fill={SPARK}
-        opacity="0.9"
+      <line
+        x1="12"
+        y1="18.5"
+        x2="12"
+        y2="21"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.7"
       />
-      {/* Bubble */}
-      <circle cx="10.5" cy="11.5" r="0.9" fill={SPARK} />
-      {/* Sparkle */}
+      {/* Idea sparkle */}
       <path
-        d="M19.5 3 L19.9 4.3 M19.5 3 L19.1 1.7 M19.5 3 L20.8 3.4 M19.5 3 L18.2 2.6"
-        stroke={SPARK}
-        strokeWidth="1.1"
+        d="M19.5 2.5 L19.5 5.5 M18 4 L21 4"
+        stroke={ORANGE}
+        strokeWidth="1"
         strokeLinecap="round"
       />
+      <circle cx="19.5" cy="4" r="0.9" fill={ORANGE} />
     </svg>
   );
 }
