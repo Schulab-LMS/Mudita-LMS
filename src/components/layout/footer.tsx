@@ -2,7 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { FlaskConical } from "lucide-react";
+import { SchulabLogo } from "@/components/brand/schulab-logo";
 
 export function Footer() {
   const t = useTranslations("footer");
@@ -18,7 +18,7 @@ export function Footer() {
               href="/"
               className="flex items-center gap-2 text-xl font-bold text-white"
             >
-              <FlaskConical className="h-6 w-6" />
+              <SchulabLogo size={26} className="text-white" />
               <span>Schulab</span>
             </Link>
             <p className="text-sm leading-relaxed">{t("description")}</p>
