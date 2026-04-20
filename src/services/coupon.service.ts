@@ -180,20 +180,46 @@ export async function recordRedemption(params: {
   amountOff: number;
   currency: string;
 }) {
-  await db.$transaction([
-    db.couponRedemption.create({
-      data: {
-        couponId: params.couponId,
-        userId: params.userId,
-        coursePurchaseId: params.coursePurchaseId ?? null,
-        subscriptionId: params.subscriptionId ?? null,
-        amountOff: params.amountOff,
-        currency: params.currency,
-      },
-    }),
-    db.coupon.update({
+  // Idempotent by (coupon, purchase|subscription) — Stripe retries webhooks
+  // so we must not double-count usage if the handler runs twice. If either
+  // target id is present and a redemption row already exists we bail out
+  // before incrementing `usedCount`.
+  const existing = await db.couponRedemption.findFirst({
+    where: {
+      couponId: params.couponId,
+      ...(params.coursePurchaseId
+        ? { coursePurchaseId: params.coursePurchaseId }
+        : params.subscriptionId
+          ? { subscriptionId: params.subscriptionId }
+          : {}),
+    },
+    select: { id: true },
+  });
+  if (existing) return;
+
+  await db.$transaction(async (tx) => {
+    try {
+      await tx.couponRedemption.create({
+        data: {
+          couponId: params.couponId,
+          userId: params.userId,
+          coursePurchaseId: params.coursePurchaseId ?? null,
+          subscriptionId: params.subscriptionId ?? null,
+          amountOff: params.amountOff,
+          currency: params.currency,
+        },
+      });
+    } catch (err) {
+      // P2002 = unique constraint violation (the partial unique index on
+      // CouponRedemption). Safe to ignore — another concurrent webhook won
+      // the race and already recorded the redemption.
+      const code = (err as { code?: string } | null)?.code;
+      if (code === "P2002") return;
+      throw err;
+    }
+    await tx.coupon.update({
       where: { id: params.couponId },
       data: { usedCount: { increment: 1 } },
-    }),
-  ]);
+    });
+  });
 }

@@ -9,16 +9,26 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const couponCodeSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(32)
+  .regex(/^[A-Za-z0-9_-]+$/)
+  .optional();
+
 const bodySchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("course"),
     courseId: z.string().min(1),
+    couponCode: couponCodeSchema,
     successPath: z.string().startsWith("/").optional(),
     cancelPath: z.string().startsWith("/").optional(),
   }),
   z.object({
     kind: z.literal("subscription"),
     planId: z.string().min(1),
+    couponCode: couponCodeSchema,
     successPath: z.string().startsWith("/").optional(),
     cancelPath: z.string().startsWith("/").optional(),
   }),
@@ -58,12 +68,14 @@ export async function POST(request: Request) {
         ? await createCourseCheckoutSession({
             userId: session.user.id,
             courseId: parsed.data.courseId,
+            couponCode: parsed.data.couponCode,
             successPath: parsed.data.successPath,
             cancelPath: parsed.data.cancelPath,
           })
         : await createSubscriptionCheckoutSession({
             userId: session.user.id,
             planId: parsed.data.planId,
+            couponCode: parsed.data.couponCode,
             successPath: parsed.data.successPath,
             cancelPath: parsed.data.cancelPath,
           });

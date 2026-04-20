@@ -27,15 +27,19 @@ export async function enrollInCourse(courseId: string) {
     const parsed = enrollInCourseSchema.safeParse({ courseId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
-    // Only allow self-enrolment in published courses. Drafts and archived
-    // courses can still be administered via `adminEnrollUser`.
+    // Only allow self-enrolment in published free courses. Paid courses must
+    // go through Stripe checkout — granting access here would bypass payment.
+    // Drafts and archived courses can still be administered via `adminEnrollUser`.
     const course = await db.course.findUnique({
       where: { id: parsed.data.courseId },
-      select: { title: true, slug: true, status: true },
+      select: { title: true, slug: true, status: true, isFree: true, price: true },
     });
     if (!course) return { success: false, error: "Course not found" };
     if (course.status !== "PUBLISHED") {
       return { success: false, error: "This course is not available for enrolment" };
+    }
+    if (!course.isFree && Number(course.price) > 0) {
+      return { success: false, error: "This course requires payment — please purchase it first" };
     }
 
     const enrollment = await enrollUser(session.user.id, parsed.data.courseId);

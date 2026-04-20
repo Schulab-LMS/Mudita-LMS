@@ -1074,6 +1074,11 @@ model CouponRedemption {
   coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // A single coupon can only be redeemed once per purchase / subscription,
+  // so webhook retries don't double-count usage. These partial-unique indexes
+  // are tolerant of the NULL column on the "other" target.
+  @@unique([couponId, coursePurchaseId])
+  @@unique([couponId, subscriptionId])
   @@index([couponId])
   @@index([userId])
 }

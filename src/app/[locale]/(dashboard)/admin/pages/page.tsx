@@ -4,7 +4,6 @@ import { isAdminRole } from "@/lib/auth-helpers";
 import { getPages } from "@/services/page.service";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { FileText, Plus, Pencil, ExternalLink } from "lucide-react";
 import { DeletePageButton, TogglePublishButton } from "./page-actions";
 

@@ -28,7 +28,7 @@ export function BarChart({
         </div>
       )}
       <div className="flex items-end gap-[2px]" style={{ height }}>
-        {data.map((d, i) => {
+        {data.map((d) => {
           const pct = max > 0 ? (d.count / max) * 100 : 0;
           return (
             <div

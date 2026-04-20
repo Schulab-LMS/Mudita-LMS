@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 
+export type CreateBookingError = "invalid_range" | "conflict" | "server_error";
+
 export async function createBooking(data: {
   studentId: string;
   tutorId: string;
@@ -9,16 +11,44 @@ export async function createBooking(data: {
   notes?: string;
   price: number;
 }) {
+  if (
+    !(data.startTime instanceof Date) ||
+    !(data.endTime instanceof Date) ||
+    data.endTime <= data.startTime
+  ) {
+    return { error: "invalid_range" as const };
+  }
+  if (data.startTime.getTime() < Date.now()) {
+    return { error: "invalid_range" as const };
+  }
+
   try {
-    return await db.booking.create({
-      data: {
-        ...data,
-        price: data.price,
-        status: "PENDING",
-      },
+    // Run the overlap check and the insert in a single transaction so two
+    // concurrent bookings for the same tutor cannot both pass the check.
+    return await db.$transaction(async (tx) => {
+      const overlap = await tx.booking.findFirst({
+        where: {
+          tutorId: data.tutorId,
+          status: { in: ["PENDING", "CONFIRMED"] },
+          startTime: { lt: data.endTime },
+          endTime: { gt: data.startTime },
+        },
+        select: { id: true },
+      });
+      if (overlap) return { error: "conflict" as const };
+
+      const booking = await tx.booking.create({
+        data: {
+          ...data,
+          price: data.price,
+          status: "PENDING",
+        },
+      });
+      return { booking };
     });
-  } catch {
-    return null;
+  } catch (err) {
+    console.error("createBooking error:", err);
+    return { error: "server_error" as const };
   }
 }
 

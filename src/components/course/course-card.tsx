@@ -1,5 +1,4 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import { BookOpen, Users, Clock } from "lucide-react";
 import { CategoryIllustration } from "./category-illustration";

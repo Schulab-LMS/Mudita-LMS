@@ -23,8 +23,17 @@ export async function createBooking(data: {
     ...parsed.data,
   });
 
-  if (!result) return { error: "Failed to create booking" };
-  return { success: true, bookingId: result.id };
+  if ("error" in result) {
+    switch (result.error) {
+      case "invalid_range":
+        return { error: "Pick a valid future time slot" };
+      case "conflict":
+        return { error: "That time slot is no longer available" };
+      default:
+        return { error: "Failed to create booking" };
+    }
+  }
+  return { success: true, bookingId: result.booking.id };
 }
 
 export async function cancelBooking(bookingId: string) {

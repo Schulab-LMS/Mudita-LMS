@@ -1,7 +1,6 @@
 import type Stripe from "stripe";
 import { db } from "@/lib/db";
 import { stripe, DEFAULT_CURRENCY } from "@/lib/stripe";
-import { enrollUser } from "@/services/enrollment.service";
 import { EVENTS, track } from "@/lib/analytics";
 import { recordRedemption, validateCoupon } from "@/services/coupon.service";
 
@@ -325,10 +324,30 @@ async function handleCoursePurchaseCompleted(
         paidAt: new Date(),
       },
     });
-  });
 
-  // Enrol the learner after the transaction commits. enrollUser is idempotent.
-  await enrollUser(purchase.userId, purchase.courseId);
+    // Enrol the learner in the same transaction so we can never leave a
+    // paid-but-unenrolled user. Ignore the duplicate case in case the user
+    // was already enrolled (e.g. a free preview enrolment upgraded to paid).
+    const existingEnrolment = await tx.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId: purchase.userId,
+          courseId: purchase.courseId,
+        },
+      },
+      select: { id: true },
+    });
+    if (!existingEnrolment) {
+      await tx.enrollment.create({
+        data: {
+          userId: purchase.userId,
+          courseId: purchase.courseId,
+          status: "ACTIVE",
+          progress: 0,
+        },
+      });
+    }
+  });
 
   const couponId = session.metadata?.couponId;
   const couponAmountOff = Number(session.metadata?.couponAmountOff ?? 0);
@@ -410,20 +429,15 @@ export async function upsertSubscriptionFromStripe(
   const couponId = sub.metadata?.couponId;
   const couponAmountOff = Number(sub.metadata?.couponAmountOff ?? 0);
   if (couponId && couponAmountOff > 0) {
-    const already = await db.couponRedemption.findFirst({
-      where: { couponId, subscriptionId: persisted.id },
-      select: { id: true },
-    });
-    if (!already) {
-      const currency = sub.items.data[0]?.price?.currency?.toUpperCase() ?? "USD";
-      await recordRedemption({
-        couponId,
-        userId,
-        subscriptionId: persisted.id,
-        amountOff: couponAmountOff,
-        currency,
-      }).catch((err) => console.error("[coupon] redemption record failed:", err));
-    }
+    const currency = sub.items.data[0]?.price?.currency?.toUpperCase() ?? "USD";
+    // recordRedemption is idempotent — safe to call on every webhook replay.
+    await recordRedemption({
+      couponId,
+      userId,
+      subscriptionId: persisted.id,
+      amountOff: couponAmountOff,
+      currency,
+    }).catch((err) => console.error("[coupon] redemption record failed:", err));
   }
 }
 

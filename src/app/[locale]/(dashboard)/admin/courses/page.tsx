@@ -114,7 +114,7 @@ export default async function AdminCoursesPage() {
                   <td className="px-4 py-3 text-center text-muted-foreground">{course._count.modules}</td>
                   <td className="px-4 py-3 text-center text-muted-foreground">{course._count.enrollments}</td>
                   <td className="px-4 py-3">
-                    <CourseActions courseId={course.id} status={course.status} title={course.title} />
+                    <CourseActions courseId={course.id} status={course.status} />
                   </td>
                 </tr>
               ))

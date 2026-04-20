@@ -44,15 +44,44 @@ export async function getQuizById(quizId: string) {
   }
 }
 
+export type SubmitAttemptError =
+  | "not_found"
+  | "not_enrolled"
+  | "server_error";
+
 export async function submitAttempt(
   userId: string,
   quizId: string,
   answers: Record<string, string>
-) {
+): Promise<
+  | {
+      attemptId: string;
+      score: number;
+      passed: boolean;
+      totalPoints: number;
+      earnedPoints: number;
+      passingScore: number;
+      questionResults: Array<{
+        questionId: string;
+        correct: boolean;
+        correctAnswerId: string;
+        selectedAnswerId: string;
+      }>;
+    }
+  | { error: SubmitAttemptError }
+> {
   try {
     const quiz = await db.quiz.findUnique({
       where: { id: quizId },
       include: {
+        lesson: {
+          select: {
+            isFree: true,
+            module: {
+              select: { course: { select: { id: true, createdById: true } } },
+            },
+          },
+        },
         questions: {
           include: {
             answers: true,
@@ -61,7 +90,23 @@ export async function submitAttempt(
       },
     });
 
-    if (!quiz) return null;
+    if (!quiz) return { error: "not_found" };
+
+    // Gate on the same rules as lesson access — free-preview quizzes stay
+    // open, course authors can self-test, otherwise an active enrolment is
+    // required. This prevents attempt spamming on quizzes the learner never
+    // paid for or was granted.
+    const courseId = quiz.lesson.module.course.id;
+    const isAuthor = quiz.lesson.module.course.createdById === userId;
+    if (!quiz.lesson.isFree && !isAuthor) {
+      const enrollment = await db.enrollment.findUnique({
+        where: { userId_courseId: { userId, courseId } },
+        select: { status: true },
+      });
+      if (!enrollment || enrollment.status !== "ACTIVE") {
+        return { error: "not_enrolled" };
+      }
+    }
 
     let totalPoints = 0;
     let earnedPoints = 0;
@@ -155,7 +200,7 @@ export async function submitAttempt(
     };
   } catch (error) {
     console.error("Failed to submit quiz attempt:", error);
-    return null;
+    return { error: "server_error" as const };
   }
 }
 

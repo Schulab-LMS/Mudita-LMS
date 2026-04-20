@@ -22,7 +22,6 @@ import {
 import {
   FloatingStar,
   RocketIllustration,
-  AtomIllustration,
   RobotIllustration,
 } from "@/components/illustrations/stem-icons";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";

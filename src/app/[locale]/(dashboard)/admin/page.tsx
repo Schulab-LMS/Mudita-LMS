@@ -9,7 +9,6 @@ import {
   Users,
   BookOpen,
   GraduationCap,
-  Calendar,
   Package,
   ShieldCheck,
   Award,
@@ -34,12 +33,6 @@ const enrollmentStatusColors: Record<string, string> = {
   COMPLETED: "#22c55e",
   CANCELLED: "#ef4444",
   EXPIRED: "#9ca3af",
-};
-
-const courseStatusColors: Record<string, string> = {
-  PUBLISHED: "#22c55e",
-  DRAFT: "#f59e0b",
-  ARCHIVED: "#9ca3af",
 };
 
 export default async function AdminDashboardPage() {

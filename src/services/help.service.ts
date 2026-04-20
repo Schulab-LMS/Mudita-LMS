@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 
-export async function getPublishedArticles(locale: string = "en") {
+export async function getPublishedArticles() {
   try {
     return await db.helpArticle.findMany({
       where: { isPublished: true },

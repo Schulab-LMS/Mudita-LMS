@@ -62,7 +62,7 @@ export default async function HelpCenterPage() {
             Find answers, guides, and support to get the most out of Schulab.
           </p>
           <div className="mx-auto mt-6 max-w-xl">
-            <HelpSearchPageWrapper locale={locale} />
+            <HelpSearchPageWrapper />
           </div>
         </div>
       </section>
@@ -185,7 +185,7 @@ export default async function HelpCenterPage() {
 }
 
 // Client wrapper for search that handles navigation
-function HelpSearchPageWrapper({ locale }: { locale: string }) {
+function HelpSearchPageWrapper() {
   // This is rendered server-side but HelpSearch is a client component
   // It will redirect to /help?q=... on selection via the Link href
   return (

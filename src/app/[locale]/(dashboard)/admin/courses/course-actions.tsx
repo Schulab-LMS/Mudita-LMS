@@ -1,20 +1,17 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { deleteCourse, toggleCourseStatus } from "@/actions/admin.actions";
 import { Link } from "@/i18n/navigation";
 
 interface Props {
   courseId: string;
   status: string;
-  title: string;
 }
 
-export function CourseActions({ courseId, status, title }: Props) {
+export function CourseActions({ courseId, status }: Props) {
   const [pending, startTransition] = useTransition();
   const [showConfirm, setShowConfirm] = useState(false);
-  const router = useRouter();
 
   function handleStatusChange(newStatus: string) {
     startTransition(async () => {

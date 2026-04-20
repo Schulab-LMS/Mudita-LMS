@@ -2,12 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { searchArticles } from "@/services/help.service";
 import { db } from "@/lib/db";
 
+const SUPPORTED_LOCALES = ["en", "ar", "de"] as const;
+const MIN_QUERY_LENGTH = 2;
+const MAX_QUERY_LENGTH = 100;
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const query = searchParams.get("q")?.trim() ?? "";
-  const locale = searchParams.get("locale") ?? "en";
+  const rawLocale = searchParams.get("locale") ?? "en";
+  const locale = (SUPPORTED_LOCALES as readonly string[]).includes(rawLocale)
+    ? rawLocale
+    : "en";
 
-  if (!query || query.length < 2) {
+  // Silently ignore queries that are too short or suspiciously long —
+  // `contains` against a 50k-char string is a cheap DoS vector.
+  if (
+    !query ||
+    query.length < MIN_QUERY_LENGTH ||
+    query.length > MAX_QUERY_LENGTH
+  ) {
     return NextResponse.json({ articles: [] });
   }
 

@@ -27,54 +27,69 @@ export async function markLessonComplete(userId: string, lessonId: string) {
 
 export async function recalculateProgress(userId: string, courseId: string) {
   try {
-    const course = await db.course.findUnique({
-      where: { id: courseId },
-      include: {
-        modules: {
-          include: {
-            lessons: true,
+    // Run the count and enrollment update in one transaction so concurrent
+    // lesson completions can't both read a stale count and both mark the
+    // course COMPLETED with the wrong percentage.
+    const { progressPercent, becameComplete } = await db.$transaction(
+      async (tx) => {
+        const course = await tx.course.findUnique({
+          where: { id: courseId },
+          select: {
+            modules: { select: { lessons: { select: { id: true } } } },
           },
-        },
-      },
-    });
+        });
+        if (!course) return { progressPercent: null, becameComplete: false };
 
-    if (!course) return null;
+        const allLessonIds = course.modules.flatMap((m) =>
+          m.lessons.map((l) => l.id)
+        );
+        const totalLessons = allLessonIds.length;
+        if (totalLessons === 0) {
+          return { progressPercent: 0, becameComplete: false };
+        }
 
-    const allLessonIds = course.modules.flatMap((m) =>
-      m.lessons.map((l) => l.id)
+        const completedCount = await tx.lessonProgress.count({
+          where: {
+            userId,
+            lessonId: { in: allLessonIds },
+            completed: true,
+          },
+        });
+        const progressPercent = Math.round(
+          (completedCount / totalLessons) * 100
+        );
+
+        const existing = await tx.enrollment.findUnique({
+          where: { userId_courseId: { userId, courseId } },
+          select: { status: true },
+        });
+        const alreadyComplete = existing?.status === "COMPLETED";
+
+        await tx.enrollment.update({
+          where: { userId_courseId: { userId, courseId } },
+          data: {
+            progress: progressPercent,
+            ...(progressPercent === 100
+              ? { status: "COMPLETED", completedAt: new Date() }
+              : {}),
+          },
+        });
+
+        return {
+          progressPercent,
+          becameComplete: progressPercent === 100 && !alreadyComplete,
+        };
+      }
     );
-    const totalLessons = allLessonIds.length;
 
-    if (totalLessons === 0) return 0;
-
-    const completedCount = await db.lessonProgress.count({
-      where: {
-        userId,
-        lessonId: { in: allLessonIds },
-        completed: true,
-      },
-    });
-
-    const progressPercent = Math.round((completedCount / totalLessons) * 100);
-
-    const enrollment = await db.enrollment.update({
-      where: {
-        userId_courseId: { userId, courseId },
-      },
-      data: {
-        progress: progressPercent,
-        ...(progressPercent === 100
-          ? { status: "COMPLETED", completedAt: new Date() }
-          : {}),
-      },
-    });
-
-    // Auto-generate certificate on course completion
-    if (progressPercent === 100) {
+    // Certificate generation is intentionally outside the transaction —
+    // it's a best-effort side effect triggered exactly once on the
+    // COMPLETE transition (generateCertificate is itself idempotent).
+    if (becameComplete) {
       await generateCertificate(userId, courseId).catch(() => null);
     }
 
-    return enrollment.progress;
+    return progressPercent;
   } catch (error) {
     console.error("Failed to recalculate progress:", error);
     return null;

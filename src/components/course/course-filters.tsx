@@ -2,7 +2,6 @@
 
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import { useCallback } from "react";
 

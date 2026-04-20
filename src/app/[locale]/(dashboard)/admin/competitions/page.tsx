@@ -3,8 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Trophy, Plus } from "lucide-react";
+import { Trophy } from "lucide-react";
 
 export const metadata = { title: "Competitions | Admin | Schulab" };
 
