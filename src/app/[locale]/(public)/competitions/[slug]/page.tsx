@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getCompetitionBySlug, getLeaderboard } from "@/services/competition.service";
@@ -178,7 +179,13 @@ export default async function CompetitionDetailPage({
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {entry.user.avatar ? (
-                          <img src={entry.user.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
+                          <Image
+                            src={entry.user.avatar}
+                            alt=""
+                            width={32}
+                            height={32}
+                            className="h-8 w-8 rounded-full object-cover"
+                          />
                         ) : (
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                             {(entry.user.name ?? "?")[0].toUpperCase()}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { updateParticipantScore, calculateCompetitionRanks } from "@/actions/competition.actions";
 import { Trophy, RefreshCw } from "lucide-react";
 
@@ -122,7 +123,13 @@ export function ScoreForm({ competitionId, participants }: ScoreFormProps) {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {p.user.avatar ? (
-                        <img src={p.user.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
+                        <Image
+                          src={p.user.avatar}
+                          alt=""
+                          width={32}
+                          height={32}
+                          className="h-8 w-8 rounded-full object-cover"
+                        />
                       ) : (
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                           {(p.user.name ?? "?")[0].toUpperCase()}

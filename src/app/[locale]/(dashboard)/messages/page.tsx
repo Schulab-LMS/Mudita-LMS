@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import { auth } from "@/lib/auth";
 import { getInbox, getMessageableUsers } from "@/services/message.service";
 import { Link } from "@/i18n/navigation";
@@ -67,9 +68,11 @@ export default async function MessagesPage() {
                   {/* Avatar */}
                   <div className="relative shrink-0">
                     {conv.partnerAvatar ? (
-                      <img
+                      <Image
                         src={conv.partnerAvatar}
                         alt={conv.partnerName ?? "User"}
+                        width={44}
+                        height={44}
                         className="h-11 w-11 rounded-full object-cover"
                       />
                     ) : (
@@ -121,7 +124,13 @@ export default async function MessagesPage() {
                   className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40"
                 >
                   {user.avatar ? (
-                    <img src={user.avatar} alt={user.name ?? ""} className="h-9 w-9 rounded-full object-cover" />
+                    <Image
+                      src={user.avatar}
+                      alt={user.name ?? ""}
+                      width={36}
+                      height={36}
+                      className="h-9 w-9 rounded-full object-cover"
+                    />
                   ) : (
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary/10 text-secondary font-bold">
                       {(user.name ?? "?")[0].toUpperCase()}

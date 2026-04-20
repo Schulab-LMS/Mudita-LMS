@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { generateReactHelpers } from "@uploadthing/react";
 import { ImageIcon, Upload, X, Loader2 } from "lucide-react";
 import type { OurFileRouter } from "@/app/api/uploadthing/core";
@@ -45,10 +46,12 @@ export function ImageUpload({
     return (
       <div className="relative overflow-hidden rounded-xl border border-border">
         <div className={`relative ${aspectClass} w-full overflow-hidden`}>
-          <img
+          <Image
             src={value}
             alt="Thumbnail preview"
-            className="h-full w-full object-cover"
+            fill
+            sizes="(min-width: 1024px) 33vw, 100vw"
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-black/0 transition-colors hover:bg-black/20" />
           <button

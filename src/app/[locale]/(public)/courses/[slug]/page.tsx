@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { getCourseBySlug } from "@/services/course.service";
@@ -168,11 +169,16 @@ export default async function CourseDetailPage({
           <div className="lg:col-span-1">
             <div className="sticky top-24 rounded-xl border bg-white p-6 shadow-sm">
               {course.thumbnail ? (
-                <img
-                  src={course.thumbnail}
-                  alt={course.title}
-                  className="mb-4 w-full rounded-lg object-cover aspect-video"
-                />
+                <div className="mb-4 relative aspect-video w-full overflow-hidden rounded-lg">
+                  <Image
+                    src={course.thumbnail}
+                    alt={course.title}
+                    fill
+                    sizes="(min-width: 1024px) 33vw, 100vw"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
               ) : (
                 <div className="mb-4 flex aspect-video items-center justify-center rounded-lg bg-muted">
                   <Play className="h-12 w-12 text-muted-foreground" />
@@ -326,11 +332,15 @@ export default async function CourseDetailPage({
                   className="group rounded-xl border bg-card p-4 transition-all hover:shadow-md"
                 >
                   {related.thumbnail ? (
-                    <img
-                      src={related.thumbnail}
-                      alt={related.title}
-                      className="w-full rounded-lg object-cover aspect-video"
-                    />
+                    <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+                      <Image
+                        src={related.thumbnail}
+                        alt={related.title}
+                        fill
+                        sizes="(min-width: 640px) 33vw, 100vw"
+                        className="object-cover"
+                      />
+                    </div>
                   ) : (
                     <div className="flex aspect-video items-center justify-center rounded-lg bg-muted">
                       <BookOpen className="h-8 w-8 text-muted-foreground" />

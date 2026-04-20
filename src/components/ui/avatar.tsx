@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface AvatarProps {
@@ -14,6 +15,12 @@ const sizeClasses: Record<string, string> = {
   lg: "h-14 w-14 text-base",
 };
 
+const sizePixels: Record<string, number> = {
+  sm: 32,
+  md: 40,
+  lg: 56,
+};
+
 export function Avatar({
   src,
   alt,
@@ -22,12 +29,15 @@ export function Avatar({
   className,
 }: AvatarProps) {
   const sizeClass = sizeClasses[size];
+  const pixels = sizePixels[size];
 
   if (src) {
     return (
-      <img
+      <Image
         src={src}
         alt={alt ?? fallback}
+        width={pixels}
+        height={pixels}
         className={cn(
           "shrink-0 rounded-full object-cover",
           sizeClass,

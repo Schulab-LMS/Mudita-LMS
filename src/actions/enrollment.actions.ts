@@ -16,6 +16,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { sendEnrollmentConfirmation } from "@/lib/email";
 import { db } from "@/lib/db";
+import { assertMinorConsent } from "@/lib/compliance";
 
 export async function enrollInCourse(courseId: string) {
   try {
@@ -40,6 +41,17 @@ export async function enrollInCourse(courseId: string) {
     }
     if (!course.isFree && Number(course.price) > 0) {
       return { success: false, error: "This course requires payment — please purchase it first" };
+    }
+
+    const consent = await assertMinorConsent(session.user.id);
+    if (!consent.ok) {
+      return {
+        success: false,
+        error:
+          consent.reason === "consent_withdrawn"
+            ? "A parent or guardian has withdrawn consent — please contact support"
+            : "Parental consent is required before enrolling",
+      };
     }
 
     const enrollment = await enrollUser(session.user.id, parsed.data.courseId);

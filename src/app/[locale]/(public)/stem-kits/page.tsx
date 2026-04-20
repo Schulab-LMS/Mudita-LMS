@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { getProducts } from "@/services/product.service";
 import { Link } from "@/i18n/navigation";
 
@@ -81,12 +82,14 @@ export default async function StemKitsPage({ searchParams }: StemKitsPageProps) 
               href={`/stem-kits/${product.slug}`}
               className="group flex flex-col rounded-xl border bg-card overflow-hidden transition-shadow hover:shadow-md"
             >
-              <div className="flex h-40 items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 text-5xl">
+              <div className="relative flex h-40 items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 text-5xl">
                 {product.images?.[0] ? (
-                  <img
+                  <Image
                     src={product.images[0]}
                     alt={product.name}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover"
                   />
                 ) : (
                   "🔬"

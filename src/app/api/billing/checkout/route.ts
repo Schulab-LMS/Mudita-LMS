@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { isStripeConfigured } from "@/lib/stripe";
+import { assertMinorConsent } from "@/lib/compliance";
 import {
   createCourseCheckoutSession,
   createSubscriptionCheckoutSession,
@@ -59,6 +60,19 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Invalid request" },
       { status: 400 }
+    );
+  }
+
+  const consent = await assertMinorConsent(session.user.id);
+  if (!consent.ok) {
+    return NextResponse.json(
+      {
+        error:
+          consent.reason === "consent_withdrawn"
+            ? "A parent or guardian has withdrawn consent — please contact support."
+            : "Parental consent is required before purchase.",
+      },
+      { status: 403 }
     );
   }
 

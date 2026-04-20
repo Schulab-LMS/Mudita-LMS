@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import Image from "next/image";
 import { auth } from "@/lib/auth";
 import { getThread, markThreadAsRead } from "@/services/message.service";
 import { db } from "@/lib/db";
@@ -73,9 +74,11 @@ export default async function ThreadPage({ params }: Props) {
         <div className="h-4 w-px bg-border" />
         <div className="flex items-center gap-3">
           {otherUser.avatar ? (
-            <img
+            <Image
               src={otherUser.avatar}
               alt={otherUser.name ?? ""}
+              width={36}
+              height={36}
               className="h-9 w-9 rounded-full object-cover"
             />
           ) : (
@@ -122,7 +125,13 @@ export default async function ThreadPage({ params }: Props) {
                   {!isMine && (
                     <div className="shrink-0 mb-1">
                       {msg.sender.avatar ? (
-                        <img src={msg.sender.avatar} alt="" className="h-7 w-7 rounded-full object-cover" />
+                        <Image
+                          src={msg.sender.avatar}
+                          alt=""
+                          width={28}
+                          height={28}
+                          className="h-7 w-7 rounded-full object-cover"
+                        />
                       ) : (
                         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold">
                           {(msg.sender.name ?? "?")[0].toUpperCase()}

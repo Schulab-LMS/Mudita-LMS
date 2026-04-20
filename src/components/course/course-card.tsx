@@ -1,5 +1,6 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
+import Image from "next/image";
 import { BookOpen, Users, Clock } from "lucide-react";
 import { CategoryIllustration } from "./category-illustration";
 
@@ -94,11 +95,12 @@ export function CourseCard({ course }: CourseCardProps) {
         {/* Thumbnail or gradient header */}
         <div className="relative h-44 overflow-hidden">
           {course.thumbnail ? (
-            <img
+            <Image
               src={course.thumbnail}
               alt={course.title}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              fill
+              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
             <CategoryIllustration category={course.category} gradient={gradient} />

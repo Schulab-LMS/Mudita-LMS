@@ -66,3 +66,31 @@ export async function hasActiveConsent(
   if (minVersion && latest.version < minVersion) return false;
   return true;
 }
+
+// Gate minor-specific actions (enrolment, purchase, content access) on a
+// live parental consent record. A row with `granted:false` supersedes an
+// earlier `granted:true` for the same type, so a withdrawal blocks the
+// child going forward. Adults always pass.
+export type MinorConsentCheck =
+  | { ok: true }
+  | { ok: false; reason: "consent_withdrawn" | "consent_missing" };
+
+export async function assertMinorConsent(
+  userId: string
+): Promise<MinorConsentCheck> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { dateOfBirth: true },
+  });
+  if (!user?.dateOfBirth) return { ok: true };
+  if (!isMinor(user.dateOfBirth)) return { ok: true };
+
+  const latest = await db.consentRecord.findFirst({
+    where: { userId, type: { in: ["PARENTAL_COPPA", "PARENTAL_GDPR_K"] } },
+    orderBy: { grantedAt: "desc" },
+    select: { granted: true },
+  });
+  if (!latest) return { ok: false, reason: "consent_missing" };
+  if (!latest.granted) return { ok: false, reason: "consent_withdrawn" };
+  return { ok: true };
+}

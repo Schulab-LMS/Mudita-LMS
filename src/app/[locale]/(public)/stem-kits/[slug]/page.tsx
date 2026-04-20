@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getProductBySlug } from "@/services/product.service";
 import { Link } from "@/i18n/navigation";
@@ -33,12 +34,15 @@ export default async function StemKitDetailPage({ params }: StemKitDetailPagePro
 
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Image */}
-        <div className="flex h-64 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 text-7xl lg:h-80">
+        <div className="relative flex h-64 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 text-7xl lg:h-80">
           {product.images?.[0] ? (
-            <img
+            <Image
               src={product.images[0]}
               alt={product.name}
-              className="h-full w-full rounded-xl object-cover"
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover"
+              priority
             />
           ) : (
             "🔬"
