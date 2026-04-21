@@ -18,6 +18,7 @@ const ROLE_COLORS: Record<string, string> = {
   STUDENT: "bg-primary/10 text-primary",
   B2B_PARTNER: "bg-pink-100 text-pink-800",
 };
+const KNOWN_ROLES = new Set(Object.keys(ROLE_COLORS));
 
 export default async function AdminUsersPage() {
   const session = await auth();
@@ -26,9 +27,10 @@ export default async function AdminUsersPage() {
 
   const canManageRoles = isSuperAdmin(session.user.role);
 
-  const [t, tCommon, locale, users] = await Promise.all([
+  const [t, tCommon, tRoles, locale, users] = await Promise.all([
     getTranslations("admin.users"),
     getTranslations("admin.common"),
+    getTranslations("admin.roles"),
     getLocale(),
     db.user
       .findMany({
@@ -77,7 +79,9 @@ export default async function AdminUsersPage() {
           .map(([role, count]) => (
             <div key={role} className="rounded-lg border bg-white p-3 text-center">
               <div className="text-2xl font-bold">{count}</div>
-              <div className="text-xs text-muted-foreground">{role.replace("_", " ")}</div>
+              <div className="text-xs text-muted-foreground">
+                {KNOWN_ROLES.has(role) ? tRoles(role) : role.replace("_", " ")}
+              </div>
             </div>
           ))}
       </div>
@@ -111,7 +115,7 @@ export default async function AdminUsersPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ROLE_COLORS[user.role] ?? "bg-gray-100 text-gray-800"}`}>
-                      {user.role.replace("_", " ")}
+                      {KNOWN_ROLES.has(user.role) ? tRoles(user.role) : user.role.replace("_", " ")}
                     </span>
                   </td>
                   <td className="px-4 py-3">

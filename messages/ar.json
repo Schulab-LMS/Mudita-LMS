@@ -808,6 +808,12 @@
       "ADMIN": "مشرف",
       "SUPER_ADMIN": "مشرف عام",
       "B2B_PARTNER": "شريك مؤسسي"
+    },
+    "enrollmentStatus": {
+      "ACTIVE": "نشط",
+      "COMPLETED": "مكتمل",
+      "CANCELLED": "ملغى",
+      "EXPIRED": "منتهٍ"
     }
   }
 }

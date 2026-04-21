@@ -808,6 +808,12 @@
       "ADMIN": "Administrator",
       "SUPER_ADMIN": "Super-Administrator",
       "B2B_PARTNER": "B2B-Partner"
+    },
+    "enrollmentStatus": {
+      "ACTIVE": "Aktiv",
+      "COMPLETED": "Abgeschlossen",
+      "CANCELLED": "Storniert",
+      "EXPIRED": "Abgelaufen"
     }
   }
 }

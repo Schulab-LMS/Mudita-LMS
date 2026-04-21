@@ -31,6 +31,7 @@ const roleColors: Record<string, string> = {
   SUPER_ADMIN: "#dc2626",
   B2B_PARTNER: "#06b6d4",
 };
+const KNOWN_ROLES = new Set(Object.keys(roleColors));
 
 const enrollmentStatusColors: Record<string, string> = {
   ACTIVE: "#3b82f6",
@@ -38,6 +39,7 @@ const enrollmentStatusColors: Record<string, string> = {
   CANCELLED: "#ef4444",
   EXPIRED: "#9ca3af",
 };
+const KNOWN_STATUSES = new Set(Object.keys(enrollmentStatusColors));
 
 function formatRoleLabel(role: string): string {
   return role.charAt(0) + role.slice(1).toLowerCase().replace("_", " ");
@@ -52,9 +54,11 @@ export default async function AdminDashboardPage() {
   if (!session?.user) redirect("/login");
   if (!isAdminRole(session.user.role)) redirect("/dashboard");
 
-  const [t, tCommon, locale, analytics] = await Promise.all([
+  const [t, tCommon, tRoles, tStatus, locale, analytics] = await Promise.all([
     getTranslations("admin.dashboard"),
     getTranslations("admin.common"),
+    getTranslations("admin.roles"),
+    getTranslations("admin.enrollmentStatus"),
     getLocale(),
     getAdminAnalytics(),
   ]);
@@ -168,7 +172,7 @@ export default async function AdminDashboardPage() {
           </h3>
           <DonutChart
             segments={analytics.roleDistribution.map((r) => ({
-              label: formatRoleLabel(r.role),
+              label: KNOWN_ROLES.has(r.role) ? tRoles(r.role) : formatRoleLabel(r.role),
               count: r.count,
               color: roleColors[r.role] ?? "#9ca3af",
             }))}
@@ -184,7 +188,7 @@ export default async function AdminDashboardPage() {
           </h3>
           <DonutChart
             segments={analytics.enrollmentStatusDist.map((e) => ({
-              label: formatStatusLabel(e.status),
+              label: KNOWN_STATUSES.has(e.status) ? tStatus(e.status) : formatStatusLabel(e.status),
               count: e.count,
               color: enrollmentStatusColors[e.status] ?? "#9ca3af",
             }))}
