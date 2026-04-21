@@ -32,19 +32,19 @@ const roles = [
     value: "STUDENT" as const,
     icon: GraduationCap,
     key: "roleStudent",
-    blurb: "Explore, earn XP, and learn",
+    blurbKey: "roleBlurbs.student",
   },
   {
     value: "PARENT" as const,
     icon: Users,
     key: "roleParent",
-    blurb: "Track your child's progress",
+    blurbKey: "roleBlurbs.parent",
   },
   {
     value: "TUTOR" as const,
     icon: BookOpen,
     key: "roleTutor",
-    blurb: "Teach and inspire",
+    blurbKey: "roleBlurbs.tutor",
   },
 ];
 
@@ -63,22 +63,23 @@ function ageFromDob(iso: string): number | null {
   return age;
 }
 
-function passwordStrength(pw: string | undefined): { score: number; label: string; tone: string } {
-  if (!pw) return { score: 0, label: "", tone: "bg-muted" };
+const STRENGTH_TONES = [
+  "bg-destructive",
+  "bg-destructive",
+  "bg-amber-400",
+  "bg-emerald-400",
+  "bg-[var(--stem-science)]",
+];
+const STRENGTH_KEYS = ["tooShort", "weak", "okay", "strong", "excellent"] as const;
+
+function passwordStrength(pw: string | undefined): { score: number; toneKey: (typeof STRENGTH_KEYS)[number]; tone: string } {
+  if (!pw) return { score: 0, toneKey: "tooShort", tone: "bg-muted" };
   let score = 0;
   if (pw.length >= 8) score++;
   if (/[A-Z]/.test(pw)) score++;
   if (/[0-9]/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
-  const labels = ["Too short", "Weak", "Okay", "Strong", "Excellent"];
-  const tones = [
-    "bg-destructive",
-    "bg-destructive",
-    "bg-amber-400",
-    "bg-emerald-400",
-    "bg-[var(--stem-science)]",
-  ];
-  return { score, label: labels[score], tone: tones[score] };
+  return { score, toneKey: STRENGTH_KEYS[score], tone: STRENGTH_TONES[score] };
 }
 
 export default function RegisterPage() {
@@ -181,7 +182,7 @@ export default function RegisterPage() {
                   />
                   <span className="font-semibold">{t(role.key)}</span>
                   <span className="text-[10px] text-muted-foreground/80 leading-tight">
-                    {role.blurb}
+                    {t(role.blurbKey)}
                   </span>
                 </button>
               );
@@ -193,12 +194,12 @@ export default function RegisterPage() {
         <div className="space-y-1.5">
           <Label htmlFor="name">{t("name")}</Label>
           <div className="relative">
-            <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <User className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="name"
               placeholder="John Doe"
               autoComplete="name"
-              className="pl-10"
+              className="ps-10"
               {...register("name")}
             />
           </div>
@@ -211,13 +212,13 @@ export default function RegisterPage() {
         <div className="space-y-1.5">
           <Label htmlFor="email">{t("email")}</Label>
           <div className="relative">
-            <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Mail className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="email"
               type="email"
               placeholder="name@example.com"
               autoComplete="email"
-              className="pl-10"
+              className="ps-10"
               {...register("email")}
             />
           </div>
@@ -228,14 +229,14 @@ export default function RegisterPage() {
 
         {/* DOB */}
         <div className="space-y-1.5">
-          <Label htmlFor="dateOfBirth">Date of birth</Label>
+          <Label htmlFor="dateOfBirth">{t("dateOfBirth")}</Label>
           <div className="relative">
-            <Calendar className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Calendar className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="dateOfBirth"
               type="date"
               max={new Date().toISOString().slice(0, 10)}
-              className="pl-10"
+              className="ps-10"
               {...register("dateOfBirth")}
             />
           </div>
@@ -250,19 +251,19 @@ export default function RegisterPage() {
         <div className="space-y-1.5">
           <Label htmlFor="password">{t("password")}</Label>
           <div className="relative">
-            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Lock className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
-              className="pl-10 pr-10"
+              className="ps-10 pe-10"
               {...register("password")}
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? "Hide password" : "Show password"}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+              className="absolute end-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -282,8 +283,8 @@ export default function RegisterPage() {
               />
             ))}
             {password && (
-              <span className="ml-2 text-[11px] font-medium text-muted-foreground">
-                {strength.label}
+              <span className="ms-2 text-[11px] font-medium text-muted-foreground">
+                {t(`passwordStrength.${strength.toneKey}`)}
               </span>
             )}
           </div>
@@ -296,12 +297,12 @@ export default function RegisterPage() {
         <div className="space-y-1.5">
           <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
           <div className="relative">
-            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Lock className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="confirmPassword"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
-              className="pl-10"
+              className="ps-10"
               {...register("confirmPassword")}
             />
           </div>
@@ -315,17 +316,16 @@ export default function RegisterPage() {
         {requiresParent && (
           <div className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm animate-slide-down">
             <p className="font-medium text-amber-900">
-              Because the learner is under {CHILD_AGE_THRESHOLD}, a parent or
-              guardian must confirm consent.
+              {t("parent.notice", { age: CHILD_AGE_THRESHOLD })}
             </p>
             <div className="space-y-1.5">
               <Label htmlFor="parentEmail" className="text-amber-900">
-                Parent or guardian email
+                {t("parent.email")}
               </Label>
               <Input
                 id="parentEmail"
                 type="email"
-                placeholder="parent@example.com"
+                placeholder={t("parent.emailPlaceholder")}
                 className="bg-white"
                 {...register("parentEmail")}
               />
@@ -336,11 +336,7 @@ export default function RegisterPage() {
                 className="mt-1 accent-amber-600"
                 {...register("parentalConsent")}
               />
-              <span>
-                I am the parent or legal guardian and I consent to Schulab
-                creating this account and processing my child&apos;s data as
-                described in the Privacy Policy.
-              </span>
+              <span>{t("parent.consent")}</span>
             </label>
           </div>
         )}
@@ -353,10 +349,13 @@ export default function RegisterPage() {
               {...register("acceptedTerms")}
             />
             <span>
-              I agree to the{" "}
-              <Link href="/terms" className="text-primary hover:underline">
-                Terms of Service
-              </Link>
+              {t.rich("legal.agreeTerms", {
+                t: (chunks) => (
+                  <Link href="/terms" className="text-primary hover:underline">
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </span>
           </label>
           {errors.acceptedTerms && (
@@ -371,10 +370,13 @@ export default function RegisterPage() {
               {...register("acceptedPrivacy")}
             />
             <span>
-              I have read the{" "}
-              <Link href="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>
+              {t.rich("legal.agreePrivacy", {
+                p: (chunks) => (
+                  <Link href="/privacy" className="text-primary hover:underline">
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </span>
           </label>
           {errors.acceptedPrivacy && (
@@ -388,7 +390,7 @@ export default function RegisterPage() {
               className="mt-1 accent-primary"
               {...register("marketingOptIn")}
             />
-            <span>Send me occasional updates and learning tips.</span>
+            <span>{t("legal.marketingOptIn")}</span>
           </label>
         </div>
 
@@ -404,7 +406,7 @@ export default function RegisterPage() {
           ) : (
             <>
               {t("registerTitle")}
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 rtl:rotate-180" />
             </>
           )}
         </Button>

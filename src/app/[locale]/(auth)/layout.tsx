@@ -127,7 +127,7 @@ export default function AuthLayout({
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star key={i} className="h-3.5 w-3.5 fill-amber-300" />
                     ))}
-                    <span className="ml-1 font-semibold text-white">4.9</span>
+                    <span className="ms-1 font-semibold text-white">4.9</span>
                   </div>
                   <p className="text-xs text-white/60">
                     Loved by 5,000+ families in 30+ countries
@@ -151,7 +151,7 @@ export default function AuthLayout({
           {/* Mobile logo */}
           <Link
             href="/"
-            className="absolute top-5 left-5 flex items-center gap-2 font-display text-lg font-extrabold lg:hidden"
+            className="absolute top-5 start-5 flex items-center gap-2 font-display text-lg font-extrabold lg:hidden"
           >
             <SchulabLogo variant="tile" size={36} />
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">

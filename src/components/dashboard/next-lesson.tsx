@@ -66,7 +66,7 @@ export function NextLesson({
               <span className="flex items-center gap-2">
                 <span className="relative h-1.5 w-24 overflow-hidden rounded-full bg-white/20">
                   <span
-                    className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#ff8a3d] to-[#fef3c7]"
+                    className="absolute inset-y-0 start-0 rounded-full bg-gradient-to-r from-[#ff8a3d] to-[#fef3c7]"
                     style={{ width: `${Math.round(progress * 100)}%` }}
                   />
                 </span>
@@ -78,7 +78,7 @@ export function NextLesson({
           </div>
         </div>
 
-        <ArrowRight className="hidden h-5 w-5 shrink-0 text-white/80 transition-transform group-hover:translate-x-1 sm:block" />
+        <ArrowRight className="hidden h-5 w-5 shrink-0 text-white/80 transition-transform group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1 sm:block" />
       </div>
     </Link>
   );

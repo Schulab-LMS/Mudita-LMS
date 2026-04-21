@@ -25,6 +25,7 @@ import {
   Lock,
   MessageSquare,
   HelpCircle,
+  Bell,
 } from "lucide-react";
 import { SchulabLogo } from "@/components/brand/schulab-logo";
 
@@ -46,6 +47,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Lock,
   MessageSquare,
   HelpCircle,
+  Bell,
 };
 
 interface SidebarProps {
@@ -70,7 +72,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         {/* Close button on mobile */}
         <button
           onClick={onClose}
-          className="ml-auto rounded-md p-1 hover:bg-muted md:hidden"
+          className="ms-auto rounded-md p-1 hover:bg-muted md:hidden"
           aria-label="Close sidebar"
         >
           <X className="h-5 w-5" />
@@ -131,7 +133,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:w-64">
+      <aside className="hidden md:fixed md:inset-y-0 md:start-0 md:z-30 md:flex md:w-64">
         {sidebarContent}
       </aside>
 
@@ -145,7 +147,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             aria-hidden="true"
           />
           {/* Drawer */}
-          <aside className="fixed inset-y-0 left-0 z-50 w-64">
+          <aside className="fixed inset-y-0 start-0 z-50 w-64">
             {sidebarContent}
           </aside>
         </div>

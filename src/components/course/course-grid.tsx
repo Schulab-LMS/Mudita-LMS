@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { CourseCard } from "@/components/course/course-card";
 
 interface CourseGridProps {
@@ -18,17 +20,22 @@ interface CourseGridProps {
   }>;
 }
 
-export function CourseGrid({ courses }: CourseGridProps) {
+export async function CourseGrid({ courses }: CourseGridProps) {
   if (courses.length === 0) {
+    const t = await getTranslations("courses.empty");
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
         <div className="mb-4 text-5xl">📚</div>
         <h3 className="mb-2 text-lg font-semibold text-muted-foreground">
-          No courses found
+          {t("title")}
         </h3>
-        <p className="text-sm text-muted-foreground">
-          Try adjusting your filters or check back later for new courses.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("body")}</p>
+        <Link
+          href="/courses"
+          className="mt-5 inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+        >
+          {t("reset")}
+        </Link>
       </div>
     );
   }
