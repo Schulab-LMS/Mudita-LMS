@@ -87,13 +87,6 @@ export default async function VerifyCertificatePage({
               </div>
             </div>
 
-            <a
-              href={`/api/certificates/${cert.code}/download`}
-              target="_blank"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
-            >
-              View Certificate
-            </a>
           </div>
         ) : (
           <div className="rounded-2xl border bg-white p-8 shadow-sm text-center space-y-6">
