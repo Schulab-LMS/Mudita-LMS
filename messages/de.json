@@ -713,5 +713,101 @@
     "learner": "Lernende:r",
     "certificateId": "Zertifikat-ID",
     "learnMore": "Mehr über Schulab erfahren"
+  },
+  "admin": {
+    "common": {
+      "actions": "Aktionen",
+      "back": "Zurück",
+      "cancel": "Abbrechen",
+      "confirm": "Bestätigen",
+      "delete": "Löschen",
+      "save": "Speichern",
+      "saving": "Speichern…",
+      "loading": "Wird geladen…",
+      "edit": "Bearbeiten",
+      "viewAll": "Alle anzeigen",
+      "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+      "role": "Rolle",
+      "status": "Status",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "published": "Veröffentlicht",
+      "draft": "Entwurf",
+      "archived": "Archiviert",
+      "free": "Kostenlos"
+    },
+    "error": {
+      "title": "Fehler beim Laden des Admin-Bereichs",
+      "body": "Beim Laden des Admin-Bereichs ist ein Fehler aufgetreten. Bitte versuche es erneut.",
+      "tryAgain": "Erneut versuchen"
+    },
+    "analytics": {
+      "totalInLastDays": "{total} insgesamt in den letzten {days} Tagen"
+    },
+    "dashboard": {
+      "pageTitle": "Admin-Dashboard",
+      "title": "Admin-Dashboard",
+      "subtitle": "Plattform-Überblick und Analysen.",
+      "totalUsers": "Nutzer insgesamt",
+      "enrollments": "Einschreibungen",
+      "certificatesIssued": "Ausgestellte Zertifikate",
+      "completionRate": "Abschlussrate",
+      "thisMonth": "{count} diesen Monat",
+      "activeStudents": "{count} aktive Lernende",
+      "enrollmentsLast30": "Einschreibungen (letzte 30 Tage)",
+      "newUsersLast30": "Neue Nutzer (letzte 30 Tage)",
+      "usersByRole": "Nutzer nach Rolle",
+      "enrollmentStatus": "Einschreibungs-Status",
+      "topCoursesByEnrollments": "Top-Kurse nach Einschreibungen",
+      "noPublishedCourses": "Noch keine veröffentlichten Kurse.",
+      "recentEnrollments": "Aktuelle Einschreibungen",
+      "recentCertificates": "Aktuelle Zertifikate",
+      "noEnrollments": "Noch keine Einschreibungen.",
+      "noCertificates": "Noch keine Zertifikate ausgestellt.",
+      "quickActions": "Schnellaktionen",
+      "manageUsers": "Nutzer verwalten",
+      "manageCourses": "Kurse verwalten",
+      "stemKitProducts": "STEM-Set-Produkte",
+      "tutorVerification": "Tutor-Verifizierung",
+      "reviewApplications": "Bewerbungen prüfen",
+      "usersCount": "{count, plural, =0 {keine Nutzer} one {# Nutzer} other {# Nutzer}}",
+      "coursesCount": "{count, plural, =0 {keine Kurse} one {# Kurs} other {# Kurse}}",
+      "productsCount": "{count, plural, =0 {keine Produkte} one {# Produkt} other {# Produkte}}"
+    },
+    "users": {
+      "pageTitle": "Nutzer verwalten | Admin",
+      "title": "Nutzer",
+      "totalActive": "{total} Nutzer insgesamt · {active} aktiv",
+      "user": "Nutzer",
+      "enrollments": "Einschreibungen",
+      "joined": "Beigetreten",
+      "noUsersFound": "Keine Nutzer gefunden.",
+      "changeRole": "Rolle ändern",
+      "activate": "Aktivieren",
+      "deactivate": "Deaktivieren",
+      "you": "Du"
+    },
+    "courses": {
+      "pageTitle": "Kurse verwalten | Admin",
+      "title": "Kurse",
+      "totalCount": "{count, plural, =0 {keine Kurse} one {# Kurs insgesamt} other {# Kurse insgesamt}}",
+      "newCourse": "Neuer Kurs",
+      "titleCol": "Titel",
+      "ageCol": "Alter",
+      "levelCol": "Niveau",
+      "categoryCol": "Kategorie",
+      "priceCol": "Preis",
+      "modulesCol": "Module",
+      "enrollmentsCol": "Einschreibungen",
+      "noCoursesFound": "Keine Kurse gefunden. Erstelle deinen ersten Kurs."
+    },
+    "roles": {
+      "STUDENT": "Lernender",
+      "PARENT": "Elternteil",
+      "TUTOR": "Tutor",
+      "ADMIN": "Administrator",
+      "SUPER_ADMIN": "Super-Administrator",
+      "B2B_PARTNER": "B2B-Partner"
+    }
   }
 }

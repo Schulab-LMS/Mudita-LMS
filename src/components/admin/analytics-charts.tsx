@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 interface BarChartProps {
   data: { date: string; label: string; count: number }[];
   height?: number;
@@ -11,6 +13,7 @@ export function BarChart({
   color = "bg-primary",
   label,
 }: BarChartProps) {
+  const t = useTranslations("admin.analytics");
   const max = Math.max(...data.map((d) => d.count), 1);
   const total = data.reduce((sum, d) => sum + d.count, 0);
 
@@ -23,7 +26,7 @@ export function BarChart({
         <div className="mb-3 flex items-baseline justify-between">
           <h3 className="text-sm font-semibold">{label}</h3>
           <span className="text-xs text-muted-foreground">
-            {total} total in last {data.length} days
+            {t("totalInLastDays", { total, days: data.length })}
           </span>
         </div>
       )}
@@ -37,11 +40,11 @@ export function BarChart({
               style={{ height: "100%" }}
             >
               <div
-                className={`absolute bottom-0 left-0 right-0 rounded-t-sm ${color} opacity-80 group-hover:opacity-100 transition-opacity`}
+                className={`absolute bottom-0 inset-x-0 rounded-t-sm ${color} opacity-80 group-hover:opacity-100 transition-opacity`}
                 style={{ height: `${Math.max(pct, 2)}%` }}
               />
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10">
+              <div className="absolute bottom-full inset-x-0 mb-1 hidden group-hover:flex justify-center z-10">
                 <div className="rounded bg-foreground px-2 py-1 text-xs text-background whitespace-nowrap shadow-lg">
                   {d.label}: {d.count}
                 </div>

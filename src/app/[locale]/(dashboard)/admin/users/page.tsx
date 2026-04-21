@@ -1,10 +1,14 @@
 import { redirect } from "next/navigation";
+import { getTranslations, getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole, isSuperAdmin } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { UserActions } from "./user-actions";
 
-export const metadata = { title: "Manage Users | Admin" };
+export async function generateMetadata() {
+  const t = await getTranslations("admin.users");
+  return { title: t("pageTitle") };
+}
 
 const ROLE_COLORS: Record<string, string> = {
   SUPER_ADMIN: "bg-purple-100 text-purple-800",
@@ -22,19 +26,32 @@ export default async function AdminUsersPage() {
 
   const canManageRoles = isSuperAdmin(session.user.role);
 
-  const users = await db.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isActive: true,
-      locale: true,
-      createdAt: true,
-      _count: { select: { enrollments: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  }).catch(() => []);
+  const [t, tCommon, locale, users] = await Promise.all([
+    getTranslations("admin.users"),
+    getTranslations("admin.common"),
+    getLocale(),
+    db.user
+      .findMany({
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isActive: true,
+          locale: true,
+          createdAt: true,
+          _count: { select: { enrollments: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      })
+      .catch(() => []),
+  ]);
+
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
   // Stats
   const roleCounts: Record<string, number> = {};
@@ -47,9 +64,9 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Users</h1>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
         <p className="text-muted-foreground">
-          {users.length} total users &middot; {activeCount} active
+          {t("totalActive", { total: users.length, active: activeCount })}
         </p>
       </div>
 
@@ -70,19 +87,19 @@ export default async function AdminUsersPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/40">
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">User</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Role</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-              <th className="px-4 py-3 text-center font-medium text-muted-foreground">Enrollments</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Joined</th>
-              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
+              <th className="px-4 py-3 text-start font-medium text-muted-foreground">{t("user")}</th>
+              <th className="px-4 py-3 text-start font-medium text-muted-foreground">{tCommon("role")}</th>
+              <th className="px-4 py-3 text-start font-medium text-muted-foreground">{tCommon("status")}</th>
+              <th className="px-4 py-3 text-center font-medium text-muted-foreground">{t("enrollments")}</th>
+              <th className="px-4 py-3 text-start font-medium text-muted-foreground">{t("joined")}</th>
+              <th className="px-4 py-3 text-end font-medium text-muted-foreground">{tCommon("actions")}</th>
             </tr>
           </thead>
           <tbody>
             {users.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                  No users found.
+                  {t("noUsersFound")}
                 </td>
               </tr>
             ) : (
@@ -105,14 +122,14 @@ export default async function AdminUsersPage() {
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {user.isActive ? "Active" : "Inactive"}
+                      {user.isActive ? tCommon("active") : tCommon("inactive")}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center text-muted-foreground">
                     {user._count.enrollments}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {new Date(user.createdAt).toLocaleDateString()}
+                    {dateFormatter.format(new Date(user.createdAt))}
                   </td>
                   <td className="px-4 py-3">
                     <UserActions

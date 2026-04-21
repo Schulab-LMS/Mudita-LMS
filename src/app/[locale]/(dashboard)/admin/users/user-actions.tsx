@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { updateUserRole, toggleUserActive } from "@/actions/admin.actions";
 
-const ROLES = [
-  { value: "STUDENT", label: "Student" },
-  { value: "PARENT", label: "Parent" },
-  { value: "TUTOR", label: "Tutor" },
-  { value: "ADMIN", label: "Admin" },
-  { value: "SUPER_ADMIN", label: "Super Admin" },
-  { value: "B2B_PARTNER", label: "B2B Partner" },
-];
+const ROLE_VALUES = [
+  "STUDENT",
+  "PARENT",
+  "TUTOR",
+  "ADMIN",
+  "SUPER_ADMIN",
+  "B2B_PARTNER",
+] as const;
 
 interface Props {
   userId: string;
@@ -21,13 +22,16 @@ interface Props {
 }
 
 export function UserActions({ userId, currentRole, isActive, canManageRoles, isSelf }: Props) {
+  const t = useTranslations("admin.users");
+  const tCommon = useTranslations("admin.common");
+  const tRoles = useTranslations("admin.roles");
   const [pending, startTransition] = useTransition();
   const [showRoleSelect, setShowRoleSelect] = useState(false);
 
   function handleToggleActive() {
     startTransition(async () => {
       const result = await toggleUserActive(userId);
-      if (!result.success) alert(result.error);
+      if (!result.success) alert(result.error ?? tCommon("genericError"));
     });
   }
 
@@ -38,7 +42,7 @@ export function UserActions({ userId, currentRole, isActive, canManageRoles, isS
     }
     startTransition(async () => {
       const result = await updateUserRole(userId, newRole);
-      if (!result.success) alert(result.error);
+      if (!result.success) alert(result.error ?? tCommon("genericError"));
       setShowRoleSelect(false);
     });
   }
@@ -56,8 +60,10 @@ export function UserActions({ userId, currentRole, isActive, canManageRoles, isS
             disabled={pending}
             className="rounded border px-2 py-1 text-xs disabled:opacity-50"
           >
-            {ROLES.map((r) => (
-              <option key={r.value} value={r.value}>{r.label}</option>
+            {ROLE_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {tRoles(value)}
+              </option>
             ))}
           </select>
         ) : (
@@ -66,7 +72,7 @@ export function UserActions({ userId, currentRole, isActive, canManageRoles, isS
             disabled={pending}
             className="rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
           >
-            Change Role
+            {t("changeRole")}
           </button>
         )
       )}
@@ -82,12 +88,12 @@ export function UserActions({ userId, currentRole, isActive, canManageRoles, isS
               : "text-green-700 hover:bg-green-50"
           }`}
         >
-          {pending ? "..." : isActive ? "Deactivate" : "Activate"}
+          {pending ? "..." : isActive ? t("deactivate") : t("activate")}
         </button>
       )}
 
       {isSelf && (
-        <span className="text-xs text-muted-foreground italic">You</span>
+        <span className="text-xs text-muted-foreground italic">{t("you")}</span>
       )}
     </div>
   );
