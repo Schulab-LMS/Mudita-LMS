@@ -23,7 +23,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         const email = (credentials.email as string).trim().toLowerCase();
-        const rl = rateLimit(`auth:login:${email}`, AUTH_RATE_LIMIT);
+        const rl = await rateLimit(`auth:login:${email}`, AUTH_RATE_LIMIT);
         if (!rl.success) return null;
 
         const user = await db.user.findUnique({

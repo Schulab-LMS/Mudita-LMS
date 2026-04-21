@@ -24,7 +24,7 @@ export async function sendVerificationEmail(email: string) {
 
     // Always respond with a generic success to prevent enumeration,
     // but bail out early when the rate limit kicks in.
-    const limit = rateLimit(`verify-send:${normalised}`, EMAIL_VERIFY_SEND_RATE_LIMIT);
+    const limit = await rateLimit(`verify-send:${normalised}`, EMAIL_VERIFY_SEND_RATE_LIMIT);
     if (!limit.success) {
       return {
         success: false,
@@ -72,7 +72,7 @@ export async function sendVerificationEmail(email: string) {
 export async function verifyEmail(token: string) {
   try {
     // Rate-limit by token to prevent brute forcing valid tokens.
-    const limit = rateLimit(`verify-consume:${token}`, EMAIL_VERIFY_CONSUME_RATE_LIMIT);
+    const limit = await rateLimit(`verify-consume:${token}`, EMAIL_VERIFY_CONSUME_RATE_LIMIT);
     if (!limit.success) {
       return { success: false, error: "Too many attempts. Please try again shortly." };
     }

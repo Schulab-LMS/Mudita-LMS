@@ -33,7 +33,7 @@ export async function requestPasswordReset(email: string) {
   const normalizedEmail = parsed.data.email.toLowerCase();
 
   // Rate limit by email
-  const rl = rateLimit(`auth:reset:${normalizedEmail}`, FORGOT_PASSWORD_RATE_LIMIT);
+  const rl = await rateLimit(`auth:reset:${normalizedEmail}`, FORGOT_PASSWORD_RATE_LIMIT);
   if (!rl.success) {
     return { success: true }; // Don't reveal rate limiting
   }
