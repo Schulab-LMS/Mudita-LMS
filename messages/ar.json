@@ -63,7 +63,11 @@
     "register": "إنشاء حساب",
     "messages": "الرسائل",
     "help": "مساعدة",
-    "helpArticles": "مقالات المساعدة"
+    "helpArticles": "مقالات المساعدة",
+    "quizzes": "الاختبارات",
+    "learn": "تعلّم",
+    "language": "اللغة",
+    "account": "الحساب"
   },
   "help": {
     "title": "مركز المساعدة",
@@ -202,7 +206,27 @@
     "allLevels": "جميع المستويات",
     "lessons": "دروس",
     "minutes": "دقيقة",
-    "students": "طلاب"
+    "students": "طلاب",
+    "exploreCatalog": "استكشف الكتالوج",
+    "catalogHint": "استكشف {count, plural, =0 {} other {# }}دورة STEM مصممة للمتعلمين الصغار من عمر 3 إلى 18.",
+    "enrolled": "مسجل",
+    "empty": {
+      "title": "لا توجد دورات مطابقة للتصفية",
+      "body": "جرّب إزالة بعض عوامل التصفية أو مسح البحث.",
+      "reset": "مسح التصفية"
+    },
+    "ages": {
+      "3_5": "3–5 سنوات",
+      "6_8": "6–8 سنوات",
+      "9_12": "9–12 سنة",
+      "13_15": "13–15 سنة",
+      "16_18": "16–18 سنة"
+    },
+    "levels": {
+      "beginner": "مبتدئ",
+      "intermediate": "متوسط",
+      "advanced": "متقدم"
+    }
   },
   "pricing": {
     "title": "أسعار بسيطة وشفافة",
@@ -310,7 +334,33 @@
     "noAccount": "ليس لديك حساب؟",
     "hasAccount": "لديك حساب بالفعل؟",
     "orContinueWith": "أو تابع مع",
-    "google": "تابع مع جوجل"
+    "google": "تابع مع جوجل",
+    "rememberMe": "تذكرني",
+    "invalidCredentials": "بريد إلكتروني أو كلمة مرور غير صحيحة.",
+    "dateOfBirth": "تاريخ الميلاد",
+    "passwordStrength": {
+      "tooShort": "قصيرة جدًا",
+      "weak": "ضعيفة",
+      "okay": "مقبولة",
+      "strong": "قوية",
+      "excellent": "ممتازة"
+    },
+    "parent": {
+      "notice": "نظرًا لأن المتعلم أقل من {age} سنة، يجب على ولي الأمر تأكيد الموافقة.",
+      "email": "البريد الإلكتروني لولي الأمر",
+      "emailPlaceholder": "parent@example.com",
+      "consent": "أنا ولي الأمر أو الوصي القانوني، وأوافق على إنشاء Schulab لهذا الحساب ومعالجة بيانات طفلي كما هو موضح في سياسة الخصوصية."
+    },
+    "legal": {
+      "agreeTerms": "أوافق على <t>شروط الخدمة</t>",
+      "agreePrivacy": "لقد قرأت <p>سياسة الخصوصية</p>",
+      "marketingOptIn": "أرسل لي تحديثات ونصائح تعلم من حين لآخر."
+    },
+    "roleBlurbs": {
+      "student": "استكشف، واكسب نقاط XP، وتعلّم",
+      "parent": "تابع تقدم طفلك",
+      "tutor": "علّم وألهم"
+    }
   },
   "dashboard": {
     "welcome": "مرحبًا بعودتك، {name}!",
@@ -328,7 +378,24 @@
     "totalUsers": "إجمالي المستخدمين",
     "activeStudents": "الطلاب النشطون",
     "totalBookings": "إجمالي الحجوزات",
-    "totalRevenue": "إجمالي الإيرادات"
+    "totalRevenue": "إجمالي الإيرادات",
+    "learningAdventure": "مغامرة التعلم",
+    "keepExploring": "واصل الاستكشاف — كل درس يطلقك إلى أبعد.",
+    "level": "المستوى {level}",
+    "xpToNextLevel": "{current}/{total} نقطة للمستوى التالي",
+    "dayStreak": "يوم متتالٍ",
+    "totalXp": "إجمالي النقاط",
+    "badgesShort": "الشارات",
+    "certificates": "الشهادات",
+    "dailyQuests": "مهام اليوم",
+    "quests": {
+      "completeLesson": "أكمل درسًا واحدًا",
+      "quizScore": "احصل على 80٪ أو أكثر في اختبار",
+      "earnXp": "اكسب {amount} نقطة اليوم"
+    },
+    "viewAll": "عرض الكل",
+    "resumeFrom": "تابع من حيث توقفت في {category}",
+    "defaultName": "مستكشف"
   },
   "tutors": {
     "title": "جد معلمًا",

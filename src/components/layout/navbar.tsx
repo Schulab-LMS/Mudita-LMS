@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
-import { Menu, X, Globe, ChevronDown, User } from "lucide-react";
+import { Menu, X, Globe, ChevronDown } from "lucide-react";
 import { HelpButton } from "@/components/help/help-button";
 import { SchulabLogo } from "@/components/brand/schulab-logo";
+import { UserMenu } from "@/components/layout/user-menu";
 import { locales, localeNames, type Locale } from "@/i18n/config";
 import { publicNavItems } from "@/config/navigation";
 
@@ -76,7 +76,7 @@ export function Navbar() {
               <ChevronDown className="h-3 w-3" />
             </button>
             {localeOpen && (
-              <div className="absolute right-0 top-full mt-1 w-40 rounded-lg border bg-white py-1 shadow-lg">
+              <div className="absolute end-0 top-full mt-1 w-40 rounded-lg border bg-white py-1 shadow-lg">
                 {locales.map((l) => (
                   <a
                     key={l}
@@ -100,25 +100,7 @@ export function Navbar() {
 
           {/* Auth */}
           {session?.user ? (
-            <div className="flex items-center gap-2">
-              <Link
-                href="/student"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
-              >
-                {session.user.image ? (
-                  <Image
-                    src={session.user.image}
-                    alt=""
-                    width={24}
-                    height={24}
-                    className="h-6 w-6 rounded-full"
-                  />
-                ) : (
-                  <User className="h-5 w-5" />
-                )}
-                <span>{session.user.name ?? "Dashboard"}</span>
-              </Link>
-            </div>
+            <UserMenu variant="navbar" />
           ) : (
             <div className="flex items-center gap-2">
               <Link
@@ -174,7 +156,7 @@ export function Navbar() {
             {/* Mobile Locale Switcher */}
             <div className="border-t pt-3">
               <p className="px-3 pb-1 text-xs font-semibold uppercase text-muted-foreground">
-                Language
+                {t("nav.language")}
               </p>
               {locales.map((l) => (
                 <a
@@ -203,14 +185,9 @@ export function Navbar() {
             {/* Mobile Auth */}
             <div className="border-t pt-3">
               {session?.user ? (
-                <Link
-                  href="/student"
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <User className="h-5 w-5" />
-                  <span>{session.user.name ?? "Dashboard"}</span>
-                </Link>
+                <div className="px-3">
+                  <UserMenu variant="navbar" />
+                </div>
               ) : (
                 <div className="flex flex-col gap-2 px-3">
                   <Link

@@ -63,7 +63,11 @@
     "register": "Registrieren",
     "messages": "Nachrichten",
     "help": "Hilfe",
-    "helpArticles": "Hilfeartikel"
+    "helpArticles": "Hilfeartikel",
+    "quizzes": "Quizze",
+    "learn": "Lernen",
+    "language": "Sprache",
+    "account": "Konto"
   },
   "help": {
     "title": "Hilfezentrum",
@@ -202,7 +206,27 @@
     "allLevels": "Alle Niveaus",
     "lessons": "Lektionen",
     "minutes": "Min",
-    "students": "Schüler"
+    "students": "Schüler",
+    "exploreCatalog": "Katalog entdecken",
+    "catalogHint": "Entdecken Sie {count, plural, =0 {} other {# }}STEM-Kurse für junge Lernende von 3 bis 18 Jahren.",
+    "enrolled": "eingeschrieben",
+    "empty": {
+      "title": "Keine Kurse passen zu deinen Filtern",
+      "body": "Entferne einige Filter oder setze die Suche zurück.",
+      "reset": "Filter zurücksetzen"
+    },
+    "ages": {
+      "3_5": "3–5 Jahre",
+      "6_8": "6–8 Jahre",
+      "9_12": "9–12 Jahre",
+      "13_15": "13–15 Jahre",
+      "16_18": "16–18 Jahre"
+    },
+    "levels": {
+      "beginner": "Anfänger",
+      "intermediate": "Fortgeschritten",
+      "advanced": "Profi"
+    }
   },
   "pricing": {
     "title": "Einfache, transparente Preise",
@@ -310,7 +334,33 @@
     "noAccount": "Noch kein Konto?",
     "hasAccount": "Bereits ein Konto?",
     "orContinueWith": "Oder weiter mit",
-    "google": "Weiter mit Google"
+    "google": "Weiter mit Google",
+    "rememberMe": "Angemeldet bleiben",
+    "invalidCredentials": "Ungültige E-Mail oder ungültiges Passwort.",
+    "dateOfBirth": "Geburtsdatum",
+    "passwordStrength": {
+      "tooShort": "Zu kurz",
+      "weak": "Schwach",
+      "okay": "Okay",
+      "strong": "Stark",
+      "excellent": "Ausgezeichnet"
+    },
+    "parent": {
+      "notice": "Da der Lernende unter {age} Jahre alt ist, muss ein Elternteil oder Erziehungsberechtigter die Einwilligung bestätigen.",
+      "email": "E-Mail des Elternteils / Erziehungsberechtigten",
+      "emailPlaceholder": "parent@example.com",
+      "consent": "Ich bin der Elternteil oder gesetzliche Vertreter und stimme zu, dass Schulab dieses Konto erstellt und die Daten meines Kindes wie in der Datenschutzrichtlinie beschrieben verarbeitet."
+    },
+    "legal": {
+      "agreeTerms": "Ich stimme den <t>Nutzungsbedingungen</t> zu",
+      "agreePrivacy": "Ich habe die <p>Datenschutzrichtlinie</p> gelesen",
+      "marketingOptIn": "Senden Sie mir gelegentlich Updates und Lerntipps."
+    },
+    "roleBlurbs": {
+      "student": "Entdecken, XP verdienen, lernen",
+      "parent": "Den Fortschritt deines Kindes verfolgen",
+      "tutor": "Unterrichten und inspirieren"
+    }
   },
   "dashboard": {
     "welcome": "Willkommen zurück, {name}!",
@@ -328,7 +378,24 @@
     "totalUsers": "Benutzer gesamt",
     "activeStudents": "Aktive Schüler",
     "totalBookings": "Buchungen gesamt",
-    "totalRevenue": "Gesamtumsatz"
+    "totalRevenue": "Gesamtumsatz",
+    "learningAdventure": "Lern-Abenteuer",
+    "keepExploring": "Weiter entdecken — jede Lektion bringt dich weiter.",
+    "level": "Level {level}",
+    "xpToNextLevel": "{current}/{total} XP bis zum nächsten Level",
+    "dayStreak": "Tage-Serie",
+    "totalXp": "Gesamt-XP",
+    "badgesShort": "Abzeichen",
+    "certificates": "Zertifikate",
+    "dailyQuests": "Tägliche Quests",
+    "quests": {
+      "completeLesson": "Schließe eine Lektion ab",
+      "quizScore": "Erreiche 80%+ in einem Quiz",
+      "earnXp": "Verdiene heute {amount} XP"
+    },
+    "viewAll": "Alle anzeigen",
+    "resumeFrom": "Weiter, wo du in {category} aufgehört hast",
+    "defaultName": "Entdecker"
   },
   "tutors": {
     "title": "Tutor finden",

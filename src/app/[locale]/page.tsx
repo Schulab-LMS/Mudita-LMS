@@ -78,6 +78,7 @@ const stats = [
 const ageGroups = [
   {
     range: "3–5",
+    ageGroup: "AGES_3_5",
     label: "Early Learners",
     gradient: "from-pink-100 to-pink-50",
     border: "border-pink-200 hover:border-pink-400",
@@ -87,6 +88,7 @@ const ageGroups = [
   },
   {
     range: "6–8",
+    ageGroup: "AGES_6_8",
     label: "Kids",
     gradient: "from-blue-100 to-blue-50",
     border: "border-blue-200 hover:border-blue-400",
@@ -96,6 +98,7 @@ const ageGroups = [
   },
   {
     range: "9–12",
+    ageGroup: "AGES_9_12",
     label: "Juniors",
     gradient: "from-emerald-100 to-emerald-50",
     border: "border-emerald-200 hover:border-emerald-400",
@@ -105,6 +108,7 @@ const ageGroups = [
   },
   {
     range: "13–18",
+    ageGroup: "AGES_13_15",
     label: "Teens",
     gradient: "from-purple-100 to-purple-50",
     border: "border-purple-200 hover:border-purple-400",
@@ -367,7 +371,7 @@ export default function HomePage() {
             {ageGroups.map((group, i) => (
               <ScrollReveal key={group.range} delay={i * 100} mode="scale">
                 <Link
-                  href="/courses"
+                  href={{ pathname: "/courses", query: { ageGroup: group.ageGroup } }}
                   className={`group flex h-full flex-col items-center rounded-3xl border-2 bg-gradient-to-b ${group.gradient} ${group.border} p-8 text-center transition-all hover:shadow-xl hover:-translate-y-1`}
                 >
                   <div className="mb-4 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6">

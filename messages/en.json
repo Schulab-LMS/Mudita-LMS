@@ -63,7 +63,11 @@
     "register": "Sign Up",
     "messages": "Messages",
     "help": "Help",
-    "helpArticles": "Help Articles"
+    "helpArticles": "Help Articles",
+    "quizzes": "Quizzes",
+    "learn": "Learn",
+    "language": "Language",
+    "account": "Account"
   },
   "help": {
     "title": "Help Center",
@@ -194,6 +198,8 @@
   "courses": {
     "title": "Course Catalog",
     "subtitle": "Discover engaging STEM courses designed for every age group.",
+    "exploreCatalog": "Explore the catalog",
+    "catalogHint": "Explore {count, plural, =0 {our} other {# }}STEM courses tailored for young learners ages 3–18.",
     "filterAge": "Age Group",
     "filterCategory": "Subject",
     "filterLevel": "Level",
@@ -202,7 +208,25 @@
     "allLevels": "All Levels",
     "lessons": "lessons",
     "minutes": "min",
-    "students": "students"
+    "students": "students",
+    "enrolled": "enrolled",
+    "empty": {
+      "title": "No courses match your filters",
+      "body": "Try removing some filters or clearing your search.",
+      "reset": "Clear filters"
+    },
+    "ages": {
+      "3_5": "Ages 3–5",
+      "6_8": "Ages 6–8",
+      "9_12": "Ages 9–12",
+      "13_15": "Ages 13–15",
+      "16_18": "Ages 16–18"
+    },
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    }
   },
   "pricing": {
     "title": "Simple, Transparent Pricing",
@@ -310,7 +334,33 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "orContinueWith": "Or continue with",
-    "google": "Continue with Google"
+    "google": "Continue with Google",
+    "rememberMe": "Remember me",
+    "invalidCredentials": "Invalid email or password.",
+    "dateOfBirth": "Date of birth",
+    "passwordStrength": {
+      "tooShort": "Too short",
+      "weak": "Weak",
+      "okay": "Okay",
+      "strong": "Strong",
+      "excellent": "Excellent"
+    },
+    "parent": {
+      "notice": "Because the learner is under {age}, a parent or guardian must confirm consent.",
+      "email": "Parent or guardian email",
+      "emailPlaceholder": "parent@example.com",
+      "consent": "I am the parent or legal guardian and I consent to Schulab creating this account and processing my child's data as described in the Privacy Policy."
+    },
+    "legal": {
+      "agreeTerms": "I agree to the <t>Terms of Service</t>",
+      "agreePrivacy": "I have read the <p>Privacy Policy</p>",
+      "marketingOptIn": "Send me occasional updates and learning tips."
+    },
+    "roleBlurbs": {
+      "student": "Explore, earn XP, and learn",
+      "parent": "Track your child's progress",
+      "tutor": "Teach and inspire"
+    }
   },
   "dashboard": {
     "welcome": "Welcome back, {name}!",
@@ -328,7 +378,24 @@
     "totalUsers": "Total Users",
     "activeStudents": "Active Students",
     "totalBookings": "Total Bookings",
-    "totalRevenue": "Total Revenue"
+    "totalRevenue": "Total Revenue",
+    "learningAdventure": "Learning Adventure",
+    "keepExploring": "Keep exploring — every lesson launches you further.",
+    "level": "Level {level}",
+    "xpToNextLevel": "{current}/{total} XP to next level",
+    "dayStreak": "Day streak",
+    "totalXp": "Total XP",
+    "badgesShort": "Badges",
+    "certificates": "Certificates",
+    "dailyQuests": "Daily Quests",
+    "quests": {
+      "completeLesson": "Complete 1 lesson",
+      "quizScore": "Score 80%+ on a quiz",
+      "earnXp": "Earn {amount} XP today"
+    },
+    "viewAll": "View all",
+    "resumeFrom": "Continue where you left off in {category}",
+    "defaultName": "Explorer"
   },
   "tutors": {
     "title": "Find a Tutor",
