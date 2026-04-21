@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { isStripeConfigured } from "@/lib/stripe";
 import { assertMinorConsent } from "@/lib/compliance";
+import { isSafeInternalPath } from "@/lib/safe-redirect";
 import {
   createCourseCheckoutSession,
   createSubscriptionCheckoutSession,
@@ -18,20 +19,27 @@ const couponCodeSchema = z
   .regex(/^[A-Za-z0-9_-]+$/)
   .optional();
 
+// successPath/cancelPath must be strict internal paths — "//evil.com" would
+// slip past a plain startsWith("/") and send Stripe off-origin after checkout.
+const internalPath = z
+  .string()
+  .refine(isSafeInternalPath, "Must be an internal path starting with /")
+  .optional();
+
 const bodySchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("course"),
     courseId: z.string().min(1),
     couponCode: couponCodeSchema,
-    successPath: z.string().startsWith("/").optional(),
-    cancelPath: z.string().startsWith("/").optional(),
+    successPath: internalPath,
+    cancelPath: internalPath,
   }),
   z.object({
     kind: z.literal("subscription"),
     planId: z.string().min(1),
     couponCode: couponCodeSchema,
-    successPath: z.string().startsWith("/").optional(),
-    cancelPath: z.string().startsWith("/").optional(),
+    successPath: internalPath,
+    cancelPath: internalPath,
   }),
 ]);
 

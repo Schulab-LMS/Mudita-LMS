@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isStripeConfigured } from "@/lib/stripe";
 import { createBillingPortalSession } from "@/services/billing.service";
+import { isSafeInternalPath } from "@/lib/safe-redirect";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,10 @@ export async function POST(request: Request) {
   let returnPath: string | undefined;
   try {
     const body = (await request.json()) as { returnPath?: string };
-    if (body.returnPath?.startsWith("/")) returnPath = body.returnPath;
+    // A naive startsWith("/") check would accept "//evil.com/…", which
+    // browsers resolve as a different origin — so Stripe would send the
+    // user there on portal exit. Use the strict internal-path helper.
+    if (isSafeInternalPath(body.returnPath)) returnPath = body.returnPath;
   } catch {
     // Empty body is fine — we'll use the default return path.
   }
