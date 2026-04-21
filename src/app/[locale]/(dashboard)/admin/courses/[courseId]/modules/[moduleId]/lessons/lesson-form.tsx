@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createLesson, updateLesson, deleteLesson } from "@/actions/course-content.actions";
+import { attachVideoAssetToLesson } from "@/actions/video.actions";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { VideoUpload } from "@/components/admin/video-upload";
 
 const LESSON_TYPES = [
   { value: "VIDEO", label: "Video" },
@@ -22,6 +24,7 @@ interface LessonData {
   contentAr: string;
   contentDe: string;
   videoUrl: string;
+  videoAssetId?: string | null;
   thumbnail?: string | null;
   duration: number;
   type: string;
@@ -45,6 +48,9 @@ export function LessonForm({ mode, courseId, moduleId, nextOrder, initialData }:
   const [lessonType, setLessonType] = useState(initialData?.type ?? "VIDEO");
   const [tab, setTab] = useState<"en" | "ar" | "de">("en");
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(initialData?.thumbnail ?? null);
+  const [videoAssetId, setVideoAssetId] = useState<string | null>(
+    initialData?.videoAssetId ?? null
+  );
 
   const isEdit = mode === "edit";
 
@@ -68,17 +74,34 @@ export function LessonForm({ mode, courseId, moduleId, nextOrder, initialData }:
     };
 
     startTransition(async () => {
-      let result: { success: boolean; error?: string };
+      let lessonIdForAsset: string | null = null;
+      let result: { success: boolean; error?: string; lessonId?: string };
       if (isEdit && initialData) {
         result = await updateLesson({ lessonId: initialData.id, ...data, order: initialData.order });
+        lessonIdForAsset = initialData.id;
       } else {
         result = await createLesson({ moduleId, ...data, order: nextOrder ?? 0 });
+        lessonIdForAsset = result.lessonId ?? null;
       }
-      if (result.success) {
-        router.push(`/admin/courses/${courseId}`);
-      } else {
+      if (!result.success) {
         setError(result.error ?? "Failed to save lesson");
+        return;
       }
+
+      // If the admin uploaded a managed video, attach it now. We do this in
+      // a second call so the lesson exists first (createLesson returns its id).
+      if (videoAssetId && lessonIdForAsset) {
+        const attach = await attachVideoAssetToLesson({
+          lessonId: lessonIdForAsset,
+          assetId: videoAssetId,
+        });
+        if (!attach.success) {
+          setError(attach.error);
+          return;
+        }
+      }
+
+      router.push(`/admin/courses/${courseId}`);
     });
   }
 
@@ -184,15 +207,38 @@ export function LessonForm({ mode, courseId, moduleId, nextOrder, initialData }:
             />
           </div>
           {(lessonType === "VIDEO" || lessonType === "INTERACTIVE") && (
-            <div>
-              <label className="mb-1.5 block text-sm font-medium">Video URL</label>
-              <input
-                name="videoUrl"
-                type="url"
-                defaultValue={initialData?.videoUrl ?? ""}
-                placeholder="https://youtube.com/watch?v=..."
-                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">
+                  Video upload
+                </label>
+                <VideoUpload
+                  initialAssetId={videoAssetId}
+                  onAssetReady={setVideoAssetId}
+                  onAssetCleared={() => setVideoAssetId(null)}
+                  lessonId={initialData?.id}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Recommended for primary content — uploaded direct to the
+                  video provider, played back signed.
+                </p>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">
+                  External video URL
+                </label>
+                <input
+                  name="videoUrl"
+                  type="url"
+                  defaultValue={initialData?.videoUrl ?? ""}
+                  placeholder="https://youtube.com/watch?v=..."
+                  className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Optional fallback for embeds (YouTube, Vimeo). Ignored when
+                  a managed upload is attached.
+                </p>
+              </div>
             </div>
           )}
           <div>

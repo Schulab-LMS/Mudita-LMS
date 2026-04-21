@@ -52,8 +52,13 @@ export default async function LessonPage({ params }: LessonPageProps) {
           <h1 className="text-xl font-bold">{lesson.title}</h1>
         </div>
 
-        {lesson.videoUrl ? (
-          <VideoPlayer url={lesson.videoUrl} title={lesson.title} />
+        {lesson.videoAssetId || lesson.videoUrl ? (
+          <VideoPlayer
+            assetId={lesson.videoAssetId}
+            url={lesson.videoUrl}
+            title={lesson.title}
+            poster={lesson.thumbnail}
+          />
         ) : (
           <div className="flex aspect-video items-center justify-center rounded-xl bg-muted text-muted-foreground">
             {t("noVideo")}
