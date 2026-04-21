@@ -136,7 +136,7 @@ export default async function MessagesPage() {
                   <div>
                     <p className="text-sm font-medium">{user.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {tRoles(user.role as "STUDENT" | "TUTOR" | "PARENT" | "ADMIN")}
+                      {tRoles(user.role as "STUDENT" | "TUTOR" | "PARENT" | "ADMIN" | "SUPER_ADMIN" | "B2B_PARTNER")}
                     </p>
                   </div>
                 </Link>

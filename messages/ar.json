@@ -505,7 +505,9 @@
     "STUDENT": "طالب",
     "TUTOR": "مدرّس",
     "PARENT": "ولي أمر",
-    "ADMIN": "مسؤول"
+    "ADMIN": "مسؤول",
+    "SUPER_ADMIN": "مسؤول",
+    "B2B_PARTNER": "شريك"
   },
   "tutorDashboard": {
     "title": "لوحة المدرّس",

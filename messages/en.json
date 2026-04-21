@@ -505,7 +505,9 @@
     "STUDENT": "Student",
     "TUTOR": "Tutor",
     "PARENT": "Parent",
-    "ADMIN": "Admin"
+    "ADMIN": "Admin",
+    "SUPER_ADMIN": "Admin",
+    "B2B_PARTNER": "Partner"
   },
   "tutorDashboard": {
     "title": "Tutor Dashboard",
