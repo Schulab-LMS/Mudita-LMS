@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { isStripeConfigured } from "@/lib/stripe";
+import { assertMinorConsent } from "@/lib/compliance";
 import {
   createBillingPortalSession,
   createCourseCheckoutSession,
@@ -25,6 +26,21 @@ function guard<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
     }));
 }
 
+// Mirror the /api/billing/checkout route: minors with missing or withdrawn
+// parental consent must never reach Stripe, regardless of which entry point
+// the client used.
+async function guardMinorConsent(userId: string) {
+  const consent = await assertMinorConsent(userId);
+  if (consent.ok) return null;
+  return {
+    success: false as const,
+    error:
+      consent.reason === "consent_withdrawn"
+        ? "A parent or guardian has withdrawn consent — please contact support"
+        : "Parental consent is required before purchase",
+  };
+}
+
 export async function buyCourse(input: { courseId: string; couponCode?: string }) {
   if (!isStripeConfigured()) {
     return { success: false as const, error: "Billing is not configured yet" };
@@ -39,6 +55,9 @@ export async function buyCourse(input: { courseId: string; couponCode?: string }
   if (!parsed.success) {
     return { success: false as const, error: parsed.error.issues[0].message };
   }
+
+  const consentFail = await guardMinorConsent(session.user.id);
+  if (consentFail) return consentFail;
 
   return guard(() =>
     createCourseCheckoutSession({
@@ -63,6 +82,9 @@ export async function startSubscription(input: { planId: string; couponCode?: st
   if (!parsed.success) {
     return { success: false as const, error: parsed.error.issues[0].message };
   }
+
+  const consentFail = await guardMinorConsent(session.user.id);
+  if (consentFail) return consentFail;
 
   return guard(() =>
     createSubscriptionCheckoutSession({
