@@ -12,6 +12,7 @@ import {
   LogOut,
   Settings,
   User,
+  UserCog,
 } from "lucide-react";
 import type { Role } from "@/config/navigation";
 
@@ -126,6 +127,15 @@ export function UserMenu({ variant = "topbar" }: UserMenuProps) {
             >
               <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
               {t("dashboard")}
+            </Link>
+            <Link
+              href="/account"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-2 text-sm text-foreground transition-colors hover:bg-muted"
+            >
+              <UserCog className="h-4 w-4 text-muted-foreground" />
+              {t("account")}
             </Link>
             {profile && (
               <Link
