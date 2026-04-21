@@ -225,7 +225,35 @@
     "levels": {
       "beginner": "Anfänger",
       "intermediate": "Fortgeschritten",
-      "advanced": "Profi"
+      "advanced": "Profi",
+      "BEGINNER": "Anfänger",
+      "INTERMEDIATE": "Fortgeschritten",
+      "ADVANCED": "Profi"
+    },
+    "ageGroups": {
+      "AGES_3_5": "3–5 Jahre",
+      "AGES_6_8": "6–8 Jahre",
+      "AGES_9_12": "9–12 Jahre",
+      "AGES_13_15": "13–15 Jahre",
+      "AGES_16_18": "16–18 Jahre"
+    },
+    "categories": {
+      "MATH": "Mathematik",
+      "SCIENCE": "Naturwissenschaften",
+      "TECHNOLOGY": "Technologie",
+      "ENGINEERING": "Ingenieurwesen",
+      "ARTS": "Kunst",
+      "CODING": "Programmieren",
+      "ROBOTICS": "Robotik"
+    },
+    "filters": {
+      "searchPlaceholder": "Kurse suchen…",
+      "ageGroupLabel": "Altersgruppe",
+      "categoryLabel": "Fach",
+      "levelLabel": "Niveau",
+      "allAges": "Alle Altersgruppen",
+      "allCategories": "Alle Fächer",
+      "allLevels": "Alle Niveaus"
     }
   },
   "pricing": {
@@ -360,7 +388,35 @@
       "student": "Entdecken, XP verdienen, lernen",
       "parent": "Den Fortschritt deines Kindes verfolgen",
       "tutor": "Unterrichten und inspirieren"
-    }
+    },
+    "checkEmail": "Prüfe deine E-Mails",
+    "resetLinkSent": "Wenn ein Konto mit dieser E-Mail existiert, haben wir einen Link zum Zurücksetzen gesendet. Er sollte innerhalb einer Minute ankommen.",
+    "backToLogin": "Zurück zur Anmeldung",
+    "forgotPasswordSubtitle": "Gib deine E-Mail ein und wir senden dir einen Link zum Zurücksetzen.",
+    "passwordMin": "Das Passwort muss mindestens 8 Zeichen lang sein",
+    "passwordsDontMatch": "Passwörter stimmen nicht überein",
+    "resetFailed": "Passwort konnte nicht zurückgesetzt werden",
+    "invalidResetLink": "Ungültiger Link zum Zurücksetzen",
+    "invalidResetLinkBody": "Dieser Link zum Zurücksetzen des Passworts ist ungültig oder fehlt. Bitte fordere einen neuen an.",
+    "requestNewLink": "Neuen Link anfordern",
+    "passwordReset": "Passwort zurückgesetzt!",
+    "passwordResetBody": "Dein Passwort wurde aktualisiert. Du kannst dich jetzt mit deinem neuen Passwort anmelden.",
+    "goToLogin": "Zur Anmeldung",
+    "setNewPassword": "Neues Passwort festlegen",
+    "setNewPasswordBody": "Gib unten dein neues Passwort ein.",
+    "newPassword": "Neues Passwort",
+    "passwordPlaceholder": "Mindestens 8 Zeichen",
+    "confirmPasswordPlaceholder": "Passwort wiederholen",
+    "resetPasswordCta": "Passwort zurücksetzen",
+    "verifyFailed": "Verifizierung fehlgeschlagen",
+    "verifying": "Deine E-Mail wird verifiziert…",
+    "emailVerified": "E-Mail verifiziert!",
+    "emailVerifiedBody": "Deine E-Mail wurde verifiziert. Du kannst dich jetzt anmelden.",
+    "sent": "Gesendet!",
+    "resendVerification": "Verifizierungs-E-Mail erneut senden",
+    "verifyLinkSent": "Wir haben einen Verifizierungslink an <strong>{email}</strong> gesendet. Klicke auf den Link, um dein Konto zu aktivieren.",
+    "verifyLinkSentGeneric": "Wir haben einen Verifizierungslink an deine E-Mail gesendet. Klicke auf den Link, um dein Konto zu aktivieren.",
+    "verificationResent": "Verifizierungs-E-Mail gesendet!"
   },
   "dashboard": {
     "welcome": "Willkommen zurück, {name}!",
@@ -444,5 +500,90 @@
     "howItWorks": "So funktioniert's",
     "forSchools": "Für Schulen",
     "copyright": "© {year} Schulab. Alle Rechte vorbehalten."
+  },
+  "roles": {
+    "STUDENT": "Schüler",
+    "TUTOR": "Tutor",
+    "PARENT": "Elternteil",
+    "ADMIN": "Administrator",
+    "SUPER_ADMIN": "Administrator",
+    "B2B_PARTNER": "Partner"
+  },
+  "tutorDashboard": {
+    "title": "Tutor-Dashboard",
+    "welcomeNew": "Willkommen! Lass uns dein Tutor-Profil einrichten.",
+    "welcomeBack": "Willkommen zurück, {name}!",
+    "completeProfile": "Vervollständige dein Tutor-Profil",
+    "completeProfileBody": "Füge Fächer, Verfügbarkeit und Stundensatz hinzu, damit Schüler Sitzungen buchen können.",
+    "setupProfile": "Profil einrichten",
+    "verified": "Verifiziert",
+    "pendingVerification": "Verifizierung ausstehend",
+    "upcomingSessions": "Anstehende Sitzungen",
+    "totalSessions": "Sitzungen insgesamt",
+    "rating": "Bewertung",
+    "noRatings": "Noch keine Bewertungen",
+    "recentBookings": "Letzte Buchungen",
+    "noBookings": "Noch keine Buchungen. Sobald Schüler Sitzungen buchen, erscheinen sie hier.",
+    "viewAllBookings": "Alle Buchungen anzeigen"
+  },
+  "parentDashboard": {
+    "welcomeBack": "Willkommen zurück, {name}!",
+    "childrenLinked": "Du hast {count, plural, =0 {keine Kinder} =1 {1 Kind} other {# Kinder}} mit deinem Konto verknüpft.",
+    "yourChildren": "Deine Kinder",
+    "manageChildren": "Kinder verwalten",
+    "noChildrenTitle": "Noch keine Kinder verknüpft",
+    "noChildrenBody": "Füge das Konto deines Kindes hinzu, um seinen Lernfortschritt zu verfolgen.",
+    "addChildCta": "Kind hinzufügen"
+  },
+  "courseDetail": {
+    "breadcrumbCourses": "Kurse",
+    "lessonsCount": "{count, plural, =0 {keine Lektionen} =1 {1 Lektion} other {# Lektionen}}",
+    "minutesTotal": "{count, plural, =1 {1 Min. insgesamt} other {# Min. insgesamt}}",
+    "minutesShort": "{count} Min",
+    "studentsCount": "{count, plural, =0 {keine Schüler} =1 {1 Schüler} other {# Schüler}}",
+    "certificateIncluded": "Zertifikat inklusive",
+    "free": "Kostenlos",
+    "createAccountToEnroll": "Kostenloses Konto erstellen, um sich einzuschreiben",
+    "lifetimeAccess": "Lebenslanger Zugang",
+    "whatYoullLearn": "Was du lernen wirst",
+    "whoItsFor": "Für wen dieser Kurs ist",
+    "childrenAges": "Kinder im Alter von {range}",
+    "levelBeginnerBody": "Niveau {level} — keine Vorkenntnisse erforderlich",
+    "levelAdvancedBody": "Niveau {level} — Grundkenntnisse erforderlich",
+    "availableLanguages": "Verfügbar auf Englisch, Arabisch und Deutsch",
+    "certificateOfCompletion": "Abschlusszertifikat inklusive",
+    "courseContentSummary": "Kursinhalt — {modules, plural, =1 {1 Modul} other {# Module}}, {lessons, plural, =1 {1 Lektion} other {# Lektionen}}",
+    "noContentYet": "Noch keine Inhalte verfügbar.",
+    "freePreview": "Kostenlose Vorschau",
+    "relatedCourses": "Ähnliche Kurse"
+  },
+  "lesson": {
+    "courseContent": "Kursinhalt",
+    "completed": "Abgeschlossen",
+    "markComplete": "Als abgeschlossen markieren",
+    "saving": "Wird gespeichert…",
+    "noVideo": "Kein Video verfügbar"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "unreadCount": "{count, plural, =1 {1 ungelesen} other {# ungelesen}}",
+    "markAllRead": "Alle als gelesen markieren",
+    "emptyTitle": "Noch keine Benachrichtigungen",
+    "emptyBody": "Du bist auf dem neuesten Stand!"
+  },
+  "messages": {
+    "title": "Nachrichten",
+    "conversationsCount": "{count, plural, =0 {Noch keine Unterhaltungen} =1 {1 Unterhaltung} other {# Unterhaltungen}}",
+    "emptyTitle": "Noch keine Nachrichten",
+    "emptyBody": "Starte eine Unterhaltung mit einem Tutor oder Schüler.",
+    "startConversation": "Unterhaltung starten",
+    "noContacts": "Keine Kontakte verfügbar.",
+    "unknownUser": "Unbekannter Nutzer",
+    "inbox": "Posteingang",
+    "startWith": "Starte die Unterhaltung mit {name}",
+    "privateMessages": "Deine Nachrichten sind privat.",
+    "sendFailed": "Senden fehlgeschlagen",
+    "typePlaceholder": "Nachricht schreiben… (Enter zum Senden, Shift+Enter für neue Zeile)",
+    "sendAria": "Nachricht senden"
   }
 }

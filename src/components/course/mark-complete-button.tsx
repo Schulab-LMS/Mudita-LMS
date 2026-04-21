@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { markLessonDone } from "@/actions/enrollment.actions";
 import { CheckCircle, Circle } from "lucide-react";
 
@@ -23,6 +24,7 @@ export function MarkCompleteButton({
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(isCompleted);
   const router = useRouter();
+  const t = useTranslations("lesson");
 
   async function handleMark() {
     if (done) return;
@@ -51,12 +53,12 @@ export function MarkCompleteButton({
       {done ? (
         <>
           <CheckCircle className="h-4 w-4" />
-          Completed
+          {t("completed")}
         </>
       ) : (
         <>
           <Circle className="h-4 w-4" />
-          {loading ? "Saving…" : "Mark as complete"}
+          {loading ? t("saving") : t("markComplete")}
         </>
       )}
     </button>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { verifyEmail, sendVerificationEmail } from "@/actions/email-verification.actions";
 import {
   Card,
@@ -15,6 +16,7 @@ export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const email = searchParams.get("email");
+  const t = useTranslations("auth");
 
   const [status, setStatus] = useState<"loading" | "success" | "error" | "no-token">(
     token ? "loading" : "no-token"
@@ -31,10 +33,10 @@ export default function VerifyEmailPage() {
         setStatus("success");
       } else {
         setStatus("error");
-        setErrorMsg(result.error || "Verification failed");
+        setErrorMsg(result.error || t("verifyFailed"));
       }
     });
-  }, [token]);
+  }, [token, t]);
 
   async function handleResend() {
     if (!email) return;
@@ -44,43 +46,40 @@ export default function VerifyEmailPage() {
     setResent(true);
   }
 
-  // Loading state
   if (status === "loading") {
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <h2 className="text-xl font-semibold">Verifying your email...</h2>
+          <h2 className="text-xl font-semibold">{t("verifying")}</h2>
         </CardContent>
       </Card>
     );
   }
 
-  // Success
   if (status === "success") {
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
           <CheckCircle className="h-12 w-12 text-green-500" />
-          <h2 className="text-xl font-semibold">Email verified!</h2>
+          <h2 className="text-xl font-semibold">{t("emailVerified")}</h2>
           <p className="text-sm text-muted-foreground">
-            Your email has been verified. You can now log in.
+            {t("emailVerifiedBody")}
           </p>
           <Link href="/login">
-            <Button>Go to Login</Button>
+            <Button>{t("goToLogin")}</Button>
           </Link>
         </CardContent>
       </Card>
     );
   }
 
-  // Error (invalid/expired token)
   if (status === "error") {
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
           <XCircle className="h-12 w-12 text-red-500" />
-          <h2 className="text-xl font-semibold">Verification failed</h2>
+          <h2 className="text-xl font-semibold">{t("verifyFailed")}</h2>
           <p className="text-sm text-muted-foreground">{errorMsg}</p>
           {email && (
             <Button
@@ -91,30 +90,32 @@ export default function VerifyEmailPage() {
               {resending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : resent ? (
-                "Sent!"
+                t("sent")
               ) : (
-                "Resend verification email"
+                t("resendVerification")
               )}
             </Button>
           )}
           <Link href="/login">
-            <Button variant="ghost">Back to Login</Button>
+            <Button variant="ghost">{t("backToLogin")}</Button>
           </Link>
         </CardContent>
       </Card>
     );
   }
 
-  // No token — landing page after registration
   return (
     <Card>
       <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
         <Mail className="h-12 w-12 text-primary" />
-        <h2 className="text-xl font-semibold">Check your email</h2>
+        <h2 className="text-xl font-semibold">{t("checkEmail")}</h2>
         <p className="text-sm text-muted-foreground">
-          We&apos;ve sent a verification link to{" "}
-          {email ? <strong>{email}</strong> : "your email"}. Click the link to
-          activate your account.
+          {email
+            ? t.rich("verifyLinkSent", {
+                email,
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })
+            : t("verifyLinkSentGeneric")}
         </p>
         {email && !resent && (
           <Button
@@ -125,15 +126,15 @@ export default function VerifyEmailPage() {
             {resending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              "Resend verification email"
+              t("resendVerification")
             )}
           </Button>
         )}
         {resent && (
-          <p className="text-sm text-green-600">Verification email sent!</p>
+          <p className="text-sm text-green-600">{t("verificationResent")}</p>
         )}
         <Link href="/login">
-          <Button variant="ghost">Back to Login</Button>
+          <Button variant="ghost">{t("backToLogin")}</Button>
         </Link>
       </CardContent>
     </Card>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname, Link } from "@/i18n/navigation";
 import { locales, localeNames, type Locale } from "@/i18n/config";
@@ -16,10 +17,17 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   const locale = useLocale() as Locale;
   const router = useRouter();
   const pathname = usePathname();
+  const [query, setQuery] = useState("");
 
   function handleLocaleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newLocale = e.target.value as Locale;
     router.replace(pathname, { locale: newLocale });
+  }
+
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const q = query.trim();
+    router.push(q ? `/courses?q=${encodeURIComponent(q)}` : "/courses");
   }
 
   return (
@@ -34,16 +42,23 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       </button>
 
       {/* Search */}
-      <div className="flex flex-1 items-center">
+      <form
+        onSubmit={handleSearchSubmit}
+        className="flex flex-1 items-center"
+        role="search"
+      >
         <div className="relative w-full max-w-md">
           <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
-            type="text"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder={t("search")}
+            aria-label={t("search")}
             className="h-9 w-full rounded-lg border bg-muted/40 ps-9 pe-4 text-sm outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
           />
         </div>
-      </div>
+      </form>
 
       {/* Right actions */}
       <div className="flex items-center gap-3">

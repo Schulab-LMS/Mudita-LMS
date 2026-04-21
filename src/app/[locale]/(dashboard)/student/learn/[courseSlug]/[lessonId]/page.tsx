@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { getCourseBySlug } from "@/services/course.service";
 import { getLessonProgress } from "@/services/progress.service";
@@ -40,6 +41,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const currentIndex = allLessons.findIndex((l) => l.id === lessonId);
   const nextLesson = allLessons[currentIndex + 1];
 
+  const t = await getTranslations("lesson");
+
   return (
     <div className="flex gap-6">
       {/* Main content */}
@@ -53,7 +56,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           <VideoPlayer url={lesson.videoUrl} title={lesson.title} />
         ) : (
           <div className="flex aspect-video items-center justify-center rounded-xl bg-muted text-muted-foreground">
-            No video available
+            {t("noVideo")}
           </div>
         )}
 

@@ -1,4 +1,5 @@
 import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import {
   CheckCircle,
   Circle,
@@ -41,12 +42,13 @@ const typeColors: Record<string, string> = {
   ASSIGNMENT: "text-orange-500",
 };
 
-export function LessonSidebar({
+export async function LessonSidebar({
   lessons,
   currentLessonId,
   completedLessonIds,
   courseSlug,
 }: LessonSidebarProps) {
+  const t = await getTranslations("lesson");
   const sorted = [...lessons].sort((a, b) => a.order - b.order);
   const completedCount = completedLessonIds.length;
   const progressPercent = lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0;
@@ -54,7 +56,7 @@ export function LessonSidebar({
   return (
     <nav className="w-72 shrink-0 rounded-xl border bg-white shadow-sm">
       <div className="border-b px-4 py-3">
-        <h3 className="text-sm font-semibold text-foreground">Course Content</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("courseContent")}</h3>
         <div className="mt-2 flex items-center gap-2">
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
             <div

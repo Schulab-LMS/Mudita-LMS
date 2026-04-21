@@ -43,16 +43,15 @@ export default function ForgotPasswordPage() {
           <CheckCircle2 className="h-8 w-8 text-[var(--stem-science)]" />
         </div>
         <h2 className="mt-5 font-display text-2xl font-extrabold">
-          Check your email
+          {t("checkEmail")}
         </h2>
         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-          If an account exists with that email, we&apos;ve sent a reset link.
-          It should arrive within a minute.
+          {t("resetLinkSent")}
         </p>
         <Link href="/login">
           <Button variant="outline" className="mt-6">
-            <ArrowLeft className="h-4 w-4" />
-            Back to login
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+            {t("backToLogin")}
           </Button>
         </Link>
       </div>
@@ -66,7 +65,7 @@ export default function ForgotPasswordPage() {
           {t("forgotPassword")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Enter your email and we&apos;ll send you a reset link.
+          {t("forgotPasswordSubtitle")}
         </p>
       </div>
 
@@ -74,13 +73,13 @@ export default function ForgotPasswordPage() {
         <div className="space-y-1.5">
           <Label htmlFor="email">{t("email")}</Label>
           <div className="relative">
-            <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Mail className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="email"
               type="email"
               placeholder="name@example.com"
               autoComplete="email"
-              className="pl-10"
+              className="ps-10"
               {...register("email")}
             />
           </div>
@@ -101,7 +100,7 @@ export default function ForgotPasswordPage() {
           ) : (
             <>
               {tc("submit")}
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 rtl:rotate-180" />
             </>
           )}
         </Button>
@@ -112,8 +111,8 @@ export default function ForgotPasswordPage() {
           href="/login"
           className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to login
+          <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
+          {t("backToLogin")}
         </Link>
       </div>
     </div>
