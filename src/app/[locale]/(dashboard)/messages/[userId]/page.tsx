@@ -1,5 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import Image from "next/image";
+import { getTranslations, getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { getThread, markThreadAsRead } from "@/services/message.service";
 import { db } from "@/lib/db";
@@ -20,18 +21,30 @@ export async function generateMetadata({ params }: Props) {
   return { title: `${user?.name ?? "Messages"} | Schulab` };
 }
 
-function formatTime(date: Date): string {
+function formatTime(date: Date, locale: string): string {
   const now = new Date();
   const d = new Date(date);
   const diffMs = now.getTime() - d.getTime();
   const diffDays = Math.floor(diffMs / 86400000);
   if (diffDays === 0) {
-    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return new Intl.DateTimeFormat(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(d);
   }
   if (diffDays < 7) {
-    return d.toLocaleDateString([], { weekday: "short", hour: "2-digit", minute: "2-digit" });
+    return new Intl.DateTimeFormat(locale, {
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(d);
   }
-  return d.toLocaleDateString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
 }
 
 export default async function ThreadPage({ params }: Props) {
@@ -39,37 +52,31 @@ export default async function ThreadPage({ params }: Props) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  // Prevent messaging self
   if (otherUserId === session.user.id) redirect("/messages");
 
-  // Verify the other user exists
   const otherUser = await db.user.findUnique({
     where: { id: otherUserId },
     select: { id: true, name: true, avatar: true, role: true },
   });
   if (!otherUser) notFound();
 
-  // Mark incoming messages as read, then fetch thread
   await markThreadAsRead(session.user.id, otherUserId);
-  const messages = await getThread(session.user.id, otherUserId);
-
-  const roleLabel: Record<string, string> = {
-    STUDENT: "Student",
-    TUTOR: "Tutor",
-    ADMIN: "Admin",
-    PARENT: "Parent",
-  };
+  const [t, tRoles, locale, messages] = await Promise.all([
+    getTranslations("messages"),
+    getTranslations("roles"),
+    getLocale(),
+    getThread(session.user.id, otherUserId),
+  ]);
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border bg-card overflow-hidden">
-      {/* Header */}
       <div className="flex items-center gap-3 border-b px-4 py-3">
         <Link
           href="/messages"
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ChevronLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Inbox</span>
+          <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
+          <span className="hidden sm:inline">{t("inbox")}</span>
         </Link>
         <div className="h-4 w-px bg-border" />
         <div className="flex items-center gap-3">
@@ -87,21 +94,22 @@ export default async function ThreadPage({ params }: Props) {
             </div>
           )}
           <div>
-            <p className="text-sm font-semibold">{otherUser.name ?? "Unknown User"}</p>
-            <p className="text-xs text-muted-foreground">{roleLabel[otherUser.role] ?? otherUser.role}</p>
+            <p className="text-sm font-semibold">{otherUser.name ?? t("unknownUser")}</p>
+            <p className="text-xs text-muted-foreground">
+              {tRoles(otherUser.role as "STUDENT" | "TUTOR" | "PARENT" | "ADMIN")}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Message thread */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <p className="text-4xl mb-3">👋</p>
             <p className="font-medium text-muted-foreground">
-              Start the conversation with {otherUser.name}
+              {t("startWith", { name: otherUser.name ?? t("unknownUser") })}
             </p>
-            <p className="text-sm text-muted-foreground/70 mt-1">Your messages are private.</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">{t("privateMessages")}</p>
           </div>
         ) : (
           messages.map((msg, index) => {
@@ -117,7 +125,7 @@ export default async function ThreadPage({ params }: Props) {
                 {showTime && (
                   <div className="flex justify-center">
                     <span className="text-[10px] text-muted-foreground bg-muted rounded-full px-3 py-0.5 my-1">
-                      {formatTime(msg.createdAt)}
+                      {formatTime(msg.createdAt, locale)}
                     </span>
                   </div>
                 )}
@@ -155,7 +163,6 @@ export default async function ThreadPage({ params }: Props) {
         )}
       </div>
 
-      {/* Send form */}
       <SendForm receiverId={otherUserId} />
     </div>
   );

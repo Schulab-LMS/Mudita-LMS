@@ -1,38 +1,46 @@
 import { redirect } from "next/navigation";
+import { getTranslations, getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { getNotifications } from "@/services/notification.service";
 import { markAllNotificationsRead } from "@/actions/notification.actions";
 
 export const metadata = { title: "Notifications | Schulab" };
 
-function timeAgo(date: Date): string {
+function formatRelative(date: Date, locale: string): string {
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   const now = new Date();
   const diffMs = now.getTime() - new Date(date).getTime();
   const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffMins < 1) return rtf.format(0, "minute");
+  if (diffMins < 60) return rtf.format(-diffMins, "minute");
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 24) return rtf.format(-diffHours, "hour");
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return new Date(date).toLocaleDateString();
+  if (diffDays < 7) return rtf.format(-diffDays, "day");
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
+    new Date(date)
+  );
 }
 
 export default async function NotificationsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const notifications = await getNotifications(session.user.id);
+  const [t, locale, notifications] = await Promise.all([
+    getTranslations("notifications"),
+    getLocale(),
+    getNotifications(session.user.id),
+  ]);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Notifications</h1>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
           {unreadCount > 0 && (
             <p className="text-sm text-muted-foreground">
-              {unreadCount} unread
+              {t("unreadCount", { count: unreadCount })}
             </p>
           )}
         </div>
@@ -47,7 +55,7 @@ export default async function NotificationsPage() {
               type="submit"
               className="rounded-lg border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
             >
-              Mark all as read
+              {t("markAllRead")}
             </button>
           </form>
         )}
@@ -56,9 +64,9 @@ export default async function NotificationsPage() {
       {notifications.length === 0 ? (
         <div className="rounded-xl border bg-card p-12 text-center">
           <p className="text-5xl">🔔</p>
-          <p className="mt-3 text-lg font-medium">No notifications yet</p>
+          <p className="mt-3 text-lg font-medium">{t("emptyTitle")}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            You&apos;re all caught up!
+            {t("emptyBody")}
           </p>
         </div>
       ) : (
@@ -90,7 +98,7 @@ export default async function NotificationsPage() {
                 </p>
               </div>
               <p className="flex-shrink-0 text-xs text-muted-foreground">
-                {timeAgo(notification.createdAt)}
+                {formatRelative(notification.createdAt, locale)}
               </p>
             </div>
           ))}

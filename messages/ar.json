@@ -225,7 +225,35 @@
     "levels": {
       "beginner": "مبتدئ",
       "intermediate": "متوسط",
-      "advanced": "متقدم"
+      "advanced": "متقدم",
+      "BEGINNER": "مبتدئ",
+      "INTERMEDIATE": "متوسط",
+      "ADVANCED": "متقدم"
+    },
+    "ageGroups": {
+      "AGES_3_5": "3–5 سنوات",
+      "AGES_6_8": "6–8 سنوات",
+      "AGES_9_12": "9–12 سنة",
+      "AGES_13_15": "13–15 سنة",
+      "AGES_16_18": "16–18 سنة"
+    },
+    "categories": {
+      "MATH": "رياضيات",
+      "SCIENCE": "علوم",
+      "TECHNOLOGY": "تكنولوجيا",
+      "ENGINEERING": "هندسة",
+      "ARTS": "فنون",
+      "CODING": "برمجة",
+      "ROBOTICS": "روبوتات"
+    },
+    "filters": {
+      "searchPlaceholder": "ابحث عن الدورات…",
+      "ageGroupLabel": "الفئة العمرية",
+      "categoryLabel": "المادة",
+      "levelLabel": "المستوى",
+      "allAges": "جميع الأعمار",
+      "allCategories": "جميع المواد",
+      "allLevels": "جميع المستويات"
     }
   },
   "pricing": {
@@ -360,7 +388,35 @@
       "student": "استكشف، واكسب نقاط XP، وتعلّم",
       "parent": "تابع تقدم طفلك",
       "tutor": "علّم وألهم"
-    }
+    },
+    "checkEmail": "تحقق من بريدك الإلكتروني",
+    "resetLinkSent": "إذا كان هناك حساب بهذا البريد، فقد أرسلنا رابط إعادة التعيين. يصل عادةً خلال دقيقة.",
+    "backToLogin": "العودة لتسجيل الدخول",
+    "forgotPasswordSubtitle": "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.",
+    "passwordMin": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+    "passwordsDontMatch": "كلمتا المرور غير متطابقتين",
+    "resetFailed": "فشل في إعادة تعيين كلمة المرور",
+    "invalidResetLink": "رابط إعادة تعيين غير صالح",
+    "invalidResetLinkBody": "رابط إعادة تعيين كلمة المرور غير صالح أو مفقود. يُرجى طلب رابط جديد.",
+    "requestNewLink": "طلب رابط جديد",
+    "passwordReset": "تمت إعادة تعيين كلمة المرور!",
+    "passwordResetBody": "تم تحديث كلمة المرور الخاصة بك. يمكنك الآن تسجيل الدخول باستخدام كلمة المرور الجديدة.",
+    "goToLogin": "الذهاب لتسجيل الدخول",
+    "setNewPassword": "تعيين كلمة مرور جديدة",
+    "setNewPasswordBody": "أدخل كلمة المرور الجديدة أدناه.",
+    "newPassword": "كلمة المرور الجديدة",
+    "passwordPlaceholder": "8 أحرف على الأقل",
+    "confirmPasswordPlaceholder": "أعد كتابة كلمة المرور",
+    "resetPasswordCta": "إعادة تعيين كلمة المرور",
+    "verifyFailed": "فشل التحقق",
+    "verifying": "جاري التحقق من بريدك الإلكتروني…",
+    "emailVerified": "تم التحقق من البريد الإلكتروني!",
+    "emailVerifiedBody": "تم التحقق من بريدك الإلكتروني. يمكنك الآن تسجيل الدخول.",
+    "sent": "تم الإرسال!",
+    "resendVerification": "إعادة إرسال بريد التحقق",
+    "verifyLinkSent": "أرسلنا رابط التحقق إلى <strong>{email}</strong>. انقر على الرابط لتفعيل حسابك.",
+    "verifyLinkSentGeneric": "أرسلنا رابط التحقق إلى بريدك الإلكتروني. انقر على الرابط لتفعيل حسابك.",
+    "verificationResent": "تم إرسال بريد التحقق!"
   },
   "dashboard": {
     "welcome": "مرحبًا بعودتك، {name}!",
@@ -438,5 +494,88 @@
     "howItWorks": "كيف يعمل",
     "forSchools": "للمدارس",
     "copyright": "© {year} Schulab. جميع الحقوق محفوظة."
+  },
+  "roles": {
+    "STUDENT": "طالب",
+    "TUTOR": "مدرّس",
+    "PARENT": "ولي أمر",
+    "ADMIN": "مسؤول"
+  },
+  "tutorDashboard": {
+    "title": "لوحة المدرّس",
+    "welcomeNew": "مرحبًا! هيّا نُعِدّ ملفك التعريفي كمدرّس.",
+    "welcomeBack": "مرحبًا بعودتك، {name}!",
+    "completeProfile": "أكمل ملفك التعريفي كمدرّس",
+    "completeProfileBody": "أضف المواد وأوقات التوفر والسعر حتى يتمكن الطلاب من الحجز معك.",
+    "setupProfile": "إعداد الملف",
+    "verified": "موثّق",
+    "pendingVerification": "قيد التوثيق",
+    "upcomingSessions": "الجلسات القادمة",
+    "totalSessions": "إجمالي الجلسات",
+    "rating": "التقييم",
+    "noRatings": "لا توجد تقييمات بعد",
+    "recentBookings": "الحجوزات الأخيرة",
+    "noBookings": "لا توجد حجوزات بعد. ستظهر هنا بمجرد أن يحجز الطلاب جلسات.",
+    "viewAllBookings": "عرض جميع الحجوزات"
+  },
+  "parentDashboard": {
+    "welcomeBack": "مرحبًا بعودتك، {name}!",
+    "childrenLinked": "لديك {count, plural, =0 {لا يوجد أطفال} =1 {طفل واحد} =2 {طفلان} few {# أطفال} many {# طفلًا} other {# طفل}} مرتبط بحسابك.",
+    "yourChildren": "أطفالك",
+    "manageChildren": "إدارة الأطفال",
+    "noChildrenTitle": "لا يوجد أطفال مرتبطون بعد",
+    "noChildrenBody": "أضف حساب طفلك لتتبع تقدمه في التعلّم.",
+    "addChildCta": "إضافة طفل"
+  },
+  "courseDetail": {
+    "breadcrumbCourses": "الدورات",
+    "lessonsCount": "{count, plural, =0 {لا توجد دروس} =1 {درس واحد} =2 {درسان} few {# دروس} many {# درسًا} other {# درس}}",
+    "minutesTotal": "{count, plural, =1 {دقيقة واحدة إجمالًا} =2 {دقيقتان إجمالًا} other {# دقيقة إجمالًا}}",
+    "minutesShort": "{count} د",
+    "studentsCount": "{count, plural, =0 {لا يوجد طلاب} =1 {طالب واحد} =2 {طالبان} few {# طلاب} many {# طالبًا} other {# طالب}}",
+    "certificateIncluded": "الشهادة مُدرجة",
+    "free": "مجاني",
+    "createAccountToEnroll": "أنشئ حسابًا مجانيًا للتسجيل",
+    "lifetimeAccess": "وصول دائم مدى الحياة",
+    "whatYoullLearn": "ما ستتعلّمه",
+    "whoItsFor": "لمن هذه الدورة",
+    "childrenAges": "الأطفال {range}",
+    "levelBeginnerBody": "مستوى {level} — لا حاجة لمعرفة مسبقة",
+    "levelAdvancedBody": "مستوى {level} — يتطلب بعض الأساسيات",
+    "availableLanguages": "متوفر بالإنجليزية والعربية والألمانية",
+    "certificateOfCompletion": "شهادة إتمام مُدرجة",
+    "courseContentSummary": "محتوى الدورة — {modules, plural, =1 {وحدة واحدة} =2 {وحدتان} other {# وحدات}}، {lessons, plural, =1 {درس واحد} =2 {درسان} other {# دروس}}",
+    "noContentYet": "لا يوجد محتوى متاح بعد.",
+    "freePreview": "معاينة مجانية",
+    "relatedCourses": "دورات ذات صلة"
+  },
+  "lesson": {
+    "courseContent": "محتوى الدورة",
+    "completed": "مكتمل",
+    "markComplete": "وضع علامة كمكتمل",
+    "saving": "جارٍ الحفظ…",
+    "noVideo": "لا يوجد فيديو متاح"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "unreadCount": "{count, plural, =1 {إشعار غير مقروء} =2 {إشعاران غير مقروءين} few {# إشعارات غير مقروءة} many {# إشعارًا غير مقروء} other {# إشعار غير مقروء}}",
+    "markAllRead": "وضع علامة مقروءة للكل",
+    "emptyTitle": "لا توجد إشعارات بعد",
+    "emptyBody": "أنت على اطلاع بكل شيء!"
+  },
+  "messages": {
+    "title": "الرسائل",
+    "conversationsCount": "{count, plural, =0 {لا توجد محادثات بعد} =1 {محادثة واحدة} =2 {محادثتان} few {# محادثات} many {# محادثةً} other {# محادثة}}",
+    "emptyTitle": "لا توجد رسائل بعد",
+    "emptyBody": "ابدأ محادثة مع مدرّس أو طالب.",
+    "startConversation": "ابدأ محادثة",
+    "noContacts": "لا توجد جهات اتصال متاحة.",
+    "unknownUser": "مستخدم غير معروف",
+    "inbox": "صندوق الوارد",
+    "startWith": "ابدأ المحادثة مع {name}",
+    "privateMessages": "رسائلك خاصة.",
+    "sendFailed": "فشل الإرسال",
+    "typePlaceholder": "اكتب رسالة… (Enter للإرسال، Shift+Enter لسطر جديد)",
+    "sendAria": "إرسال رسالة"
   }
 }

@@ -225,7 +225,35 @@
     "levels": {
       "beginner": "Beginner",
       "intermediate": "Intermediate",
-      "advanced": "Advanced"
+      "advanced": "Advanced",
+      "BEGINNER": "Beginner",
+      "INTERMEDIATE": "Intermediate",
+      "ADVANCED": "Advanced"
+    },
+    "ageGroups": {
+      "AGES_3_5": "Ages 3–5",
+      "AGES_6_8": "Ages 6–8",
+      "AGES_9_12": "Ages 9–12",
+      "AGES_13_15": "Ages 13–15",
+      "AGES_16_18": "Ages 16–18"
+    },
+    "categories": {
+      "MATH": "Math",
+      "SCIENCE": "Science",
+      "TECHNOLOGY": "Technology",
+      "ENGINEERING": "Engineering",
+      "ARTS": "Arts",
+      "CODING": "Coding",
+      "ROBOTICS": "Robotics"
+    },
+    "filters": {
+      "searchPlaceholder": "Search courses…",
+      "ageGroupLabel": "Age group",
+      "categoryLabel": "Subject",
+      "levelLabel": "Level",
+      "allAges": "All Ages",
+      "allCategories": "All Subjects",
+      "allLevels": "All Levels"
     }
   },
   "pricing": {
@@ -360,7 +388,35 @@
       "student": "Explore, earn XP, and learn",
       "parent": "Track your child's progress",
       "tutor": "Teach and inspire"
-    }
+    },
+    "checkEmail": "Check your email",
+    "resetLinkSent": "If an account exists with that email, we've sent a reset link. It should arrive within a minute.",
+    "backToLogin": "Back to login",
+    "forgotPasswordSubtitle": "Enter your email and we'll send you a reset link.",
+    "passwordMin": "Password must be at least 8 characters",
+    "passwordsDontMatch": "Passwords don't match",
+    "resetFailed": "Failed to reset password",
+    "invalidResetLink": "Invalid reset link",
+    "invalidResetLinkBody": "This password reset link is invalid or missing. Please request a new one.",
+    "requestNewLink": "Request new link",
+    "passwordReset": "Password reset!",
+    "passwordResetBody": "Your password has been updated. You can now log in with your new password.",
+    "goToLogin": "Go to Login",
+    "setNewPassword": "Set new password",
+    "setNewPasswordBody": "Enter your new password below.",
+    "newPassword": "New Password",
+    "passwordPlaceholder": "At least 8 characters",
+    "confirmPasswordPlaceholder": "Repeat your password",
+    "resetPasswordCta": "Reset Password",
+    "verifyFailed": "Verification failed",
+    "verifying": "Verifying your email…",
+    "emailVerified": "Email verified!",
+    "emailVerifiedBody": "Your email has been verified. You can now log in.",
+    "sent": "Sent!",
+    "resendVerification": "Resend verification email",
+    "verifyLinkSent": "We've sent a verification link to <strong>{email}</strong>. Click the link to activate your account.",
+    "verifyLinkSentGeneric": "We've sent a verification link to your email. Click the link to activate your account.",
+    "verificationResent": "Verification email sent!"
   },
   "dashboard": {
     "welcome": "Welcome back, {name}!",
@@ -438,5 +494,88 @@
     "howItWorks": "How It Works",
     "forSchools": "For Schools",
     "copyright": "© {year} Schulab. All rights reserved."
+  },
+  "roles": {
+    "STUDENT": "Student",
+    "TUTOR": "Tutor",
+    "PARENT": "Parent",
+    "ADMIN": "Admin"
+  },
+  "tutorDashboard": {
+    "title": "Tutor Dashboard",
+    "welcomeNew": "Welcome! Let's get your tutor profile set up.",
+    "welcomeBack": "Welcome back, {name}!",
+    "completeProfile": "Complete your tutor profile",
+    "completeProfileBody": "Add your subjects, availability, and rate so students can book sessions with you.",
+    "setupProfile": "Set up profile",
+    "verified": "Verified",
+    "pendingVerification": "Pending verification",
+    "upcomingSessions": "Upcoming sessions",
+    "totalSessions": "Total sessions",
+    "rating": "Rating",
+    "noRatings": "No ratings yet",
+    "recentBookings": "Recent bookings",
+    "noBookings": "No bookings yet. Once students book sessions, they'll appear here.",
+    "viewAllBookings": "View all bookings"
+  },
+  "parentDashboard": {
+    "welcomeBack": "Welcome back, {name}!",
+    "childrenLinked": "You have {count, plural, =0 {no children} =1 {1 child} other {# children}} linked to your account.",
+    "yourChildren": "Your Children",
+    "manageChildren": "Manage Children",
+    "noChildrenTitle": "No children linked yet",
+    "noChildrenBody": "Add your child's account to track their learning progress.",
+    "addChildCta": "Add a Child"
+  },
+  "courseDetail": {
+    "breadcrumbCourses": "Courses",
+    "lessonsCount": "{count, plural, =0 {no lessons} =1 {1 lesson} other {# lessons}}",
+    "minutesTotal": "{count, plural, =1 {1 min total} other {# min total}}",
+    "minutesShort": "{count}m",
+    "studentsCount": "{count, plural, =0 {no students} =1 {1 student} other {# students}}",
+    "certificateIncluded": "Certificate included",
+    "free": "Free",
+    "createAccountToEnroll": "Create Free Account to Enroll",
+    "lifetimeAccess": "Full lifetime access",
+    "whatYoullLearn": "What You'll Learn",
+    "whoItsFor": "Who This Course Is For",
+    "childrenAges": "Children {range}",
+    "levelBeginnerBody": "{level} level — no prior knowledge needed",
+    "levelAdvancedBody": "{level} level — some foundation required",
+    "availableLanguages": "Available in English, Arabic, and German",
+    "certificateOfCompletion": "Certificate of completion included",
+    "courseContentSummary": "Course Content — {modules, plural, =1 {1 module} other {# modules}}, {lessons, plural, =1 {1 lesson} other {# lessons}}",
+    "noContentYet": "No content available yet.",
+    "freePreview": "Free preview",
+    "relatedCourses": "Related Courses"
+  },
+  "lesson": {
+    "courseContent": "Course Content",
+    "completed": "Completed",
+    "markComplete": "Mark as complete",
+    "saving": "Saving…",
+    "noVideo": "No video available"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unreadCount": "{count, plural, =1 {1 unread} other {# unread}}",
+    "markAllRead": "Mark all as read",
+    "emptyTitle": "No notifications yet",
+    "emptyBody": "You're all caught up!"
+  },
+  "messages": {
+    "title": "Messages",
+    "conversationsCount": "{count, plural, =0 {No conversations yet} =1 {1 conversation} other {# conversations}}",
+    "emptyTitle": "No messages yet",
+    "emptyBody": "Start a conversation with a tutor or student.",
+    "startConversation": "Start a Conversation",
+    "noContacts": "No contacts available.",
+    "unknownUser": "Unknown User",
+    "inbox": "Inbox",
+    "startWith": "Start the conversation with {name}",
+    "privateMessages": "Your messages are private.",
+    "sendFailed": "Failed to send",
+    "typePlaceholder": "Type a message… (Enter to send, Shift+Enter for newline)",
+    "sendAria": "Send message"
   }
 }

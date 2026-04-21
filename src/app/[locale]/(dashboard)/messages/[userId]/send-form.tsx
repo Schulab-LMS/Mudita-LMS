@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { sendMessageAction } from "@/actions/message.actions";
 import { Send } from "lucide-react";
 
@@ -13,6 +14,7 @@ export function SendForm({ receiverId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const t = useTranslations("messages");
 
   // Auto-resize textarea
   useEffect(() => {
@@ -33,7 +35,7 @@ export function SendForm({ receiverId }: Props) {
       if (result.success) {
         setBody("");
       } else {
-        setError(result.error ?? "Failed to send");
+        setError(result.error ?? t("sendFailed"));
       }
     });
   }
@@ -54,7 +56,7 @@ export function SendForm({ receiverId }: Props) {
           value={body}
           onChange={(e) => setBody(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
+          placeholder={t("typePlaceholder")}
           rows={1}
           disabled={pending}
           className="flex-1 resize-none rounded-xl border border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
@@ -63,12 +65,12 @@ export function SendForm({ receiverId }: Props) {
           type="submit"
           disabled={pending || !body.trim()}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
-          aria-label="Send message"
+          aria-label={t("sendAria")}
         >
           {pending ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
           ) : (
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-4 rtl:-scale-x-100" />
           )}
         </button>
       </div>
