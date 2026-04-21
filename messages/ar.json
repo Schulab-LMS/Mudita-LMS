@@ -901,7 +901,22 @@
     },
     "rolesPage": {
       "pageTitle": "الأدوار والصلاحيات",
-      "permissionCol": "الصلاحية"
+      "permissionCol": "الصلاحية",
+      "subtitleCounts": "{permissions} صلاحية عبر {resources} مورد",
+      "emptyEditable": "لم يتم تعريف أي صلاحيات بعد. أضف صلاحيات أدناه أو شغّل سكربت التهيئة.",
+      "emptyReadOnly": "لم يتم تعريف أي صلاحيات بعد. اطلب من مشرف أعلى إعداد الصلاحيات.",
+      "addHeading": "إضافة صلاحية",
+      "resourceLabel": "المورد",
+      "actionLabel": "الإجراء",
+      "descriptionLabel": "الوصف",
+      "selectPlaceholder": "اختر…",
+      "customOption": "مخصّص…",
+      "customResourcePlaceholder": "مورد مخصّص",
+      "customActionPlaceholder": "إجراء مخصّص",
+      "descriptionPlaceholder": "الوصف",
+      "addingButton": "جارٍ الإضافة…",
+      "addButton": "إضافة صلاحية",
+      "createdMessage": "تمّ إنشاء الصلاحية"
     },
     "modules": {
       "heading": "الوحدات والدروس",
@@ -952,6 +967,119 @@
       "tryAgain": "حاول مجددًا",
       "clickToUpload": "انقر لرفع فيديو",
       "formatsHint": "MP4 أو MOV أو WEBM حتى عدّة غيغابايت"
+    },
+    "tutors": {
+      "pageTitle": "التحقق من المعلمين",
+      "subtitleCounts": "{pending} قيد الانتظار · {verified} موثّق · {total} إجمالاً",
+      "pendingHeading": "بانتظار الموافقة",
+      "verifiedHeading": "المعلمون الموثّقون",
+      "pendingBadge": "قيد الانتظار",
+      "hourlyRate": "{rate}$/ساعة",
+      "ratingValue": "{rating}/5",
+      "tutorCol": "المعلم",
+      "subjectsCol": "المواد",
+      "rateCol": "الأجر",
+      "ratingCol": "التقييم",
+      "sessionsCol": "الجلسات",
+      "emptyMessage": "لا توجد طلبات معلمين بعد",
+      "fallbackName": "هذا المعلم"
+    },
+    "helpArticles": {
+      "pageTitle": "مقالات المساعدة",
+      "articleCount": "{count, plural, zero {لا مقالات} one {مقالة واحدة} two {مقالتان} few {# مقالات} many {# مقالة} other {# مقالة}}",
+      "publishedCount": "{count} منشورة",
+      "viewHelpCenter": "عرض مركز المساعدة",
+      "newArticle": "مقالة جديدة",
+      "createArticle": "إنشاء مقالة",
+      "emptyTitle": "لا مقالات مساعدة بعد",
+      "emptyBody": "أنشئ أول مقالة مساعدة لتعبئة مركز المساعدة.",
+      "titleCol": "العنوان",
+      "categoryCol": "التصنيف",
+      "statusCol": "الحالة",
+      "feedbackCol": "الملاحظات",
+      "updatedCol": "آخر تحديث",
+      "responses": "{count, plural, zero {لا ردود} one {رد واحد} two {ردّان} few {# ردود} many {# ردًا} other {# رد}}",
+      "viewArticleTooltip": "عرض المقالة",
+      "editArticleTooltip": "تعديل المقالة"
+    },
+    "certificatesList": {
+      "pageTitle": "الشهادات",
+      "issuedCount": "{count, plural, zero {لم تُصدر شهادات} one {شهادة واحدة أُصدرت} two {شهادتان أُصدرتا} few {# شهادات أُصدرت} many {# شهادة أُصدرت} other {# شهادة أُصدرت}}",
+      "issueManuallyHeading": "إصدار شهادة يدويًا",
+      "studentCol": "الطالب",
+      "courseCol": "الدورة",
+      "codeCol": "الرمز",
+      "issuedCol": "تاريخ الإصدار",
+      "linksCol": "الروابط",
+      "unknownCourse": "دورة غير معروفة",
+      "downloadLink": "تنزيل",
+      "verifyLink": "التحقق",
+      "emptyMessage": "لم تُصدر أي شهادات بعد."
+    },
+    "pagesList": {
+      "pageTitle": "صفحات المحتوى",
+      "pageCount": "{count, plural, zero {لا صفحات} one {صفحة واحدة} two {صفحتان} few {# صفحات} many {# صفحة} other {# صفحة}}",
+      "newPage": "صفحة جديدة",
+      "createPage": "إنشاء صفحة",
+      "emptyTitle": "لا صفحات بعد",
+      "emptyBody": "أنشئ أول صفحة للبدء.",
+      "titleCol": "العنوان",
+      "slugCol": "المعرّف",
+      "statusCol": "الحالة",
+      "updatedCol": "آخر تعديل",
+      "viewPageTooltip": "عرض الصفحة",
+      "editPageTooltip": "تعديل الصفحة"
+    },
+    "products": {
+      "pageTitle": "منتجات أطقم العلوم",
+      "productCount": "{count, plural, zero {لا منتجات} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجًا} other {# منتج}}",
+      "newProduct": "منتج جديد",
+      "emptyMessage": "لا توجد منتجات بعد",
+      "nameCol": "الاسم",
+      "categoryCol": "التصنيف",
+      "priceCol": "السعر",
+      "stockCol": "المخزون",
+      "ageGroupCol": "الفئة العمرية",
+      "statusCol": "الحالة",
+      "editProductTooltip": "تعديل المنتج",
+      "status": {
+        "ACTIVE": "متاح",
+        "OUT_OF_STOCK": "نفد المخزون",
+        "DISCONTINUED": "متوقف"
+      }
+    },
+    "competitionsList": {
+      "pageTitle": "المسابقات",
+      "competitionCount": "{count, plural, zero {لا مسابقات} one {مسابقة واحدة} two {مسابقتان} few {# مسابقات} many {# مسابقة} other {# مسابقة}}",
+      "viewPublic": "عرض الصفحة العامة",
+      "emptyMessage": "لا مسابقات بعد",
+      "titleCol": "العنوان",
+      "statusCol": "الحالة",
+      "startDateCol": "تاريخ البدء",
+      "endDateCol": "تاريخ الانتهاء",
+      "maxParticipantsCol": "الحد الأقصى للمشاركين",
+      "unlimited": "غير محدود",
+      "status": {
+        "UPCOMING": "قادمة",
+        "ONGOING": "جارية",
+        "COMPLETED": "منتهية"
+      }
+    },
+    "badges": {
+      "pageTitle": "الشارات",
+      "badgeCount": "{count, plural, zero {لا شارات مُعدّة} one {شارة واحدة مُعدّة} two {شارتان مُعدّتان} few {# شارات مُعدّة} many {# شارة مُعدّة} other {# شارة مُعدّة}}",
+      "createHeading": "إنشاء شارة جديدة",
+      "createDescription": "عرّف شارة إنجاز جديدة للطلاب.",
+      "nameLabel": "الاسم",
+      "namePlaceholder": "الخطوات الأولى",
+      "descriptionLabel": "الوصف",
+      "descriptionPlaceholder": "أتمّ أول دورة",
+      "iconLabel": "الأيقونة (رمز تعبيري)",
+      "iconPlaceholder": "🏅",
+      "minPointsLabel": "الحد الأدنى للنقاط (معيار)",
+      "minEnrollmentsLabel": "الحد الأدنى للتسجيلات (معيار)",
+      "pointsAwardedLabel": "النقاط الممنوحة",
+      "createButton": "إنشاء الشارة"
     }
   }
 }

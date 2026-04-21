@@ -901,7 +901,22 @@
     },
     "rolesPage": {
       "pageTitle": "Roles & Permissions",
-      "permissionCol": "Permission"
+      "permissionCol": "Permission",
+      "subtitleCounts": "{permissions} permissions across {resources} resources",
+      "emptyEditable": "No permissions defined yet. Add permissions below or run the seed script.",
+      "emptyReadOnly": "No permissions defined yet. Ask a Super Admin to set up permissions.",
+      "addHeading": "Add Permission",
+      "resourceLabel": "Resource",
+      "actionLabel": "Action",
+      "descriptionLabel": "Description",
+      "selectPlaceholder": "Select…",
+      "customOption": "Custom…",
+      "customResourcePlaceholder": "Custom resource",
+      "customActionPlaceholder": "Custom action",
+      "descriptionPlaceholder": "Description",
+      "addingButton": "Adding…",
+      "addButton": "Add Permission",
+      "createdMessage": "Permission created"
     },
     "modules": {
       "heading": "Modules & Lessons",
@@ -952,6 +967,119 @@
       "tryAgain": "Try again",
       "clickToUpload": "Click to upload video",
       "formatsHint": "MP4, MOV, WEBM up to a few GB"
+    },
+    "tutors": {
+      "pageTitle": "Tutor Verification",
+      "subtitleCounts": "{pending} pending · {verified} verified · {total} total",
+      "pendingHeading": "Pending Approval",
+      "verifiedHeading": "Verified Tutors",
+      "pendingBadge": "Pending",
+      "hourlyRate": "${rate}/hr",
+      "ratingValue": "{rating}/5",
+      "tutorCol": "Tutor",
+      "subjectsCol": "Subjects",
+      "rateCol": "Rate",
+      "ratingCol": "Rating",
+      "sessionsCol": "Sessions",
+      "emptyMessage": "No tutor applications yet",
+      "fallbackName": "this tutor"
+    },
+    "helpArticles": {
+      "pageTitle": "Help Articles",
+      "articleCount": "{count, plural, one {# article} other {# articles}}",
+      "publishedCount": "{count} published",
+      "viewHelpCenter": "View Help Center",
+      "newArticle": "New Article",
+      "createArticle": "Create Article",
+      "emptyTitle": "No help articles yet",
+      "emptyBody": "Create your first help article to populate the Help Center.",
+      "titleCol": "Title",
+      "categoryCol": "Category",
+      "statusCol": "Status",
+      "feedbackCol": "Feedback",
+      "updatedCol": "Updated",
+      "responses": "{count, plural, one {# response} other {# responses}}",
+      "viewArticleTooltip": "View article",
+      "editArticleTooltip": "Edit article"
+    },
+    "certificatesList": {
+      "pageTitle": "Certificates",
+      "issuedCount": "{count, plural, one {# certificate issued} other {# certificates issued}}",
+      "issueManuallyHeading": "Issue Certificate Manually",
+      "studentCol": "Student",
+      "courseCol": "Course",
+      "codeCol": "Code",
+      "issuedCol": "Issued",
+      "linksCol": "Links",
+      "unknownCourse": "Unknown Course",
+      "downloadLink": "Download",
+      "verifyLink": "Verify",
+      "emptyMessage": "No certificates issued yet."
+    },
+    "pagesList": {
+      "pageTitle": "CMS Pages",
+      "pageCount": "{count, plural, one {# page} other {# pages}}",
+      "newPage": "New Page",
+      "createPage": "Create Page",
+      "emptyTitle": "No CMS pages yet",
+      "emptyBody": "Create your first page to get started.",
+      "titleCol": "Title",
+      "slugCol": "Slug",
+      "statusCol": "Status",
+      "updatedCol": "Last Updated",
+      "viewPageTooltip": "View page",
+      "editPageTooltip": "Edit page"
+    },
+    "products": {
+      "pageTitle": "STEM Kit Products",
+      "productCount": "{count, plural, one {# product} other {# products}}",
+      "newProduct": "New Product",
+      "emptyMessage": "No products yet",
+      "nameCol": "Name",
+      "categoryCol": "Category",
+      "priceCol": "Price",
+      "stockCol": "Stock",
+      "ageGroupCol": "Age Group",
+      "statusCol": "Status",
+      "editProductTooltip": "Edit product",
+      "status": {
+        "ACTIVE": "Active",
+        "OUT_OF_STOCK": "Out of stock",
+        "DISCONTINUED": "Discontinued"
+      }
+    },
+    "competitionsList": {
+      "pageTitle": "Competitions",
+      "competitionCount": "{count, plural, one {# competition} other {# competitions}}",
+      "viewPublic": "View Public Page",
+      "emptyMessage": "No competitions yet",
+      "titleCol": "Title",
+      "statusCol": "Status",
+      "startDateCol": "Start Date",
+      "endDateCol": "End Date",
+      "maxParticipantsCol": "Max Participants",
+      "unlimited": "Unlimited",
+      "status": {
+        "UPCOMING": "Upcoming",
+        "ONGOING": "Ongoing",
+        "COMPLETED": "Completed"
+      }
+    },
+    "badges": {
+      "pageTitle": "Badges",
+      "badgeCount": "{count, plural, one {# badge configured} other {# badges configured}}",
+      "createHeading": "Create New Badge",
+      "createDescription": "Define a new achievement badge for students.",
+      "nameLabel": "Name",
+      "namePlaceholder": "First Steps",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Complete your first course",
+      "iconLabel": "Icon (emoji)",
+      "iconPlaceholder": "🏅",
+      "minPointsLabel": "Min Points (criteria)",
+      "minEnrollmentsLabel": "Min Enrollments (criteria)",
+      "pointsAwardedLabel": "Points Awarded",
+      "createButton": "Create Badge"
     }
   }
 }

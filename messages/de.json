@@ -901,7 +901,22 @@
     },
     "rolesPage": {
       "pageTitle": "Rollen & Berechtigungen",
-      "permissionCol": "Berechtigung"
+      "permissionCol": "Berechtigung",
+      "subtitleCounts": "{permissions} Berechtigungen in {resources} Ressourcen",
+      "emptyEditable": "Noch keine Berechtigungen definiert. Fügen Sie unten welche hinzu oder führen Sie das Seed-Skript aus.",
+      "emptyReadOnly": "Noch keine Berechtigungen definiert. Bitten Sie einen Super-Admin, Berechtigungen einzurichten.",
+      "addHeading": "Berechtigung hinzufügen",
+      "resourceLabel": "Ressource",
+      "actionLabel": "Aktion",
+      "descriptionLabel": "Beschreibung",
+      "selectPlaceholder": "Wählen…",
+      "customOption": "Benutzerdefiniert…",
+      "customResourcePlaceholder": "Benutzerdefinierte Ressource",
+      "customActionPlaceholder": "Benutzerdefinierte Aktion",
+      "descriptionPlaceholder": "Beschreibung",
+      "addingButton": "Wird hinzugefügt…",
+      "addButton": "Berechtigung hinzufügen",
+      "createdMessage": "Berechtigung erstellt"
     },
     "modules": {
       "heading": "Module & Lektionen",
@@ -952,6 +967,119 @@
       "tryAgain": "Erneut versuchen",
       "clickToUpload": "Klicken, um ein Video hochzuladen",
       "formatsHint": "MP4, MOV, WEBM bis zu mehreren GB"
+    },
+    "tutors": {
+      "pageTitle": "Tutor-Verifizierung",
+      "subtitleCounts": "{pending} ausstehend · {verified} verifiziert · {total} gesamt",
+      "pendingHeading": "Ausstehende Freigabe",
+      "verifiedHeading": "Verifizierte Tutoren",
+      "pendingBadge": "Ausstehend",
+      "hourlyRate": "{rate} €/Std.",
+      "ratingValue": "{rating}/5",
+      "tutorCol": "Tutor",
+      "subjectsCol": "Fächer",
+      "rateCol": "Satz",
+      "ratingCol": "Bewertung",
+      "sessionsCol": "Sitzungen",
+      "emptyMessage": "Noch keine Tutor-Bewerbungen",
+      "fallbackName": "dieser Tutor"
+    },
+    "helpArticles": {
+      "pageTitle": "Hilfeartikel",
+      "articleCount": "{count, plural, =0 {keine Artikel} =1 {# Artikel} other {# Artikel}}",
+      "publishedCount": "{count} veröffentlicht",
+      "viewHelpCenter": "Hilfe-Center ansehen",
+      "newArticle": "Neuer Artikel",
+      "createArticle": "Artikel erstellen",
+      "emptyTitle": "Noch keine Hilfeartikel",
+      "emptyBody": "Erstellen Sie Ihren ersten Hilfeartikel, um das Hilfe-Center zu füllen.",
+      "titleCol": "Titel",
+      "categoryCol": "Kategorie",
+      "statusCol": "Status",
+      "feedbackCol": "Feedback",
+      "updatedCol": "Aktualisiert",
+      "responses": "{count, plural, =0 {keine Antworten} =1 {# Antwort} other {# Antworten}}",
+      "viewArticleTooltip": "Artikel ansehen",
+      "editArticleTooltip": "Artikel bearbeiten"
+    },
+    "certificatesList": {
+      "pageTitle": "Zertifikate",
+      "issuedCount": "{count, plural, =0 {keine Zertifikate ausgestellt} =1 {# Zertifikat ausgestellt} other {# Zertifikate ausgestellt}}",
+      "issueManuallyHeading": "Zertifikat manuell ausstellen",
+      "studentCol": "Lernende:r",
+      "courseCol": "Kurs",
+      "codeCol": "Code",
+      "issuedCol": "Ausgestellt",
+      "linksCol": "Links",
+      "unknownCourse": "Unbekannter Kurs",
+      "downloadLink": "Herunterladen",
+      "verifyLink": "Überprüfen",
+      "emptyMessage": "Noch keine Zertifikate ausgestellt."
+    },
+    "pagesList": {
+      "pageTitle": "CMS-Seiten",
+      "pageCount": "{count, plural, =0 {keine Seiten} =1 {# Seite} other {# Seiten}}",
+      "newPage": "Neue Seite",
+      "createPage": "Seite erstellen",
+      "emptyTitle": "Noch keine CMS-Seiten",
+      "emptyBody": "Erstellen Sie Ihre erste Seite, um zu starten.",
+      "titleCol": "Titel",
+      "slugCol": "Slug",
+      "statusCol": "Status",
+      "updatedCol": "Zuletzt aktualisiert",
+      "viewPageTooltip": "Seite ansehen",
+      "editPageTooltip": "Seite bearbeiten"
+    },
+    "products": {
+      "pageTitle": "MINT-Kit-Produkte",
+      "productCount": "{count, plural, =0 {keine Produkte} =1 {# Produkt} other {# Produkte}}",
+      "newProduct": "Neues Produkt",
+      "emptyMessage": "Noch keine Produkte",
+      "nameCol": "Name",
+      "categoryCol": "Kategorie",
+      "priceCol": "Preis",
+      "stockCol": "Bestand",
+      "ageGroupCol": "Altersgruppe",
+      "statusCol": "Status",
+      "editProductTooltip": "Produkt bearbeiten",
+      "status": {
+        "ACTIVE": "Aktiv",
+        "OUT_OF_STOCK": "Nicht verfügbar",
+        "DISCONTINUED": "Eingestellt"
+      }
+    },
+    "competitionsList": {
+      "pageTitle": "Wettbewerbe",
+      "competitionCount": "{count, plural, =0 {keine Wettbewerbe} =1 {# Wettbewerb} other {# Wettbewerbe}}",
+      "viewPublic": "Öffentliche Seite ansehen",
+      "emptyMessage": "Noch keine Wettbewerbe",
+      "titleCol": "Titel",
+      "statusCol": "Status",
+      "startDateCol": "Startdatum",
+      "endDateCol": "Enddatum",
+      "maxParticipantsCol": "Max. Teilnehmer",
+      "unlimited": "Unbegrenzt",
+      "status": {
+        "UPCOMING": "Demnächst",
+        "ONGOING": "Laufend",
+        "COMPLETED": "Abgeschlossen"
+      }
+    },
+    "badges": {
+      "pageTitle": "Abzeichen",
+      "badgeCount": "{count, plural, =0 {keine Abzeichen konfiguriert} =1 {# Abzeichen konfiguriert} other {# Abzeichen konfiguriert}}",
+      "createHeading": "Neues Abzeichen erstellen",
+      "createDescription": "Definieren Sie ein neues Leistungsabzeichen für Lernende.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Erste Schritte",
+      "descriptionLabel": "Beschreibung",
+      "descriptionPlaceholder": "Den ersten Kurs abschließen",
+      "iconLabel": "Symbol (Emoji)",
+      "iconPlaceholder": "🏅",
+      "minPointsLabel": "Min. Punkte (Kriterium)",
+      "minEnrollmentsLabel": "Min. Einschreibungen (Kriterium)",
+      "pointsAwardedLabel": "Vergebene Punkte",
+      "createButton": "Abzeichen erstellen"
     }
   }
 }

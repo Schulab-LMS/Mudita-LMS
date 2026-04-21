@@ -1,54 +1,74 @@
 import { redirect } from "next/navigation";
+import { getLocale, getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
 import { Trophy } from "lucide-react";
 
-export const metadata = { title: "Competitions | Admin | Schulab" };
+export async function generateMetadata() {
+  const t = await getTranslations("admin.competitionsList");
+  return { title: `${t("pageTitle")} | Schulab` };
+}
+
+const statusColor: Record<string, string> = {
+  UPCOMING: "bg-blue-100 text-blue-800",
+  ONGOING: "bg-green-100 text-green-800",
+  COMPLETED: "bg-gray-100 text-gray-800",
+};
+
+const KNOWN_STATUSES = new Set(Object.keys(statusColor));
 
 export default async function AdminCompetitionsPage() {
   const session = await auth();
   if (!session?.user || !isAdminRole(session.user.role)) redirect("/dashboard");
+
+  const [t, tStatus, locale] = await Promise.all([
+    getTranslations("admin.competitionsList"),
+    getTranslations("admin.competitionsList.status"),
+    getLocale(),
+  ]);
+
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
   let competitions: Array<{ id: string; title: string; status: string; startDate: Date | null; endDate: Date | null; maxParticipants: number | null }> = [];
   try {
     competitions = await db.competition.findMany({ orderBy: { startDate: "desc" } });
   } catch { /* no db */ }
 
-  const statusColor: Record<string, string> = {
-    UPCOMING: "bg-blue-100 text-blue-800",
-    ONGOING: "bg-green-100 text-green-800",
-    COMPLETED: "bg-gray-100 text-gray-800",
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Competitions</h1>
-          <p className="text-muted-foreground">{competitions.length} competitions</p>
+          <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
+          <p className="text-muted-foreground">
+            {t("competitionCount", { count: competitions.length })}
+          </p>
         </div>
         <Link href="/competitions" className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted">
-          View Public Page
+          {t("viewPublic")}
         </Link>
       </div>
 
       {competitions.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
           <Trophy className="mb-3 h-12 w-12 text-muted-foreground" />
-          <p className="text-muted-foreground">No competitions yet</p>
+          <p className="text-muted-foreground">{t("emptyMessage")}</p>
         </div>
       ) : (
         <div className="rounded-xl border bg-white overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b bg-muted/50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">Title</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium">Start Date</th>
-                <th className="px-4 py-3 text-left font-medium">End Date</th>
-                <th className="px-4 py-3 text-left font-medium">Max Participants</th>
+                <th className="px-4 py-3 text-start font-medium">{t("titleCol")}</th>
+                <th className="px-4 py-3 text-start font-medium">{t("statusCol")}</th>
+                <th className="px-4 py-3 text-start font-medium">{t("startDateCol")}</th>
+                <th className="px-4 py-3 text-start font-medium">{t("endDateCol")}</th>
+                <th className="px-4 py-3 text-start font-medium">{t("maxParticipantsCol")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -64,16 +84,16 @@ export default async function AdminCompetitionsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor[c.status] ?? "bg-gray-100"}`}>
-                      {c.status}
+                      {KNOWN_STATUSES.has(c.status) ? tStatus(c.status) : c.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {c.startDate ? new Date(c.startDate).toLocaleDateString() : "—"}
+                    {c.startDate ? dateFormatter.format(new Date(c.startDate)) : "—"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {c.endDate ? new Date(c.endDate).toLocaleDateString() : "—"}
+                    {c.endDate ? dateFormatter.format(new Date(c.endDate)) : "—"}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{c.maxParticipants ?? "Unlimited"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.maxParticipants ?? t("unlimited")}</td>
                 </tr>
               ))}
             </tbody>

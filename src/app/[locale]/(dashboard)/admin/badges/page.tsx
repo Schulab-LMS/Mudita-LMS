@@ -1,24 +1,30 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { BadgeDisplay } from "@/components/gamification/badge-display";
 import { createBadge } from "@/actions/admin.actions";
 
-export const metadata = { title: "Manage Badges | Admin" };
+export async function generateMetadata() {
+  const t = await getTranslations("admin.badges");
+  return { title: `${t("pageTitle")} | Schulab` };
+}
 
 export default async function AdminBadgesPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
   if (!isAdminRole(session.user.role)) redirect("/dashboard");
 
+  const t = await getTranslations("admin.badges");
+
   const badges = await db.badge.findMany({ orderBy: { name: "asc" } }).catch(() => []);
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Badges</h1>
-        <p className="text-muted-foreground">{badges.length} badge{badges.length !== 1 ? "s" : ""} configured</p>
+        <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
+        <p className="text-muted-foreground">{t("badgeCount", { count: badges.length })}</p>
       </div>
 
       {badges.length > 0 && (
@@ -34,9 +40,9 @@ export default async function AdminBadgesPage() {
       )}
 
       <div className="rounded-xl border bg-card p-6 max-w-lg">
-        <h2 className="mb-1 text-lg font-semibold">Create New Badge</h2>
+        <h2 className="mb-1 text-lg font-semibold">{t("createHeading")}</h2>
         <p className="mb-5 text-sm text-muted-foreground">
-          Define a new achievement badge for students.
+          {t("createDescription")}
         </p>
         <form
           action={async (fd: FormData) => {
@@ -57,36 +63,36 @@ export default async function AdminBadgesPage() {
           className="space-y-4"
         >
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Name *</label>
+            <label className="mb-1.5 block text-sm font-medium">{t("nameLabel")} *</label>
             <input
               name="name"
               required
-              placeholder="First Steps"
+              placeholder={t("namePlaceholder")}
               className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Description *</label>
+            <label className="mb-1.5 block text-sm font-medium">{t("descriptionLabel")} *</label>
             <input
               name="description"
               required
-              placeholder="Complete your first course"
+              placeholder={t("descriptionPlaceholder")}
               className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Icon (emoji) *</label>
+            <label className="mb-1.5 block text-sm font-medium">{t("iconLabel")} *</label>
             <input
               name="icon"
               required
-              placeholder="🏅"
+              placeholder={t("iconPlaceholder")}
               className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-medium">
-                Min Points (criteria)
+                {t("minPointsLabel")}
               </label>
               <input
                 name="minPoints"
@@ -98,7 +104,7 @@ export default async function AdminBadgesPage() {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium">
-                Min Enrollments (criteria)
+                {t("minEnrollmentsLabel")}
               </label>
               <input
                 name="minEnrollments"
@@ -111,7 +117,7 @@ export default async function AdminBadgesPage() {
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium">
-              Points Awarded
+              {t("pointsAwardedLabel")}
             </label>
             <input
               name="points"
@@ -126,7 +132,7 @@ export default async function AdminBadgesPage() {
             type="submit"
             className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary/90"
           >
-            Create Badge
+            {t("createButton")}
           </button>
         </form>
       </div>

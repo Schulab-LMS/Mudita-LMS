@@ -1,11 +1,15 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole, isSuperAdmin } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { RolePermissionMatrix } from "./role-permission-matrix";
 import { AddPermissionForm } from "./add-permission-form";
 
-export const metadata = { title: "Roles & Permissions | Admin" };
+export async function generateMetadata() {
+  const t = await getTranslations("admin.rolesPage");
+  return { title: `${t("pageTitle")} | Schulab` };
+}
 
 const ROLES = ["SUPER_ADMIN", "ADMIN", "TUTOR", "PARENT", "STUDENT", "B2B_PARTNER"] as const;
 
@@ -15,13 +19,13 @@ export default async function AdminRolesPage() {
   if (!isAdminRole(session.user.role)) redirect("/dashboard");
 
   const canEdit = isSuperAdmin(session.user.role);
+  const t = await getTranslations("admin.rolesPage");
 
   const [permissions, rolePermissions] = await Promise.all([
     db.permission.findMany({ orderBy: [{ resource: "asc" }, { action: "asc" }] }).catch(() => []),
     db.rolePermission.findMany().catch(() => []),
   ]);
 
-  // Build matrix: { ADMIN: ["perm-id-1", "perm-id-2"], ... }
   const matrix: Record<string, string[]> = {};
   for (const role of ROLES) matrix[role] = [];
   for (const rp of rolePermissions) {
@@ -29,7 +33,6 @@ export default async function AdminRolesPage() {
     matrix[rp.role].push(rp.permissionId);
   }
 
-  // Group permissions by resource
   type Perm = { id: string; name: string; description: string; resource: string; action: string };
   const grouped: Record<string, Perm[]> = {};
   for (const p of permissions) {
@@ -41,9 +44,12 @@ export default async function AdminRolesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Roles & Permissions</h1>
+          <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
           <p className="text-muted-foreground">
-            {permissions.length} permissions across {Object.keys(grouped).length} resources
+            {t("subtitleCounts", {
+              permissions: permissions.length,
+              resources: Object.keys(grouped).length,
+            })}
           </p>
         </div>
       </div>
@@ -51,7 +57,7 @@ export default async function AdminRolesPage() {
       {permissions.length === 0 ? (
         <div className="rounded-lg border bg-white p-8 text-center">
           <p className="text-muted-foreground">
-            No permissions defined yet. {canEdit ? "Add permissions below or run the seed script." : "Ask a Super Admin to set up permissions."}
+            {canEdit ? t("emptyEditable") : t("emptyReadOnly")}
           </p>
         </div>
       ) : (
@@ -65,7 +71,7 @@ export default async function AdminRolesPage() {
 
       {canEdit && (
         <div className="rounded-lg border bg-white p-6">
-          <h2 className="mb-4 text-lg font-semibold">Add Permission</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t("addHeading")}</h2>
           <AddPermissionForm />
         </div>
       )}

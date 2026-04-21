@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getLocale, getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { getAllArticlesAdmin } from "@/services/help.service";
@@ -8,23 +9,39 @@ import { HelpCircle, Plus, Pencil, ExternalLink, Star } from "lucide-react";
 import { CATEGORY_CONFIG, getCategoryLabel } from "@/components/help/category-config";
 import { DeleteHelpArticleButton, ToggleHelpPublishButton } from "./help-article-actions";
 
-export const metadata = { title: "Help Articles | Admin | Schulab" };
+export async function generateMetadata() {
+  const t = await getTranslations("admin.helpArticles");
+  return { title: `${t("pageTitle")} | Schulab` };
+}
 
 export default async function AdminHelpPage() {
   const session = await auth();
   if (!session?.user || !isAdminRole(session.user.role)) redirect("/dashboard");
 
-  const articles = await getAllArticlesAdmin();
+  const [t, tCommon, locale, articles] = await Promise.all([
+    getTranslations("admin.helpArticles"),
+    getTranslations("admin.common"),
+    getLocale(),
+    getAllArticlesAdmin(),
+  ]);
+
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+  const publishedCount = articles.filter((a) => a.isPublished).length;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold">Help Articles</h1>
+          <h1 className="font-display text-2xl font-bold">{t("pageTitle")}</h1>
           <p className="text-muted-foreground">
-            {articles.length} article{articles.length !== 1 ? "s" : ""}
+            {t("articleCount", { count: articles.length })}
             {" · "}
-            {articles.filter((a) => a.isPublished).length} published
+            {t("publishedCount", { count: publishedCount })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -34,14 +51,14 @@ export default async function AdminHelpPage() {
             className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
           >
             <ExternalLink className="h-4 w-4" />
-            View Help Center
+            {t("viewHelpCenter")}
           </Link>
           <Link
             href="/admin/help/new"
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            New Article
+            {t("newArticle")}
           </Link>
         </div>
       </div>
@@ -49,16 +66,16 @@ export default async function AdminHelpPage() {
       {articles.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed py-16 text-center">
           <HelpCircle className="mb-3 h-12 w-12 text-muted-foreground" />
-          <p className="font-display text-lg font-semibold text-foreground">No help articles yet</p>
+          <p className="font-display text-lg font-semibold text-foreground">{t("emptyTitle")}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Create your first help article to populate the Help Center.
+            {t("emptyBody")}
           </p>
           <Link
             href="/admin/help/new"
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            Create Article
+            {t("createArticle")}
           </Link>
         </div>
       ) : (
@@ -66,12 +83,12 @@ export default async function AdminHelpPage() {
           <table className="w-full text-sm">
             <thead className="border-b bg-muted/50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">Title</th>
-                <th className="px-4 py-3 text-left font-medium">Category</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium">Feedback</th>
-                <th className="px-4 py-3 text-left font-medium">Updated</th>
-                <th className="px-4 py-3 text-right font-medium">Actions</th>
+                <th className="px-4 py-3 text-start font-medium">{t("titleCol")}</th>
+                <th className="px-4 py-3 text-start font-medium">{t("categoryCol")}</th>
+                <th className="px-4 py-3 text-start font-medium">{t("statusCol")}</th>
+                <th className="px-4 py-3 text-start font-medium">{t("feedbackCol")}</th>
+                <th className="px-4 py-3 text-start font-medium">{t("updatedCol")}</th>
+                <th className="px-4 py-3 text-end font-medium">{tCommon("actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -100,23 +117,23 @@ export default async function AdminHelpPage() {
                     <td className="px-4 py-3">
                       <span className="flex items-center gap-1.5 text-sm">
                         <span>{config?.icon}</span>
-                        {getCategoryLabel(article.category, "en")}
+                        {getCategoryLabel(article.category, locale)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant={article.isPublished ? "default" : "secondary"}>
-                        {article.isPublished ? "Published" : "Draft"}
+                        {article.isPublished ? tCommon("published") : tCommon("draft")}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">
                       {article._count.feedback > 0 ? (
-                        <span>{article._count.feedback} responses</span>
+                        <span>{t("responses", { count: article._count.feedback })}</span>
                       ) : (
                         <span>—</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(article.updatedAt).toLocaleDateString()}
+                      {dateFormatter.format(new Date(article.updatedAt))}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
@@ -124,7 +141,7 @@ export default async function AdminHelpPage() {
                           <Link
                             href={`/help/${article.slug}`}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                            title="View article"
+                            title={t("viewArticleTooltip")}
                           >
                             <ExternalLink className="h-4 w-4" />
                           </Link>
@@ -132,7 +149,7 @@ export default async function AdminHelpPage() {
                         <Link
                           href={`/admin/help/${article.id}/edit`}
                           className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                          title="Edit article"
+                          title={t("editArticleTooltip")}
                         >
                           <Pencil className="h-4 w-4" />
                         </Link>

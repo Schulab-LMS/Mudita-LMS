@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { createPermission } from "@/actions/role.actions";
 
 const RESOURCES = [
@@ -21,6 +22,8 @@ const RESOURCES = [
 const ACTIONS = ["create", "read", "update", "delete", "manage"];
 
 export function AddPermissionForm() {
+  const t = useTranslations("admin.rolesPage");
+  const tCommon = useTranslations("admin.common");
   const [resource, setResource] = useState("");
   const [action, setAction] = useState("");
   const [description, setDescription] = useState("");
@@ -47,14 +50,14 @@ export function AddPermissionForm() {
         action: finalAction,
       });
       if (result.success) {
-        setMessage({ type: "success", text: "Permission created" });
+        setMessage({ type: "success", text: t("createdMessage") });
         setResource("");
         setAction("");
         setDescription("");
         setCustomResource("");
         setCustomAction("");
       } else {
-        setMessage({ type: "error", text: result.error ?? "Failed" });
+        setMessage({ type: "error", text: result.error ?? tCommon("genericError") });
       }
     });
   }
@@ -62,22 +65,22 @@ export function AddPermissionForm() {
   return (
     <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <div>
-        <label className="mb-1 block text-sm font-medium">Resource</label>
+        <label className="mb-1 block text-sm font-medium">{t("resourceLabel")}</label>
         <select
           value={resource}
           onChange={(e) => setResource(e.target.value)}
           className="w-full rounded-md border px-3 py-2 text-sm"
         >
-          <option value="">Select...</option>
+          <option value="">{t("selectPlaceholder")}</option>
           {RESOURCES.map((r) => (
             <option key={r} value={r}>{r}</option>
           ))}
-          <option value="__custom">Custom...</option>
+          <option value="__custom">{t("customOption")}</option>
         </select>
         {resource === "__custom" && (
           <input
             type="text"
-            placeholder="Custom resource"
+            placeholder={t("customResourcePlaceholder")}
             value={customResource}
             onChange={(e) => setCustomResource(e.target.value)}
             className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
@@ -86,22 +89,22 @@ export function AddPermissionForm() {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Action</label>
+        <label className="mb-1 block text-sm font-medium">{t("actionLabel")}</label>
         <select
           value={action}
           onChange={(e) => setAction(e.target.value)}
           className="w-full rounded-md border px-3 py-2 text-sm"
         >
-          <option value="">Select...</option>
+          <option value="">{t("selectPlaceholder")}</option>
           {ACTIONS.map((a) => (
             <option key={a} value={a}>{a}</option>
           ))}
-          <option value="__custom">Custom...</option>
+          <option value="__custom">{t("customOption")}</option>
         </select>
         {action === "__custom" && (
           <input
             type="text"
-            placeholder="Custom action"
+            placeholder={t("customActionPlaceholder")}
             value={customAction}
             onChange={(e) => setCustomAction(e.target.value)}
             className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
@@ -110,10 +113,10 @@ export function AddPermissionForm() {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Description</label>
+        <label className="mb-1 block text-sm font-medium">{t("descriptionLabel")}</label>
         <input
           type="text"
-          placeholder={finalResource && finalAction ? `${finalAction} ${finalResource}` : "Description"}
+          placeholder={finalResource && finalAction ? `${finalAction} ${finalResource}` : t("descriptionPlaceholder")}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full rounded-md border px-3 py-2 text-sm"
@@ -126,7 +129,7 @@ export function AddPermissionForm() {
           disabled={pending || !finalResource || !finalAction}
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
         >
-          {pending ? "Adding..." : "Add Permission"}
+          {pending ? t("addingButton") : t("addButton")}
         </button>
       </div>
 
