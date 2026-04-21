@@ -20,12 +20,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const email = (credentials.email as string).toLowerCase();
+        const email = (credentials.email as string).trim().toLowerCase();
         const rl = rateLimit(`auth:login:${email}`, AUTH_RATE_LIMIT);
         if (!rl.success) return null;
 
         const user = await db.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { email },
         });
 
         if (!user || !user.passwordHash) return null;
@@ -54,14 +54,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
+        const email = user.email!.trim().toLowerCase();
         const existingUser = await db.user.findUnique({
-          where: { email: user.email! },
+          where: { email },
         });
 
         if (!existingUser) {
           await db.user.create({
             data: {
-              email: user.email!,
+              email,
               name: user.name || "User",
               avatar: user.image,
               emailVerified: new Date(),
@@ -75,7 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         const dbUser = await db.user.findUnique({
-          where: { email: user.email! },
+          where: { email: user.email!.trim().toLowerCase() },
         });
         if (dbUser) {
           token.id = dbUser.id;

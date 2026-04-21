@@ -23,16 +23,16 @@ export async function registerUser(data: RegisterInput) {
 
   const {
     name,
-    email,
     password,
     role,
     dateOfBirth,
     parentalConsent,
-    parentEmail,
     marketingOptIn,
   } = parsed.data;
+  const email = parsed.data.email.trim().toLowerCase();
+  const parentEmail = parsed.data.parentEmail?.trim().toLowerCase() || undefined;
 
-  const rl = rateLimit(`auth:register:${email.toLowerCase()}`, REGISTER_RATE_LIMIT);
+  const rl = rateLimit(`auth:register:${email}`, REGISTER_RATE_LIMIT);
   if (!rl.success) {
     return { error: "Too many attempts. Please try again later." };
   }
