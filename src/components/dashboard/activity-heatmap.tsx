@@ -1,4 +1,5 @@
 import { Activity } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 interface ActivityHeatmapProps {
@@ -10,10 +11,7 @@ interface ActivityHeatmapProps {
   className?: string;
 }
 
-const DEFAULT_DATA: number[] = [
-  0,1,2,1,0,1,2, 3,1,0,2,3,4,2, 1,2,3,4,3,2,1, 0,1,2,3,4,3,2,
-  2,3,4,3,2,1,2, 3,2,1,0,1,2,3, 4,3,2,1,2,3,4,
-];
+const EMPTY_DATA: number[] = new Array(49).fill(0);
 
 const toneFor = (n: number) =>
   n <= 0
@@ -28,17 +26,20 @@ const toneFor = (n: number) =>
 
 /** GitHub-style mini activity heatmap. Reassures parents, motivates kids. */
 export function ActivityHeatmap({
-  data = DEFAULT_DATA,
+  data = EMPTY_DATA,
   className,
 }: ActivityHeatmapProps) {
+  const t = useTranslations("dashboard");
   return (
     <div className={cn("card-stem p-5 shadow-elev", className)}>
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-display text-lg font-bold flex items-center gap-2">
           <Activity className="h-5 w-5 text-[var(--stem-space)]" />
-          Last 7 weeks
+          {t("quests.activity7Weeks")}
         </h3>
-        <span className="text-xs text-muted-foreground">Learning activity</span>
+        <span className="text-xs text-muted-foreground">
+          {t("quests.activityLabel")}
+        </span>
       </div>
       <div
         className="grid grid-flow-col gap-1.5"

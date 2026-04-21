@@ -388,10 +388,16 @@
     "badgesShort": "Badges",
     "certificates": "Certificates",
     "dailyQuests": "Daily Quests",
+    "questResets": "Resets at midnight",
     "quests": {
       "completeLesson": "Complete 1 lesson",
       "quizScore": "Score 80%+ on a quiz",
-      "earnXp": "Earn {amount} XP today"
+      "earnXp": "Earn {amount} XP today",
+      "takeQuiz": "Take a quiz today",
+      "enrollFirst": "Enroll in your first course",
+      "keepStreak": "Keep your streak alive",
+      "activityLabel": "Learning activity",
+      "activity7Weeks": "Last 7 weeks"
     },
     "viewAll": "View all",
     "resumeFrom": "Continue where you left off in {category}",
