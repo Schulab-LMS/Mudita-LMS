@@ -814,6 +814,144 @@
       "COMPLETED": "Abgeschlossen",
       "CANCELLED": "Storniert",
       "EXPIRED": "Abgelaufen"
+    },
+    "confirm": {
+      "irreversible": "Dies kann nicht rückgängig gemacht werden.",
+      "deleteTitle": "{name} löschen?",
+      "deleteGenericTitle": "Löschen bestätigen",
+      "deleteTutor": {
+        "title": "Tutorenprofil löschen?",
+        "body": "Tutorenprofil „{name}“ löschen. Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Profil löschen"
+      },
+      "deletePage": {
+        "title": "Seite löschen?",
+        "body": "„{name}“ löschen. Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Seite löschen"
+      },
+      "deleteProduct": {
+        "title": "Produkt löschen?",
+        "body": "„{name}“ löschen. Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Produkt löschen"
+      },
+      "deleteHelp": {
+        "title": "Artikel löschen?",
+        "body": "„{name}“ löschen. Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Artikel löschen"
+      },
+      "deleteModule": {
+        "title": "Modul löschen?",
+        "body": "Das Modul und alle seine Lektionen werden gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Modul löschen"
+      },
+      "deleteLesson": {
+        "title": "Lektion löschen?",
+        "body": "Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Lektion löschen"
+      },
+      "deleteQuiz": {
+        "title": "Quiz löschen?",
+        "body": "Das Quiz und alle seine Fragen werden gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Quiz löschen"
+      },
+      "deleteQuestion": {
+        "title": "Frage löschen?",
+        "body": "Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Frage löschen"
+      },
+      "removeEnrollment": {
+        "title": "Lernenden entfernen?",
+        "body": "Diesen Lernenden aus dem Kurs entfernen. Die Fortschrittsdaten gehen verloren.",
+        "confirm": "Lernenden entfernen"
+      },
+      "removeVideo": {
+        "title": "Video entfernen?",
+        "body": "Das Video wird aus Mux gelöscht und kann nicht wiederhergestellt werden.",
+        "confirm": "Video entfernen"
+      },
+      "deleteCourse": {
+        "title": "Kurs löschen?",
+        "body": "Alle Module, Lektionen und Einschreibungen werden gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Kurs löschen"
+      }
+    },
+    "actions": {
+      "publish": "Veröffentlichen",
+      "unpublish": "Veröffentlichung aufheben",
+      "revoke": "Widerrufen",
+      "revokeFailed": "Widerrufen fehlgeschlagen.",
+      "approve": "Genehmigen",
+      "reject": "Ablehnen",
+      "verify": "Verifizieren",
+      "remove": "Entfernen",
+      "removeVideo": "Video entfernen",
+      "feature": "Hervorheben",
+      "unfeature": "Hervorhebung aufheben",
+      "archive": "Archivieren",
+      "reopen": "Wieder öffnen"
+    },
+    "certificates": {
+      "issueTitle": "Zertifikat ausstellen",
+      "issueButton": "Zertifikat ausstellen",
+      "issueSuccess": "Zertifikat erfolgreich ausgestellt.",
+      "issueFailed": "Ausstellen des Zertifikats fehlgeschlagen.",
+      "userIdLabel": "Benutzer-ID",
+      "courseIdLabel": "Kurs-ID",
+      "revokeConfirm": "Widerrufen"
+    },
+    "rolesPage": {
+      "pageTitle": "Rollen & Berechtigungen",
+      "permissionCol": "Berechtigung"
+    },
+    "modules": {
+      "heading": "Module & Lektionen",
+      "addModule": "Modul hinzufügen",
+      "moduleTitlePlaceholder": "Modultitel…",
+      "addingButton": "Wird hinzugefügt…",
+      "addButton": "Hinzufügen",
+      "cancelButton": "Abbrechen",
+      "emptyMessage": "Noch keine Module. Fügen Sie Ihr erstes Modul hinzu, um mit dem Aufbau der Kursinhalte zu beginnen.",
+      "lessonCount": "{count, plural, =0 {keine Lektionen} =1 {# Lektion} other {# Lektionen}}",
+      "addLesson": "Lektion",
+      "noLessonsPrefix": "Noch keine Lektionen.",
+      "addLessonLink": "Lektion hinzufügen",
+      "hasVideo": "Mit Video",
+      "quizAttached": "Quiz ✓",
+      "addQuiz": "Quiz",
+      "lessonTypes": {
+        "VIDEO": "Video",
+        "TEXT": "Text",
+        "QUIZ": "Quiz",
+        "INTERACTIVE": "Interaktiv",
+        "ASSIGNMENT": "Aufgabe"
+      },
+      "durationMinutes": "{m} Min."
+    },
+    "enrollments": {
+      "heading": "Eingeschriebene Lernende ({count})",
+      "enrollStudent": "Lernenden einschreiben",
+      "enrollButton": "Einschreiben",
+      "enrollingButton": "Wird eingeschrieben…",
+      "userIdPlaceholder": "Benutzer-ID (aus der Benutzerliste)",
+      "enrollFailed": "Einschreibung fehlgeschlagen.",
+      "emptyMessage": "Noch keine Lernenden eingeschrieben.",
+      "studentCol": "Lernender",
+      "progressCol": "Fortschritt",
+      "enrolledCol": "Eingeschrieben"
+    },
+    "videoUpload": {
+      "uploaded": "Video hochgeladen",
+      "processing": "(wird verarbeitet)",
+      "uploading": "Wird hochgeladen…",
+      "creatingTicket": "Upload-Ticket wird erstellt…",
+      "confirming": "Wird bestätigt…",
+      "muxReportedFailed": "Mux meldet einen fehlgeschlagenen Upload. Erneut versuchen.",
+      "uploadFailedWithStatus": "Upload fehlgeschlagen ({status})",
+      "uploadFailedGeneric": "Upload fehlgeschlagen.",
+      "networkError": "Netzwerkfehler beim Hochladen.",
+      "tryAgain": "Erneut versuchen",
+      "clickToUpload": "Klicken, um ein Video hochzuladen",
+      "formatsHint": "MP4, MOV, WEBM bis zu mehreren GB"
     }
   }
 }

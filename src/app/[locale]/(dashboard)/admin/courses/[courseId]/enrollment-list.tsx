@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { adminEnrollUser, adminUnenrollUser } from "@/actions/enrollment.actions";
 import { useRouter } from "@/i18n/navigation";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface Enrollment {
   id: string;
@@ -21,23 +23,35 @@ interface EnrollmentListProps {
   enrollments: Enrollment[];
 }
 
+const KNOWN_STATUSES = new Set(["ACTIVE", "COMPLETED", "CANCELLED", "EXPIRED"]);
+
 export function EnrollmentList({ courseId, enrollments }: EnrollmentListProps) {
+  const t = useTranslations("admin.enrollments");
+  const tStatus = useTranslations("admin.enrollmentStatus");
+  const tCommon = useTranslations("admin.common");
+  const tActions = useTranslations("admin.actions");
+  const tConfirm = useTranslations("admin.confirm.removeEnrollment");
+  const locale = useLocale();
   const [showAddForm, setShowAddForm] = useState(false);
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [confirmUserId, setConfirmUserId] = useState<string | null>(null);
   const router = useRouter();
+
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
   function handleEnroll(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      // We need to look up user by email first — use a simple fetch approach
-      // For now, we'll pass userId directly since the action expects it
-      // This requires the admin to know the userId — let's improve this
       const res = await adminEnrollUser(email.trim(), courseId);
       if (!res.success) {
-        setError(res.error || "Failed to enroll user");
+        setError(res.error ?? t("enrollFailed"));
       } else {
         setEmail("");
         setShowAddForm(false);
@@ -46,10 +60,12 @@ export function EnrollmentList({ courseId, enrollments }: EnrollmentListProps) {
     });
   }
 
-  function handleUnenroll(userId: string) {
-    if (!confirm("Remove this student from the course?")) return;
+  function handleUnenroll() {
+    if (!confirmUserId) return;
+    const userId = confirmUserId;
     startTransition(async () => {
       await adminUnenrollUser(userId, courseId);
+      setConfirmUserId(null);
       router.refresh();
     });
   }
@@ -65,14 +81,14 @@ export function EnrollmentList({ courseId, enrollments }: EnrollmentListProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold">
-          Enrolled Students ({enrollments.length})
+          {t("heading", { count: enrollments.length })}
         </h2>
         <button
           type="button"
           onClick={() => setShowAddForm(!showAddForm)}
           className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90"
         >
-          {showAddForm ? "Cancel" : "+ Enroll Student"}
+          {showAddForm ? tCommon("cancel") : `+ ${t("enrollStudent")}`}
         </button>
       </div>
 
@@ -83,7 +99,7 @@ export function EnrollmentList({ courseId, enrollments }: EnrollmentListProps) {
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="User ID (from Users page)"
+              placeholder={t("userIdPlaceholder")}
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
               required
             />
@@ -94,25 +110,25 @@ export function EnrollmentList({ courseId, enrollments }: EnrollmentListProps) {
             disabled={isPending}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-60"
           >
-            {isPending ? "Enrolling..." : "Enroll"}
+            {isPending ? t("enrollingButton") : t("enrollButton")}
           </button>
         </form>
       )}
 
       {enrollments.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          No students enrolled yet.
+          {t("emptyMessage")}
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border">
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
-                <th className="px-4 py-2.5 text-left font-medium">Student</th>
-                <th className="px-4 py-2.5 text-left font-medium">Status</th>
-                <th className="px-4 py-2.5 text-left font-medium">Progress</th>
-                <th className="px-4 py-2.5 text-left font-medium">Enrolled</th>
-                <th className="px-4 py-2.5 text-right font-medium">Actions</th>
+                <th className="px-4 py-2.5 text-start font-medium">{t("studentCol")}</th>
+                <th className="px-4 py-2.5 text-start font-medium">{tCommon("status")}</th>
+                <th className="px-4 py-2.5 text-start font-medium">{t("progressCol")}</th>
+                <th className="px-4 py-2.5 text-start font-medium">{t("enrolledCol")}</th>
+                <th className="px-4 py-2.5 text-end font-medium">{tCommon("actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -130,7 +146,9 @@ export function EnrollmentList({ courseId, enrollments }: EnrollmentListProps) {
                         statusColors[enrollment.status] ?? "bg-gray-100"
                       }`}
                     >
-                      {enrollment.status}
+                      {KNOWN_STATUSES.has(enrollment.status)
+                        ? tStatus(enrollment.status)
+                        : enrollment.status}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -147,16 +165,16 @@ export function EnrollmentList({ courseId, enrollments }: EnrollmentListProps) {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">
-                    {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                    {dateFormatter.format(new Date(enrollment.enrolledAt))}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-end">
                     <button
                       type="button"
-                      onClick={() => handleUnenroll(enrollment.userId)}
+                      onClick={() => setConfirmUserId(enrollment.userId)}
                       disabled={isPending}
                       className="text-xs text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
                     >
-                      Remove
+                      {tActions("remove")}
                     </button>
                   </td>
                 </tr>
@@ -165,6 +183,18 @@ export function EnrollmentList({ courseId, enrollments }: EnrollmentListProps) {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmUserId !== null}
+        title={tConfirm("title")}
+        description={tConfirm("body")}
+        confirmLabel={tConfirm("confirm")}
+        cancelLabel={tCommon("cancel")}
+        onConfirm={handleUnenroll}
+        onCancel={() => setConfirmUserId(null)}
+        variant="destructive"
+        loading={isPending}
+      />
     </div>
   );
 }

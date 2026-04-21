@@ -814,6 +814,144 @@
       "COMPLETED": "Completed",
       "CANCELLED": "Cancelled",
       "EXPIRED": "Expired"
+    },
+    "confirm": {
+      "irreversible": "This cannot be undone.",
+      "deleteTitle": "Delete {name}?",
+      "deleteGenericTitle": "Confirm delete",
+      "deleteTutor": {
+        "title": "Delete tutor profile?",
+        "body": "Delete tutor profile for “{name}”. This cannot be undone.",
+        "confirm": "Delete profile"
+      },
+      "deletePage": {
+        "title": "Delete page?",
+        "body": "Delete “{name}”. This cannot be undone.",
+        "confirm": "Delete page"
+      },
+      "deleteProduct": {
+        "title": "Delete product?",
+        "body": "Delete “{name}”. This cannot be undone.",
+        "confirm": "Delete product"
+      },
+      "deleteHelp": {
+        "title": "Delete article?",
+        "body": "Delete “{name}”. This cannot be undone.",
+        "confirm": "Delete article"
+      },
+      "deleteModule": {
+        "title": "Delete module?",
+        "body": "This deletes the module and all of its lessons. This cannot be undone.",
+        "confirm": "Delete module"
+      },
+      "deleteLesson": {
+        "title": "Delete lesson?",
+        "body": "This cannot be undone.",
+        "confirm": "Delete lesson"
+      },
+      "deleteQuiz": {
+        "title": "Delete quiz?",
+        "body": "This deletes the quiz and all of its questions. This cannot be undone.",
+        "confirm": "Delete quiz"
+      },
+      "deleteQuestion": {
+        "title": "Delete question?",
+        "body": "This cannot be undone.",
+        "confirm": "Delete question"
+      },
+      "removeEnrollment": {
+        "title": "Remove student?",
+        "body": "Remove this student from the course. Their progress data will be lost.",
+        "confirm": "Remove student"
+      },
+      "removeVideo": {
+        "title": "Remove video?",
+        "body": "The video will be deleted from Mux and cannot be recovered.",
+        "confirm": "Remove video"
+      },
+      "deleteCourse": {
+        "title": "Delete course?",
+        "body": "All modules, lessons, and enrollments will be deleted. This cannot be undone.",
+        "confirm": "Delete course"
+      }
+    },
+    "actions": {
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "revoke": "Revoke",
+      "revokeFailed": "Failed to revoke.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "verify": "Verify",
+      "remove": "Remove",
+      "removeVideo": "Remove video",
+      "feature": "Feature",
+      "unfeature": "Unfeature",
+      "archive": "Archive",
+      "reopen": "Reopen"
+    },
+    "certificates": {
+      "issueTitle": "Issue certificate",
+      "issueButton": "Issue certificate",
+      "issueSuccess": "Certificate issued successfully.",
+      "issueFailed": "Failed to issue certificate.",
+      "userIdLabel": "User ID",
+      "courseIdLabel": "Course ID",
+      "revokeConfirm": "Revoke"
+    },
+    "rolesPage": {
+      "pageTitle": "Roles & Permissions",
+      "permissionCol": "Permission"
+    },
+    "modules": {
+      "heading": "Modules & Lessons",
+      "addModule": "Add module",
+      "moduleTitlePlaceholder": "Module title…",
+      "addingButton": "Adding…",
+      "addButton": "Add",
+      "cancelButton": "Cancel",
+      "emptyMessage": "No modules yet. Add your first module to start building course content.",
+      "lessonCount": "{count, plural, =0 {no lessons} =1 {# lesson} other {# lessons}}",
+      "addLesson": "Lesson",
+      "noLessonsPrefix": "No lessons yet.",
+      "addLessonLink": "Add a lesson",
+      "hasVideo": "Has video",
+      "quizAttached": "Quiz ✓",
+      "addQuiz": "Quiz",
+      "lessonTypes": {
+        "VIDEO": "Video",
+        "TEXT": "Text",
+        "QUIZ": "Quiz",
+        "INTERACTIVE": "Interactive",
+        "ASSIGNMENT": "Assignment"
+      },
+      "durationMinutes": "{m}m"
+    },
+    "enrollments": {
+      "heading": "Enrolled students ({count})",
+      "enrollStudent": "Enroll student",
+      "enrollButton": "Enroll",
+      "enrollingButton": "Enrolling…",
+      "userIdPlaceholder": "User ID (from Users page)",
+      "enrollFailed": "Failed to enroll user.",
+      "emptyMessage": "No students enrolled yet.",
+      "studentCol": "Student",
+      "progressCol": "Progress",
+      "enrolledCol": "Enrolled"
+    },
+    "videoUpload": {
+      "uploaded": "Video uploaded",
+      "processing": "(processing)",
+      "uploading": "Uploading…",
+      "creatingTicket": "Creating upload ticket…",
+      "confirming": "Confirming…",
+      "muxReportedFailed": "Mux reported the upload failed. Try again.",
+      "uploadFailedWithStatus": "Upload failed ({status})",
+      "uploadFailedGeneric": "Upload failed.",
+      "networkError": "Network error during upload.",
+      "tryAgain": "Try again",
+      "clickToUpload": "Click to upload video",
+      "formatsHint": "MP4, MOV, WEBM up to a few GB"
     }
   }
 }

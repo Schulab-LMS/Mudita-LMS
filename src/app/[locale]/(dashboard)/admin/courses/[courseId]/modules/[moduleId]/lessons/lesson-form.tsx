@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { createLesson, updateLesson, deleteLesson } from "@/actions/course-content.actions";
 import { attachVideoAssetToLesson } from "@/actions/video.actions";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { VideoUpload } from "@/components/admin/video-upload";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const LESSON_TYPES = [
   { value: "VIDEO", label: "Video" },
@@ -41,6 +43,8 @@ interface Props {
 }
 
 export function LessonForm({ mode, courseId, moduleId, nextOrder, initialData }: Props) {
+  const tConfirm = useTranslations("admin.confirm.deleteLesson");
+  const tCommon = useTranslations("admin.common");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +55,7 @@ export function LessonForm({ mode, courseId, moduleId, nextOrder, initialData }:
   const [videoAssetId, setVideoAssetId] = useState<string | null>(
     initialData?.videoAssetId ?? null
   );
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const isEdit = mode === "edit";
 
@@ -105,14 +110,15 @@ export function LessonForm({ mode, courseId, moduleId, nextOrder, initialData }:
     });
   }
 
-  function handleDelete() {
-    if (!initialData || !confirm("Delete this lesson?")) return;
+  function handleDeleteConfirmed() {
+    if (!initialData) return;
     startTransition(async () => {
       const result = await deleteLesson(initialData.id);
       if (result.success) {
         router.push(`/admin/courses/${courseId}`);
       } else {
-        setError(result.error ?? "Failed to delete lesson");
+        setError(result.error ?? tCommon("genericError"));
+        setConfirmDeleteOpen(false);
       }
     });
   }
@@ -320,15 +326,26 @@ export function LessonForm({ mode, courseId, moduleId, nextOrder, initialData }:
           {isEdit && (
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={() => setConfirmDeleteOpen(true)}
               disabled={pending}
-              className="ml-auto inline-flex h-10 items-center rounded-lg border border-red-200 px-4 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
+              className="ms-auto inline-flex h-10 items-center rounded-lg border border-red-200 px-4 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
             >
-              Delete Lesson
+              {tConfirm("confirm")}
             </button>
           )}
         </div>
       </form>
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title={tConfirm("title")}
+        description={tConfirm("body")}
+        confirmLabel={tConfirm("confirm")}
+        cancelLabel={tCommon("cancel")}
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setConfirmDeleteOpen(false)}
+        variant="destructive"
+        loading={pending}
+      />
     </div>
   );
 }

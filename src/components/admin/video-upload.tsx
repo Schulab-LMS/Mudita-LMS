@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, UploadCloud, CheckCircle2, AlertCircle } from "lucide-react";
 import {
   confirmDirectUpload,
   createDirectUploadTicket,
   detachAndDeleteVideoAsset,
 } from "@/actions/video.actions";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 // Admin-side video uploader. Three states matter to the caller:
 // - no asset yet → show file picker, hand back assetId once upload finishes
@@ -37,7 +39,8 @@ type LocalState =
 async function putWithProgress(
   url: string,
   file: File,
-  onProgress: (pct: number) => void
+  onProgress: (pct: number) => void,
+  translations: { networkError: string; withStatus: (status: number) => string }
 ): Promise<void> {
   // Use XHR — fetch doesn't expose upload progress events.
   await new Promise<void>((resolve, reject) => {
@@ -48,9 +51,9 @@ async function putWithProgress(
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error(`Upload failed (${xhr.status})`));
+      else reject(new Error(translations.withStatus(xhr.status)));
     };
-    xhr.onerror = () => reject(new Error("Network error during upload"));
+    xhr.onerror = () => reject(new Error(translations.networkError));
     xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
     xhr.send(file);
   });
@@ -62,11 +65,16 @@ export function VideoUpload({
   onAssetCleared,
   lessonId,
 }: Props) {
+  const t = useTranslations("admin.videoUpload");
+  const tActions = useTranslations("admin.actions");
+  const tCommon = useTranslations("admin.common");
+  const tConfirm = useTranslations("admin.confirm.removeVideo");
   const [state, setState] = useState<LocalState>(
     initialAssetId
       ? { kind: "ready", assetId: initialAssetId, status: "READY" }
       : { kind: "idle" }
   );
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   async function handleFile(file: File) {
     setState({ kind: "creating" });
@@ -78,13 +86,19 @@ export function VideoUpload({
 
     setState({ kind: "uploading", progress: 0, assetId: ticket.assetId });
     try {
-      await putWithProgress(ticket.uploadUrl, file, (pct) =>
-        setState({ kind: "uploading", progress: pct, assetId: ticket.assetId })
+      await putWithProgress(
+        ticket.uploadUrl,
+        file,
+        (pct) => setState({ kind: "uploading", progress: pct, assetId: ticket.assetId }),
+        {
+          networkError: t("networkError"),
+          withStatus: (status) => t("uploadFailedWithStatus", { status }),
+        }
       );
     } catch (err) {
       setState({
         kind: "error",
-        message: err instanceof Error ? err.message : "Upload failed",
+        message: err instanceof Error ? err.message : t("uploadFailedGeneric"),
       });
       return;
     }
@@ -98,7 +112,7 @@ export function VideoUpload({
     if (confirm.status === "ERROR") {
       setState({
         kind: "error",
-        message: "Mux reported the upload failed. Try again.",
+        message: t("muxReportedFailed"),
       });
       return;
     }
@@ -113,11 +127,11 @@ export function VideoUpload({
 
   async function handleRemove() {
     if (state.kind !== "ready") return;
-    if (!confirm("Remove this video? It will be deleted from Mux.")) return;
     const res = await detachAndDeleteVideoAsset({
       assetId: state.assetId,
       lessonId,
     });
+    setConfirmOpen(false);
     if (!res.success) {
       setState({ kind: "error", message: res.error });
       return;
@@ -128,29 +142,39 @@ export function VideoUpload({
 
   if (state.kind === "ready") {
     return (
-      <div className="rounded-lg border border-input bg-background p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <span className="font-medium">Video uploaded</span>
-            {state.status === "PROCESSING" && (
-              <span className="text-xs text-muted-foreground">
-                (processing)
-              </span>
-            )}
+      <>
+        <div className="rounded-lg border border-input bg-background p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <span className="font-medium">{t("uploaded")}</span>
+              {state.status === "PROCESSING" && (
+                <span className="text-xs text-muted-foreground">{t("processing")}</span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setConfirmOpen(true)}
+              className="text-xs text-red-600 hover:underline"
+            >
+              {tActions("remove")}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleRemove}
-            className="text-xs text-red-600 hover:underline"
-          >
-            Remove
-          </button>
+          <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+            {state.assetId}
+          </p>
         </div>
-        <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-          {state.assetId}
-        </p>
-      </div>
+        <ConfirmDialog
+          open={confirmOpen}
+          title={tConfirm("title")}
+          description={tConfirm("body")}
+          confirmLabel={tConfirm("confirm")}
+          cancelLabel={tCommon("cancel")}
+          onConfirm={handleRemove}
+          onCancel={() => setConfirmOpen(false)}
+          variant="destructive"
+        />
+      </>
     );
   }
 
@@ -158,7 +182,7 @@ export function VideoUpload({
     return (
       <div className="rounded-lg border border-input bg-background p-4">
         <div className="mb-2 flex items-center justify-between text-sm">
-          <span className="font-medium">Uploading…</span>
+          <span className="font-medium">{t("uploading")}</span>
           <span className="text-xs text-muted-foreground">{state.progress}%</span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -175,7 +199,7 @@ export function VideoUpload({
     return (
       <div className="flex items-center gap-2 rounded-lg border border-input bg-background p-4 text-sm">
         <Loader2 className="h-4 w-4 animate-spin" />
-        {state.kind === "creating" ? "Creating upload ticket…" : "Confirming…"}
+        {state.kind === "creating" ? t("creatingTicket") : t("confirming")}
       </div>
     );
   }
@@ -192,7 +216,7 @@ export function VideoUpload({
               onClick={() => setState({ kind: "idle" })}
               className="mt-1 text-xs underline"
             >
-              Try again
+              {t("tryAgain")}
             </button>
           </div>
         </div>
@@ -203,8 +227,8 @@ export function VideoUpload({
   return (
     <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-input bg-background p-6 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground">
       <UploadCloud className="h-6 w-6" />
-      <span className="font-medium">Click to upload video</span>
-      <span className="text-xs">MP4, MOV, WEBM up to a few GB</span>
+      <span className="font-medium">{t("clickToUpload")}</span>
+      <span className="text-xs">{t("formatsHint")}</span>
       <input
         type="file"
         accept="video/*"
