@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sanitize } from "./sanitize";
+import { sanitize, sanitizeText } from "./sanitize";
 
 describe("sanitize", () => {
   it("removes script tags", () => {
@@ -33,5 +33,27 @@ describe("sanitize", () => {
     expect(clean).toMatch(/<h2>/);
     expect(clean).toMatch(/<figure>/);
     expect(clean).toMatch(/<figcaption>/);
+  });
+});
+
+describe("sanitizeText", () => {
+  it("strips every tag and keeps the text", () => {
+    expect(sanitizeText("<p>hello <b>world</b></p>")).toBe("hello world");
+  });
+
+  it("drops script tags entirely (content and all)", () => {
+    expect(sanitizeText("nice<script>alert(1)</script> day")).toBe("nice day");
+  });
+
+  it("collapses whitespace and trims", () => {
+    expect(sanitizeText("  foo\n\n  bar\t baz  ")).toBe("foo bar baz");
+  });
+
+  it("removes dangerous href schemes along with the link wrapper", () => {
+    expect(sanitizeText(`<a href="javascript:alert(1)">click</a>`)).toBe("click");
+  });
+
+  it("returns empty string for HTML that holds no text", () => {
+    expect(sanitizeText("<script>alert(1)</script>")).toBe("");
   });
 });

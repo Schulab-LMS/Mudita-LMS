@@ -37,7 +37,9 @@ async function guardMinorConsent(userId: string) {
     error:
       consent.reason === "consent_withdrawn"
         ? "A parent or guardian has withdrawn consent — please contact support"
-        : "Parental consent is required before purchase",
+        : consent.reason === "dob_missing"
+          ? "Please add your date of birth to your profile before purchase"
+          : "Parental consent is required before purchase",
   };
 }
 

@@ -23,3 +23,16 @@ const defaultOptions: sanitizeHtml.IOptions = {
 export function sanitize(dirty: string): string {
   return sanitizeHtml(dirty, defaultOptions);
 }
+
+// For free-text fields (review bodies, titles, etc.) we don't want any HTML
+// at all — the UI renders these as plain text, so anything tag-shaped is
+// either an XSS attempt or noise. Strip every tag, decode entities, and
+// collapse whitespace so the stored value is exactly what the reader sees.
+export function sanitizeText(dirty: string): string {
+  const stripped = sanitizeHtml(dirty, {
+    allowedTags: [],
+    allowedAttributes: {},
+    disallowedTagsMode: "discard",
+  });
+  return stripped.replace(/\s+/g, " ").trim();
+}

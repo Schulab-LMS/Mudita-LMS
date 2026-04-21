@@ -50,7 +50,9 @@ export async function enrollInCourse(courseId: string) {
         error:
           consent.reason === "consent_withdrawn"
             ? "A parent or guardian has withdrawn consent — please contact support"
-            : "Parental consent is required before enrolling",
+            : consent.reason === "dob_missing"
+              ? "Please add your date of birth to your profile before enrolling"
+              : "Parental consent is required before enrolling",
       };
     }
 

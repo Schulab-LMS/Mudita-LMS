@@ -75,9 +75,12 @@ describe("assertMinorConsent", () => {
     await expect(assertMinorConsent("u1")).resolves.toEqual({ ok: true });
   });
 
-  it("passes when the user has no dateOfBirth on record", async () => {
+  it("blocks when the user has no dateOfBirth on record (age undeclared)", async () => {
     findUser.mockResolvedValue({ dateOfBirth: null } as never);
-    await expect(assertMinorConsent("u1")).resolves.toEqual({ ok: true });
+    await expect(assertMinorConsent("u1")).resolves.toEqual({
+      ok: false,
+      reason: "dob_missing",
+    });
   });
 
   it("blocks a minor with no consent record", async () => {

@@ -71,9 +71,18 @@ export async function hasActiveConsent(
 // live parental consent record. A row with `granted:false` supersedes an
 // earlier `granted:true` for the same type, so a withdrawal blocks the
 // child going forward. Adults always pass.
+//
+// DOB-missing is treated as "age undeclared" rather than "adult". Google-
+// OAuth signups land in the DB without a dateOfBirth, and we must not let
+// them bypass the COPPA/GDPR-K flow by default — they have to complete
+// their profile first. Callers can direct users to /onboarding/profile
+// (or the credentials register flow) to provide DOB.
 export type MinorConsentCheck =
   | { ok: true }
-  | { ok: false; reason: "consent_withdrawn" | "consent_missing" };
+  | {
+      ok: false;
+      reason: "consent_withdrawn" | "consent_missing" | "dob_missing";
+    };
 
 export async function assertMinorConsent(
   userId: string
@@ -82,7 +91,8 @@ export async function assertMinorConsent(
     where: { id: userId },
     select: { dateOfBirth: true },
   });
-  if (!user?.dateOfBirth) return { ok: true };
+  if (!user) return { ok: false, reason: "consent_missing" };
+  if (!user.dateOfBirth) return { ok: false, reason: "dob_missing" };
   if (!isMinor(user.dateOfBirth)) return { ok: true };
 
   const latest = await db.consentRecord.findFirst({

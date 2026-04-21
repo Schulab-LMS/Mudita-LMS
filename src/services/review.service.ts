@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { sanitizeText } from "@/lib/sanitize";
 import type { ReviewStatus } from "@/generated/prisma/client";
 
 // Course reviews are moderation-gated (default PENDING) so teachers aren't
@@ -26,20 +27,26 @@ export async function submitCourseReview(input: SubmitReviewInput) {
     throw new Error("You must be enrolled to leave a review");
   }
 
+  // Strip any HTML before persisting. Reviews are plain-text — a tag in the
+  // body is either an XSS attempt or noise. Sanitising on write keeps the DB
+  // clean and means every read path is safe without needing to remember.
+  const cleanTitle = title ? sanitizeText(title) || null : null;
+  const cleanBody = body ? sanitizeText(body) || null : null;
+
   return db.courseReview.upsert({
     where: { courseId_userId: { courseId, userId } },
     create: {
       courseId,
       userId,
       rating,
-      title: title ?? null,
-      body: body ?? null,
+      title: cleanTitle,
+      body: cleanBody,
       status: "PENDING",
     },
     update: {
       rating,
-      title: title ?? null,
-      body: body ?? null,
+      title: cleanTitle,
+      body: cleanBody,
       status: "PENDING",
     },
   });
