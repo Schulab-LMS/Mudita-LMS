@@ -1,6 +1,5 @@
 "use server";
 
-import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { sendEmailVerification } from "@/lib/email";
 import {
@@ -8,6 +7,10 @@ import {
   EMAIL_VERIFY_SEND_RATE_LIMIT,
   EMAIL_VERIFY_CONSUME_RATE_LIMIT,
 } from "@/lib/rate-limit";
+import {
+  generateVerificationToken,
+  hashVerificationToken,
+} from "@/lib/tokens";
 
 const VERIFY_PREFIX = "email-verify:";
 
@@ -38,16 +41,19 @@ export async function sendVerificationEmail(email: string) {
       return { success: true }; // Already verified or doesn't exist
     }
 
-    const token = randomBytes(32).toString("hex");
+    const token = generateVerificationToken();
+    const tokenHash = hashVerificationToken(token);
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     const identifier = `${VERIFY_PREFIX}${user.email}`;
 
+    // Store only the hash. The raw token goes out in the email — a DB dump
+    // on its own is no longer enough to confirm someone else's email.
     // Replace any previous token for this identifier atomically so we
     // never end up with two valid tokens at the same time.
     await db.$transaction([
       db.verificationToken.deleteMany({ where: { identifier } }),
       db.verificationToken.create({
-        data: { identifier, token, expires },
+        data: { identifier, token: tokenHash, expires },
       }),
     ]);
 
@@ -71,9 +77,13 @@ export async function verifyEmail(token: string) {
       return { success: false, error: "Too many attempts. Please try again shortly." };
     }
 
+    // The DB stores a hash — hash the user-supplied token the same way to
+    // look it up.
+    const tokenHash = hashVerificationToken(token);
+
     const result = await db.$transaction(async (tx) => {
       const verificationToken = await tx.verificationToken.findUnique({
-        where: { token },
+        where: { token: tokenHash },
       });
 
       if (!verificationToken) {
@@ -81,7 +91,7 @@ export async function verifyEmail(token: string) {
       }
 
       if (verificationToken.expires < new Date()) {
-        await tx.verificationToken.delete({ where: { token } });
+        await tx.verificationToken.delete({ where: { token: tokenHash } });
         return {
           ok: false as const,
           error: "Verification link has expired. Please request a new one.",
@@ -99,7 +109,7 @@ export async function verifyEmail(token: string) {
         data: { emailVerified: new Date() },
       });
 
-      await tx.verificationToken.delete({ where: { token } });
+      await tx.verificationToken.delete({ where: { token: tokenHash } });
 
       return { ok: true as const };
     });

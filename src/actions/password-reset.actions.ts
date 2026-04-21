@@ -1,10 +1,13 @@
 "use server";
 
-import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { rateLimit, FORGOT_PASSWORD_RATE_LIMIT } from "@/lib/rate-limit";
+import {
+  generateVerificationToken,
+  hashVerificationToken,
+} from "@/lib/tokens";
 import { z } from "zod";
 
 const requestResetSchema = z.object({
@@ -47,14 +50,19 @@ export async function requestPasswordReset(email: string) {
       return { success: true };
     }
 
-    const token = randomBytes(32).toString("hex");
+    const token = generateVerificationToken();
+    const tokenHash = hashVerificationToken(token);
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     const identifier = `${RESET_PREFIX}${user.email}`;
 
+    // Store only the hash — the raw token goes in the emailed link.
+    // A DB dump on its own cannot be used to hijack the reset flow.
     // Replace any existing reset token for this user atomically.
     await db.$transaction([
       db.verificationToken.deleteMany({ where: { identifier } }),
-      db.verificationToken.create({ data: { identifier, token, expires } }),
+      db.verificationToken.create({
+        data: { identifier, token: tokenHash, expires },
+      }),
     ]);
 
     // Send email
@@ -81,9 +89,12 @@ export async function resetPassword(token: string, password: string) {
     // transaction short — bcrypt is intentionally slow.
     const passwordHash = await bcrypt.hash(parsed.data.password, 12);
 
+    // Hash the user-supplied token the same way we did on write.
+    const tokenHash = hashVerificationToken(parsed.data.token);
+
     const result = await db.$transaction(async (tx) => {
       const verificationToken = await tx.verificationToken.findUnique({
-        where: { token: parsed.data.token },
+        where: { token: tokenHash },
       });
 
       if (!verificationToken) {
@@ -91,7 +102,7 @@ export async function resetPassword(token: string, password: string) {
       }
 
       if (verificationToken.expires < new Date()) {
-        await tx.verificationToken.delete({ where: { token: parsed.data.token } });
+        await tx.verificationToken.delete({ where: { token: tokenHash } });
         return {
           ok: false as const,
           error: "Reset link has expired. Please request a new one.",
@@ -109,7 +120,7 @@ export async function resetPassword(token: string, password: string) {
         data: { passwordHash },
       });
 
-      await tx.verificationToken.delete({ where: { token: parsed.data.token } });
+      await tx.verificationToken.delete({ where: { token: tokenHash } });
 
       return { ok: true as const };
     });
