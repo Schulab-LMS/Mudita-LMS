@@ -713,5 +713,107 @@
     "learner": "متعلم",
     "certificateId": "معرّف الشهادة",
     "learnMore": "تعرّف أكثر على Schulab"
+  },
+  "admin": {
+    "common": {
+      "actions": "إجراءات",
+      "back": "رجوع",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد",
+      "delete": "حذف",
+      "save": "حفظ",
+      "saving": "جارٍ الحفظ…",
+      "loading": "جارٍ التحميل…",
+      "edit": "تعديل",
+      "viewAll": "عرض الكل",
+      "genericError": "حدث خطأ ما. يُرجى المحاولة مجددًا.",
+      "role": "الدور",
+      "status": "الحالة",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "published": "منشور",
+      "draft": "مسودة",
+      "archived": "مؤرشف",
+      "free": "مجاني"
+    },
+    "error": {
+      "title": "تعذّر تحميل لوحة الإدارة",
+      "body": "حدث خطأ أثناء تحميل منطقة الإدارة. يرجى المحاولة مرة أخرى.",
+      "tryAgain": "إعادة المحاولة"
+    },
+    "analytics": {
+      "totalInLastDays": "{total} إجمالي خلال آخر {days} يومًا"
+    },
+    "dashboard": {
+      "pageTitle": "لوحة الإدارة",
+      "title": "لوحة الإدارة",
+      "subtitle": "نظرة عامة على المنصة وتحليلاتها.",
+      "totalUsers": "إجمالي المستخدمين",
+      "enrollments": "التسجيلات",
+      "certificatesIssued": "الشهادات المصدرة",
+      "completionRate": "معدل الإتمام",
+      "thisMonth": "{count} هذا الشهر",
+      "activeStudents": "{count} طالب نشط",
+      "enrollmentsLast30": "التسجيلات (آخر 30 يومًا)",
+      "newUsersLast30": "المستخدمون الجدد (آخر 30 يومًا)",
+      "usersByRole": "المستخدمون حسب الدور",
+      "enrollmentStatus": "حالة التسجيل",
+      "topCoursesByEnrollments": "أفضل الدورات حسب التسجيلات",
+      "noPublishedCourses": "لا توجد دورات منشورة بعد.",
+      "recentEnrollments": "أحدث التسجيلات",
+      "recentCertificates": "أحدث الشهادات",
+      "noEnrollments": "لا توجد تسجيلات بعد.",
+      "noCertificates": "لم تُصدَر شهادات بعد.",
+      "quickActions": "إجراءات سريعة",
+      "manageUsers": "إدارة المستخدمين",
+      "manageCourses": "إدارة الدورات",
+      "stemKitProducts": "منتجات STEM",
+      "tutorVerification": "التحقق من المدرّسين",
+      "reviewApplications": "مراجعة الطلبات",
+      "usersCount": "{count, plural, zero {لا مستخدمون} one {مستخدم واحد} two {مستخدمان} few {# مستخدمين} many {# مستخدمًا} other {# مستخدم}}",
+      "coursesCount": "{count, plural, zero {لا دورات} one {دورة واحدة} two {دورتان} few {# دورات} many {# دورة} other {# دورة}}",
+      "productsCount": "{count, plural, zero {لا منتجات} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجًا} other {# منتج}}"
+    },
+    "users": {
+      "pageTitle": "إدارة المستخدمين | الإدارة",
+      "title": "المستخدمون",
+      "totalActive": "{total} إجمالي المستخدمين · {active} نشط",
+      "user": "المستخدم",
+      "enrollments": "التسجيلات",
+      "joined": "تاريخ الانضمام",
+      "noUsersFound": "لم يُعثر على مستخدمين.",
+      "changeRole": "تغيير الدور",
+      "activate": "تفعيل",
+      "deactivate": "تعطيل",
+      "you": "أنت"
+    },
+    "courses": {
+      "pageTitle": "إدارة الدورات | الإدارة",
+      "title": "الدورات",
+      "totalCount": "{count, plural, zero {لا دورات} one {إجمالي دورة واحدة} two {إجمالي دورتين} few {إجمالي # دورات} many {إجمالي # دورة} other {إجمالي # دورة}}",
+      "newCourse": "دورة جديدة",
+      "titleCol": "العنوان",
+      "ageCol": "الفئة العمرية",
+      "levelCol": "المستوى",
+      "categoryCol": "التصنيف",
+      "priceCol": "السعر",
+      "modulesCol": "الوحدات",
+      "enrollmentsCol": "التسجيلات",
+      "noCoursesFound": "لم يُعثر على دورات. أنشئ أول دورة لك."
+    },
+    "roles": {
+      "STUDENT": "طالب",
+      "PARENT": "ولي الأمر",
+      "TUTOR": "مدرّس",
+      "ADMIN": "مشرف",
+      "SUPER_ADMIN": "مشرف عام",
+      "B2B_PARTNER": "شريك مؤسسي"
+    },
+    "enrollmentStatus": {
+      "ACTIVE": "نشط",
+      "COMPLETED": "مكتمل",
+      "CANCELLED": "ملغى",
+      "EXPIRED": "منتهٍ"
+    }
   }
 }

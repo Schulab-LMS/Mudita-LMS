@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations, getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { getAdminAnalytics } from "@/services/analytics.service";
@@ -17,7 +18,10 @@ import {
   BarChart3,
 } from "lucide-react";
 
-export const metadata = { title: "Admin Dashboard | Schulab" };
+export async function generateMetadata() {
+  const t = await getTranslations("admin.dashboard");
+  return { title: `${t("pageTitle")} | Schulab` };
+}
 
 const roleColors: Record<string, string> = {
   STUDENT: "#3b82f6",
@@ -27,6 +31,7 @@ const roleColors: Record<string, string> = {
   SUPER_ADMIN: "#dc2626",
   B2B_PARTNER: "#06b6d4",
 };
+const KNOWN_ROLES = new Set(Object.keys(roleColors));
 
 const enrollmentStatusColors: Record<string, string> = {
   ACTIVE: "#3b82f6",
@@ -34,28 +39,48 @@ const enrollmentStatusColors: Record<string, string> = {
   CANCELLED: "#ef4444",
   EXPIRED: "#9ca3af",
 };
+const KNOWN_STATUSES = new Set(Object.keys(enrollmentStatusColors));
+
+function formatRoleLabel(role: string): string {
+  return role.charAt(0) + role.slice(1).toLowerCase().replace("_", " ");
+}
+
+function formatStatusLabel(status: string): string {
+  return status.charAt(0) + status.slice(1).toLowerCase();
+}
 
 export default async function AdminDashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
   if (!isAdminRole(session.user.role)) redirect("/dashboard");
 
-  const analytics = await getAdminAnalytics();
+  const [t, tCommon, tRoles, tStatus, locale, analytics] = await Promise.all([
+    getTranslations("admin.dashboard"),
+    getTranslations("admin.common"),
+    getTranslations("admin.roles"),
+    getTranslations("admin.enrollmentStatus"),
+    getLocale(),
+    getAdminAnalytics(),
+  ]);
+
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground">
-          Platform overview and analytics.
-        </p>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       {/* Top Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Total Users"
+          title={t("totalUsers")}
           value={analytics.totals.users}
           icon={<Users className="h-5 w-5" />}
           color="blue"
@@ -67,10 +92,10 @@ export default async function AdminDashboardPage() {
                 }
               : undefined
           }
-          description={`${analytics.thisMonth.users} this month`}
+          description={t("thisMonth", { count: analytics.thisMonth.users })}
         />
         <StatsCard
-          title="Enrollments"
+          title={t("enrollments")}
           value={analytics.totals.enrollments}
           icon={<GraduationCap className="h-5 w-5" />}
           color="purple"
@@ -82,10 +107,12 @@ export default async function AdminDashboardPage() {
                 }
               : undefined
           }
-          description={`${analytics.thisMonth.enrollments} this month`}
+          description={t("thisMonth", {
+            count: analytics.thisMonth.enrollments,
+          })}
         />
         <StatsCard
-          title="Certificates Issued"
+          title={t("certificatesIssued")}
           value={analytics.totals.certificates}
           icon={<Award className="h-5 w-5" />}
           color="emerald"
@@ -97,14 +124,18 @@ export default async function AdminDashboardPage() {
                 }
               : undefined
           }
-          description={`${analytics.thisMonth.certificates} this month`}
+          description={t("thisMonth", {
+            count: analytics.thisMonth.certificates,
+          })}
         />
         <StatsCard
-          title="Completion Rate"
+          title={t("completionRate")}
           value={`${analytics.totals.completionRate}%`}
           icon={<TrendingUp className="h-5 w-5" />}
           color="amber"
-          description={`${analytics.totals.activeStudents} active students`}
+          description={t("activeStudents", {
+            count: analytics.totals.activeStudents,
+          })}
         />
       </div>
 
@@ -114,7 +145,7 @@ export default async function AdminDashboardPage() {
         <div className="rounded-xl border bg-card p-5">
           <BarChart
             data={analytics.charts.enrollmentsByDay}
-            label="Enrollments (Last 30 Days)"
+            label={t("enrollmentsLast30")}
             color="bg-primary"
             height={140}
           />
@@ -124,7 +155,7 @@ export default async function AdminDashboardPage() {
         <div className="rounded-xl border bg-card p-5">
           <BarChart
             data={analytics.charts.usersByDay}
-            label="New Users (Last 30 Days)"
+            label={t("newUsersLast30")}
             color="bg-emerald-500"
             height={140}
           />
@@ -137,11 +168,11 @@ export default async function AdminDashboardPage() {
         <div className="rounded-xl border bg-card p-5">
           <h3 className="mb-4 text-sm font-semibold flex items-center gap-2">
             <UserCheck className="h-4 w-4" />
-            Users by Role
+            {t("usersByRole")}
           </h3>
           <DonutChart
             segments={analytics.roleDistribution.map((r) => ({
-              label: r.role.charAt(0) + r.role.slice(1).toLowerCase().replace("_", " "),
+              label: KNOWN_ROLES.has(r.role) ? tRoles(r.role) : formatRoleLabel(r.role),
               count: r.count,
               color: roleColors[r.role] ?? "#9ca3af",
             }))}
@@ -153,11 +184,11 @@ export default async function AdminDashboardPage() {
         <div className="rounded-xl border bg-card p-5">
           <h3 className="mb-4 text-sm font-semibold flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            Enrollment Status
+            {t("enrollmentStatus")}
           </h3>
           <DonutChart
             segments={analytics.enrollmentStatusDist.map((e) => ({
-              label: e.status.charAt(0) + e.status.slice(1).toLowerCase(),
+              label: KNOWN_STATUSES.has(e.status) ? tStatus(e.status) : formatStatusLabel(e.status),
               count: e.count,
               color: enrollmentStatusColors[e.status] ?? "#9ca3af",
             }))}
@@ -169,10 +200,12 @@ export default async function AdminDashboardPage() {
         <div className="rounded-xl border bg-card p-5">
           <h3 className="mb-4 text-sm font-semibold flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
-            Top Courses by Enrollments
+            {t("topCoursesByEnrollments")}
           </h3>
           {analytics.topCourses.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No published courses yet.</p>
+            <p className="text-sm text-muted-foreground">
+              {t("noPublishedCourses")}
+            </p>
           ) : (
             <div className="space-y-3">
               {analytics.topCourses.map((course, i) => {
@@ -187,7 +220,7 @@ export default async function AdminDashboardPage() {
                       >
                         {i + 1}. {course.title}
                       </Link>
-                      <span className="text-xs text-muted-foreground ml-2 shrink-0">
+                      <span className="text-xs text-muted-foreground ms-2 shrink-0">
                         {course.enrollments}
                       </span>
                     </div>
@@ -210,18 +243,18 @@ export default async function AdminDashboardPage() {
         {/* Recent Enrollments */}
         <div className="rounded-xl border bg-card">
           <div className="flex items-center justify-between border-b px-5 py-3">
-            <h3 className="text-sm font-semibold">Recent Enrollments</h3>
+            <h3 className="text-sm font-semibold">{t("recentEnrollments")}</h3>
             <Link
               href="/admin/courses"
               className="text-xs text-primary hover:underline"
             >
-              View all
+              {tCommon("viewAll")}
             </Link>
           </div>
           <div className="divide-y">
             {analytics.recentEnrollments.length === 0 ? (
               <div className="p-5 text-sm text-muted-foreground text-center">
-                No enrollments yet.
+                {t("noEnrollments")}
               </div>
             ) : (
               analytics.recentEnrollments.map((e) => (
@@ -237,7 +270,7 @@ export default async function AdminDashboardPage() {
                       {e.course.title}
                     </p>
                   </div>
-                  <div className="text-right shrink-0 ml-3">
+                  <div className="text-end shrink-0 ms-3">
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
                         e.status === "COMPLETED"
@@ -250,7 +283,7 @@ export default async function AdminDashboardPage() {
                       {e.progress}%
                     </span>
                     <p className="mt-0.5 text-[10px] text-muted-foreground">
-                      {new Date(e.enrolledAt).toLocaleDateString()}
+                      {dateFormatter.format(new Date(e.enrolledAt))}
                     </p>
                   </div>
                 </div>
@@ -262,12 +295,12 @@ export default async function AdminDashboardPage() {
         {/* Recent Certificates */}
         <div className="rounded-xl border bg-card">
           <div className="flex items-center justify-between border-b px-5 py-3">
-            <h3 className="text-sm font-semibold">Recent Certificates</h3>
+            <h3 className="text-sm font-semibold">{t("recentCertificates")}</h3>
           </div>
           <div className="divide-y">
             {analytics.recentCertificates.length === 0 ? (
               <div className="p-5 text-sm text-muted-foreground text-center">
-                No certificates issued yet.
+                {t("noCertificates")}
               </div>
             ) : (
               analytics.recentCertificates.map((cert) => (
@@ -282,7 +315,7 @@ export default async function AdminDashboardPage() {
                     </code>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(cert.issuedAt).toLocaleDateString()}
+                    {dateFormatter.format(new Date(cert.issuedAt))}
                   </span>
                 </div>
               ))
@@ -293,16 +326,16 @@ export default async function AdminDashboardPage() {
 
       {/* Quick Links */}
       <div>
-        <h2 className="mb-4 text-lg font-bold">Quick Actions</h2>
+        <h2 className="mb-4 text-lg font-bold">{t("quickActions")}</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             href="/admin/users"
             className="rounded-xl border bg-card p-5 transition-shadow hover:shadow-md"
           >
             <Users className="mb-3 h-7 w-7 text-primary" />
-            <h3 className="font-semibold">Manage Users</h3>
+            <h3 className="font-semibold">{t("manageUsers")}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              {analytics.totals.users} users
+              {t("usersCount", { count: analytics.totals.users })}
             </p>
           </Link>
           <Link
@@ -310,9 +343,9 @@ export default async function AdminDashboardPage() {
             className="rounded-xl border bg-card p-5 transition-shadow hover:shadow-md"
           >
             <BookOpen className="mb-3 h-7 w-7 text-primary" />
-            <h3 className="font-semibold">Manage Courses</h3>
+            <h3 className="font-semibold">{t("manageCourses")}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              {analytics.totals.courses} courses
+              {t("coursesCount", { count: analytics.totals.courses })}
             </p>
           </Link>
           <Link
@@ -320,9 +353,9 @@ export default async function AdminDashboardPage() {
             className="rounded-xl border bg-card p-5 transition-shadow hover:shadow-md"
           >
             <Package className="mb-3 h-7 w-7 text-primary" />
-            <h3 className="font-semibold">STEM Kit Products</h3>
+            <h3 className="font-semibold">{t("stemKitProducts")}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              {analytics.totals.products} products
+              {t("productsCount", { count: analytics.totals.products })}
             </p>
           </Link>
           <Link
@@ -330,12 +363,12 @@ export default async function AdminDashboardPage() {
             className="rounded-xl border bg-card p-5 transition-shadow hover:shadow-md relative"
           >
             <ShieldCheck className="mb-3 h-7 w-7 text-primary" />
-            <h3 className="font-semibold">Tutor Verification</h3>
+            <h3 className="font-semibold">{t("tutorVerification")}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Review applications
+              {t("reviewApplications")}
             </p>
             {analytics.totals.pendingTutors > 0 && (
-              <span className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">
+              <span className="absolute top-3 end-3 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">
                 {analytics.totals.pendingTutors}
               </span>
             )}
