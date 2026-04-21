@@ -319,7 +319,74 @@
         "q": "Kann ich den Plan wechseln?",
         "a": "Absolut. Sie können jederzeit upgraden oder downgraden."
       }
-    ]
+    ],
+    "mostPopular": "Am beliebtesten",
+    "forever": "für immer",
+    "custom": "Individuell",
+    "perMonth": "pro Monat",
+    "perMo": "0€ / für immer",
+    "simpleHonestPricing": "Einfache, ehrliche Preise",
+    "planComparison": "Plan-Vergleich",
+    "compareEveryFeature": "Alle Funktionen vergleichen",
+    "worthEveryPenny": "Jeden Cent wert",
+    "fromFamiliesSchools": "Von Familien & Schulen, die gewechselt haben",
+    "billedYearlySave": "{billed} jährlich abgerechnet • Spare {save}",
+    "trustCancelTitle": "Jederzeit kündbar",
+    "trustCancelBody": "Keine Verträge. Mit einem Klick kündigen.",
+    "trustRefundTitle": "14-Tage-Rückgabe",
+    "trustRefundBody": "Nicht das Richtige? Volle Rückerstattung innerhalb von 14 Tagen.",
+    "trustInstantTitle": "Sofortiger Zugang",
+    "trustInstantBody": "Beginnen Sie zu lernen, sobald Sie sich anmelden.",
+    "billing": {
+      "cycleLabel": "Abrechnungszyklus",
+      "monthly": "Monatlich",
+      "annual": "Jährlich",
+      "save20": "Spare 20%"
+    },
+    "comparison": {
+      "groups": {
+        "learning": "Lernen",
+        "accountsAccess": "Konten & Zugang",
+        "progressRewards": "Fortschritt & Belohnungen",
+        "support": "Support"
+      },
+      "rows": {
+        "freeCourses": "Kostenlose Kurse",
+        "premiumCourses": "Premium-STEM-Kurse",
+        "stemKits": "Praktische STEM-Sets",
+        "liveTutoring": "Live-Nachhilfestunden",
+        "catalogAccess": "Zugriff auf den Kurskatalog",
+        "studentAccounts": "Schülerkonten",
+        "parentDashboard": "Eltern-Dashboard",
+        "bulkEnrollment": "Masseneinschreibung",
+        "customBranding": "Eigenes Branding",
+        "apiAccess": "API-Zugang",
+        "progressTracking": "Fortschrittsverfolgung",
+        "certificates": "Abschlusszertifikate",
+        "badgesXp": "Badges & XP-System",
+        "leaderboards": "Bestenlisten",
+        "community": "Community-Support",
+        "email": "E-Mail-Support",
+        "priority": "Priority-Support",
+        "accountManager": "Dedizierter Account Manager",
+        "teacherTraining": "Lehrerfortbildung"
+      },
+      "values": {
+        "payPerKit": "Pro Set zahlen",
+        "off10": "10% Rabatt",
+        "bulkPricing": "Mengenpreise",
+        "discounted": "Vergünstigt",
+        "included": "Enthalten",
+        "limited": "Begrenzt",
+        "full": "Vollständig",
+        "basic": "Grundlegend",
+        "advanced": "Erweitert",
+        "advancedReports": "Erweitert + Berichte",
+        "upTo3": "Bis zu 3",
+        "unlimited": "Unbegrenzt",
+        "one": "1"
+      }
+    }
   },
   "contact": {
     "title": "Kontakt aufnehmen",
@@ -585,5 +652,66 @@
     "sendFailed": "Senden fehlgeschlagen",
     "typePlaceholder": "Nachricht schreiben… (Enter zum Senden, Shift+Enter für neue Zeile)",
     "sendAria": "Nachricht senden"
+  },
+  "onboarding": {
+    "steps": {
+      "goalsTitle": "Was führt dich hierher?",
+      "goalsDescription": "Wähle alles Zutreffende aus.",
+      "subjectsTitle": "Welche Fächer interessieren dich?",
+      "subjectsDescription": "Wir empfehlen passende Kurse.",
+      "experienceTitle": "Wo startest du?",
+      "experienceDescription": "Es gibt keine falschen Antworten."
+    },
+    "goals": {
+      "getAhead": "In der Schule vorankommen",
+      "exploreCoding": "Programmieren entdecken",
+      "buildProjects": "STEM-Projekte bauen",
+      "prepareExams": "Prüfungen vorbereiten",
+      "haveFun": "Spaß am Lernen haben"
+    },
+    "subjects": {
+      "math": "Mathematik",
+      "coding": "Programmierung",
+      "robotics": "Robotik",
+      "science": "Naturwissenschaft",
+      "engineering": "Technik",
+      "ai": "KI",
+      "artDesign": "Kunst + Design"
+    },
+    "experience": {
+      "beginner": "Anfänger",
+      "some": "Etwas Erfahrung",
+      "advanced": "Fortgeschritten"
+    },
+    "experienceLabel": "Deine Erfahrung",
+    "hoursLabel": "Stunden, die du pro Woche lernen kannst",
+    "hoursPlaceholder": "z. B. 3",
+    "back": "Zurück",
+    "continue": "Weiter",
+    "finish": "Fertig",
+    "genericError": "Etwas ist schiefgelaufen"
+  },
+  "certificates": {
+    "studentTitle": "Meine Zertifikate",
+    "studentCount": "{count, plural, =0 {Keine Zertifikate erworben} one {# Zertifikat erworben} other {# Zertifikate erworben}}",
+    "emptyTitle": "Noch keine Zertifikate",
+    "emptyBody": "Schließe einen Kurs ab, um dein erstes Zertifikat zu erhalten!",
+    "issuedOn": "Ausgestellt am {date}",
+    "verificationCode": "Verifizierungscode",
+    "viewAndPrint": "Anzeigen & drucken",
+    "verify": "Verifizieren",
+    "verifyPageTitle": "Zertifikat verifizieren | Schulab",
+    "verifyPageDescription": "Verifiziere die Echtheit eines Schulab-Abschlusszertifikats.",
+    "notFoundTitle": "Zertifikat nicht gefunden",
+    "notFoundBody": "Wir konnten kein Zertifikat mit diesem Code finden. Prüfe, ob der Code korrekt ist, oder frage den Aussteller nach einem neuen Link.",
+    "codeLabel": "Code: {code}",
+    "backToHome": "Zurück zu Schulab",
+    "verified": "Verifiziert",
+    "authentic": "Dieses Zertifikat ist echt",
+    "awardedTo": "Verliehen an",
+    "courseLabel": "Kurs",
+    "learner": "Lernende:r",
+    "certificateId": "Zertifikat-ID",
+    "learnMore": "Mehr über Schulab erfahren"
   }
 }

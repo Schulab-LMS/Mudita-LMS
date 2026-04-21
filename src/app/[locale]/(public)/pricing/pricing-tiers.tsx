@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Check, Sparkles, Zap, ArrowRight } from "lucide-react";
 import {
@@ -54,8 +54,17 @@ const plans: Plan[] = [
   },
 ];
 
+function formatUsd(locale: string, amount: number): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 export function PricingTiers() {
   const t = useTranslations("pricing");
+  const locale = useLocale();
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
 
   return (
@@ -76,18 +85,18 @@ export function PricingTiers() {
           let priceNode: React.ReactNode;
           let periodLabel: string;
           if (plan.monthlyUsd === null) {
-            priceNode = "Custom";
+            priceNode = t("custom");
             periodLabel = t(`${plan.key}.period`);
           } else if (plan.monthlyUsd === 0) {
-            priceNode = "$0";
-            periodLabel = "forever";
+            priceNode = formatUsd(locale, 0);
+            periodLabel = t("forever");
           } else {
             const display =
               cycle === "annual"
                 ? Math.round(plan.monthlyUsd * 0.8)
                 : plan.monthlyUsd;
-            priceNode = `$${display}`;
-            periodLabel = "per month";
+            priceNode = formatUsd(locale, display);
+            periodLabel = t("perMonth");
           }
 
           return (
@@ -100,10 +109,10 @@ export function PricingTiers() {
                 }`}
               >
                 {plan.featured && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <div className="absolute -top-3 inset-x-0 flex justify-center">
                     <span className="inline-flex items-center gap-1 rounded-full bg-launch-gradient px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-md">
                       <Sparkles className="h-3 w-3" />
-                      Most Popular
+                      {t("mostPopular")}
                     </span>
                   </div>
                 )}
@@ -134,8 +143,17 @@ export function PricingTiers() {
                     plan.monthlyUsd > 0 &&
                     cycle === "annual" && (
                       <p className="mt-1 text-xs font-semibold text-[#047857]">
-                        Billed ${Math.round(plan.monthlyUsd * 0.8 * 12)} yearly •
-                        Save ${plan.monthlyUsd * 12 - Math.round(plan.monthlyUsd * 0.8) * 12}
+                        {t("billedYearlySave", {
+                          billed: formatUsd(
+                            locale,
+                            Math.round(plan.monthlyUsd * 0.8) * 12
+                          ),
+                          save: formatUsd(
+                            locale,
+                            plan.monthlyUsd * 12 -
+                              Math.round(plan.monthlyUsd * 0.8) * 12
+                          ),
+                        })}
                       </p>
                     )}
                 </CardHeader>
@@ -177,7 +195,7 @@ export function PricingTiers() {
                     }`}
                   >
                     {t(`${plan.key}.cta`)}
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover/cta:translate-x-1" />
+                    <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform group-hover/cta:translate-x-1 rtl:group-hover/cta:-translate-x-1" />
                   </Link>
                 </CardFooter>
               </Card>

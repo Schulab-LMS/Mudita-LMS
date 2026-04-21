@@ -319,7 +319,74 @@
         "q": "Can I switch plans?",
         "a": "Absolutely. Upgrade or downgrade at any time. If you upgrade, you'll be charged the prorated difference."
       }
-    ]
+    ],
+    "mostPopular": "Most Popular",
+    "forever": "forever",
+    "custom": "Custom",
+    "perMonth": "per month",
+    "perMo": "$0 / forever",
+    "simpleHonestPricing": "Simple, honest pricing",
+    "planComparison": "Plan comparison",
+    "compareEveryFeature": "Compare every feature",
+    "worthEveryPenny": "Worth every penny",
+    "fromFamiliesSchools": "From families & schools who switched",
+    "billedYearlySave": "Billed {billed} yearly • Save {save}",
+    "trustCancelTitle": "Cancel anytime",
+    "trustCancelBody": "No contracts. Cancel with one click.",
+    "trustRefundTitle": "14-day refund",
+    "trustRefundBody": "Not a fit? Full money back within 14 days.",
+    "trustInstantTitle": "Instant access",
+    "trustInstantBody": "Start learning the moment you sign up.",
+    "billing": {
+      "cycleLabel": "Billing cycle",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "save20": "Save 20%"
+    },
+    "comparison": {
+      "groups": {
+        "learning": "Learning",
+        "accountsAccess": "Accounts & access",
+        "progressRewards": "Progress & rewards",
+        "support": "Support"
+      },
+      "rows": {
+        "freeCourses": "Free courses",
+        "premiumCourses": "Premium STEM courses",
+        "stemKits": "Hands-on STEM kits",
+        "liveTutoring": "Live tutoring sessions",
+        "catalogAccess": "Course catalog access",
+        "studentAccounts": "Student accounts",
+        "parentDashboard": "Parent dashboard",
+        "bulkEnrollment": "Bulk enrollment",
+        "customBranding": "Custom branding",
+        "apiAccess": "API access",
+        "progressTracking": "Progress tracking",
+        "certificates": "Certificates of completion",
+        "badgesXp": "Badges & XP system",
+        "leaderboards": "Leaderboards",
+        "community": "Community support",
+        "email": "Email support",
+        "priority": "Priority support",
+        "accountManager": "Dedicated account manager",
+        "teacherTraining": "Teacher training"
+      },
+      "values": {
+        "payPerKit": "Pay per kit",
+        "off10": "10% off",
+        "bulkPricing": "Bulk pricing",
+        "discounted": "Discounted",
+        "included": "Included",
+        "limited": "Limited",
+        "full": "Full",
+        "basic": "Basic",
+        "advanced": "Advanced",
+        "advancedReports": "Advanced + reports",
+        "upTo3": "Up to 3",
+        "unlimited": "Unlimited",
+        "one": "1"
+      }
+    }
   },
   "contact": {
     "title": "Get in Touch",
@@ -585,5 +652,66 @@
     "sendFailed": "Failed to send",
     "typePlaceholder": "Type a message… (Enter to send, Shift+Enter for newline)",
     "sendAria": "Send message"
+  },
+  "onboarding": {
+    "steps": {
+      "goalsTitle": "What brings you here?",
+      "goalsDescription": "Pick all that apply.",
+      "subjectsTitle": "What subjects are you curious about?",
+      "subjectsDescription": "We'll recommend courses from these.",
+      "experienceTitle": "Where are you starting from?",
+      "experienceDescription": "No wrong answers."
+    },
+    "goals": {
+      "getAhead": "Get ahead at school",
+      "exploreCoding": "Explore coding",
+      "buildProjects": "Build STEM projects",
+      "prepareExams": "Prepare for exams",
+      "haveFun": "Have fun learning"
+    },
+    "subjects": {
+      "math": "Math",
+      "coding": "Coding",
+      "robotics": "Robotics",
+      "science": "Science",
+      "engineering": "Engineering",
+      "ai": "AI",
+      "artDesign": "Art + Design"
+    },
+    "experience": {
+      "beginner": "Beginner",
+      "some": "Some experience",
+      "advanced": "Advanced"
+    },
+    "experienceLabel": "Your experience",
+    "hoursLabel": "Hours you can study per week",
+    "hoursPlaceholder": "e.g. 3",
+    "back": "Back",
+    "continue": "Continue",
+    "finish": "Finish",
+    "genericError": "Something went wrong"
+  },
+  "certificates": {
+    "studentTitle": "My Certificates",
+    "studentCount": "{count, plural, =0 {No certificates earned} =1 {# certificate earned} other {# certificates earned}}",
+    "emptyTitle": "No certificates yet",
+    "emptyBody": "Complete a course to earn your first certificate!",
+    "issuedOn": "Issued on {date}",
+    "verificationCode": "Verification Code",
+    "viewAndPrint": "View & Print",
+    "verify": "Verify",
+    "verifyPageTitle": "Verify Certificate | Schulab",
+    "verifyPageDescription": "Verify the authenticity of a Schulab certificate of completion.",
+    "notFoundTitle": "Certificate not found",
+    "notFoundBody": "We couldn't find a certificate matching this code. Check that the code is correct, or ask the issuer for a fresh link.",
+    "codeLabel": "Code: {code}",
+    "backToHome": "Back to Schulab",
+    "verified": "Verified",
+    "authentic": "This certificate is authentic",
+    "awardedTo": "Awarded to",
+    "courseLabel": "Course",
+    "learner": "Learner",
+    "certificateId": "Certificate ID",
+    "learnMore": "Learn more about Schulab"
   }
 }

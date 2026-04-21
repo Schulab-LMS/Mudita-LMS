@@ -319,7 +319,74 @@
         "q": "هل يمكنني تغيير الخطة؟",
         "a": "بالتأكيد. يمكنك الترقية أو التخفيض في أي وقت."
       }
-    ]
+    ],
+    "mostPopular": "الأكثر شيوعًا",
+    "forever": "للأبد",
+    "custom": "مخصص",
+    "perMonth": "شهريًا",
+    "perMo": "$0 / للأبد",
+    "simpleHonestPricing": "أسعار بسيطة وصادقة",
+    "planComparison": "مقارنة الخطط",
+    "compareEveryFeature": "قارن كل ميزة",
+    "worthEveryPenny": "يستحق كل فلس",
+    "fromFamiliesSchools": "من العائلات والمدارس التي انتقلت إلينا",
+    "billedYearlySave": "يُفوتر {billed} سنويًا • وفر {save}",
+    "trustCancelTitle": "إلغاء في أي وقت",
+    "trustCancelBody": "بدون عقود. ألغِ بنقرة واحدة.",
+    "trustRefundTitle": "استرداد خلال 14 يومًا",
+    "trustRefundBody": "غير مناسب؟ استرداد كامل للأموال خلال 14 يومًا.",
+    "trustInstantTitle": "وصول فوري",
+    "trustInstantBody": "ابدأ التعلم لحظة اشتراكك.",
+    "billing": {
+      "cycleLabel": "دورة الفوترة",
+      "monthly": "شهري",
+      "annual": "سنوي",
+      "save20": "وفّر 20٪"
+    },
+    "comparison": {
+      "groups": {
+        "learning": "التعلم",
+        "accountsAccess": "الحسابات والوصول",
+        "progressRewards": "التقدم والمكافآت",
+        "support": "الدعم"
+      },
+      "rows": {
+        "freeCourses": "دورات مجانية",
+        "premiumCourses": "دورات STEM المميزة",
+        "stemKits": "أدوات STEM العملية",
+        "liveTutoring": "جلسات تدريس مباشرة",
+        "catalogAccess": "الوصول لكتالوج الدورات",
+        "studentAccounts": "حسابات الطلاب",
+        "parentDashboard": "لوحة ولي الأمر",
+        "bulkEnrollment": "تسجيل جماعي",
+        "customBranding": "علامة تجارية مخصصة",
+        "apiAccess": "وصول API",
+        "progressTracking": "تتبع التقدم",
+        "certificates": "شهادات إتمام",
+        "badgesXp": "نظام الشارات ونقاط الخبرة",
+        "leaderboards": "لوحات المتصدرين",
+        "community": "دعم المجتمع",
+        "email": "دعم بالبريد الإلكتروني",
+        "priority": "دعم أولوية",
+        "accountManager": "مدير حساب مخصص",
+        "teacherTraining": "تدريب المعلمين"
+      },
+      "values": {
+        "payPerKit": "ادفع لكل عدة",
+        "off10": "خصم 10٪",
+        "bulkPricing": "تسعير جماعي",
+        "discounted": "بخصم",
+        "included": "مشمول",
+        "limited": "محدود",
+        "full": "كامل",
+        "basic": "أساسي",
+        "advanced": "متقدم",
+        "advancedReports": "متقدم + تقارير",
+        "upTo3": "حتى 3",
+        "unlimited": "غير محدود",
+        "one": "1"
+      }
+    }
   },
   "contact": {
     "title": "تواصل معنا",
@@ -585,5 +652,66 @@
     "sendFailed": "فشل الإرسال",
     "typePlaceholder": "اكتب رسالة… (Enter للإرسال، Shift+Enter لسطر جديد)",
     "sendAria": "إرسال رسالة"
+  },
+  "onboarding": {
+    "steps": {
+      "goalsTitle": "ما الذي أحضرك إلى هنا؟",
+      "goalsDescription": "اختر كل ما ينطبق.",
+      "subjectsTitle": "ما المواد التي تثير فضولك؟",
+      "subjectsDescription": "سنوصي بدورات من هذه المواد.",
+      "experienceTitle": "من أين تبدأ؟",
+      "experienceDescription": "لا توجد إجابات خاطئة."
+    },
+    "goals": {
+      "getAhead": "التقدم في الدراسة",
+      "exploreCoding": "استكشاف البرمجة",
+      "buildProjects": "بناء مشاريع STEM",
+      "prepareExams": "التحضير للامتحانات",
+      "haveFun": "التعلم بمتعة"
+    },
+    "subjects": {
+      "math": "الرياضيات",
+      "coding": "البرمجة",
+      "robotics": "الروبوتات",
+      "science": "العلوم",
+      "engineering": "الهندسة",
+      "ai": "الذكاء الاصطناعي",
+      "artDesign": "الفن + التصميم"
+    },
+    "experience": {
+      "beginner": "مبتدئ",
+      "some": "بعض الخبرة",
+      "advanced": "متقدم"
+    },
+    "experienceLabel": "خبرتك",
+    "hoursLabel": "ساعات الدراسة التي يمكنك قضاؤها أسبوعيًا",
+    "hoursPlaceholder": "مثال: 3",
+    "back": "السابق",
+    "continue": "متابعة",
+    "finish": "إنهاء",
+    "genericError": "حدث خطأ ما"
+  },
+  "certificates": {
+    "studentTitle": "شهاداتي",
+    "studentCount": "{count, plural, zero {لم تُحصَّل شهادات} one {شهادة واحدة حُصِّلت} two {شهادتان حُصِّلتا} few {# شهادات حُصِّلت} many {# شهادة حُصِّلت} other {# شهادة حُصِّلت}}",
+    "emptyTitle": "لا توجد شهادات بعد",
+    "emptyBody": "أكمل دورة للحصول على أول شهادة!",
+    "issuedOn": "صدرت في {date}",
+    "verificationCode": "رمز التحقق",
+    "viewAndPrint": "عرض وطباعة",
+    "verify": "تحقق",
+    "verifyPageTitle": "التحقق من الشهادة | Schulab",
+    "verifyPageDescription": "تحقق من صحة شهادة إتمام من Schulab.",
+    "notFoundTitle": "الشهادة غير موجودة",
+    "notFoundBody": "تعذر علينا العثور على شهادة بهذا الرمز. تأكد من صحة الرمز، أو اطلب من الجهة المصدرة رابطًا جديدًا.",
+    "codeLabel": "الرمز: {code}",
+    "backToHome": "العودة إلى Schulab",
+    "verified": "تم التحقق",
+    "authentic": "هذه الشهادة أصلية",
+    "awardedTo": "مُنحت إلى",
+    "courseLabel": "الدورة",
+    "learner": "متعلم",
+    "certificateId": "معرّف الشهادة",
+    "learnMore": "تعرّف أكثر على Schulab"
   }
 }
