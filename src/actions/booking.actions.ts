@@ -10,7 +10,6 @@ export async function createBooking(data: {
   startTime: Date;
   endTime: Date;
   notes?: string;
-  price: number;
 }) {
   const session = await auth();
   if (!session?.user) return { error: "Unauthorized" };
@@ -29,6 +28,8 @@ export async function createBooking(data: {
         return { error: "Pick a valid future time slot" };
       case "conflict":
         return { error: "That time slot is no longer available" };
+      case "tutor_not_found":
+        return { error: "Tutor is no longer available" };
       default:
         return { error: "Failed to create booking" };
     }

@@ -48,7 +48,6 @@ export function BookingForm({ tutorId, availableSlots = [], hourlyRate = 50 }: B
       startTime,
       endTime,
       notes: notes || undefined,
-      price: hourlyRate,
     });
 
     setLoading(false);
