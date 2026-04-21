@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { db } from "@/lib/db";
 import {
   STRIPE_WEBHOOK_SECRET,
   isStripeConfigured,
@@ -11,6 +12,10 @@ import {
   recordSubscriptionInvoicePaid,
   upsertSubscriptionFromStripe,
 } from "@/services/billing.service";
+
+// Prisma's unique-constraint error code. When WebhookEvent.id collides the
+// event has already been processed — Stripe is redelivering a handled event.
+const PRISMA_UNIQUE_VIOLATION = "P2002";
 
 // Webhook handlers must receive the raw body to validate Stripe's signature,
 // so caching and static optimisation are both disabled here.
@@ -49,6 +54,29 @@ export async function POST(request: Request) {
     );
   }
 
+  // Idempotency: claim the event id before doing any work. Unique-violation
+  // on the PK means this delivery is a retry of one we've already processed —
+  // ack with 200 so Stripe stops retrying, without re-running handlers.
+  try {
+    await db.webhookEvent.create({
+      data: { id: event.id, provider: "stripe", type: event.type },
+    });
+  } catch (err: unknown) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code?: string }).code === PRISMA_UNIQUE_VIOLATION
+    ) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+    console.error(`[billing/webhook] dedupe insert failed for ${event.id}:`, err);
+    return NextResponse.json(
+      { error: "Webhook dedupe failed" },
+      { status: 500 }
+    );
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed":
@@ -73,6 +101,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error(`[billing/webhook] handler error for ${event.type}:`, err);
+    // Release the idempotency claim so Stripe's retry can try again — the
+    // handler didn't actually run to completion.
+    await db.webhookEvent
+      .delete({ where: { id: event.id } })
+      .catch(() => null);
     // 500 triggers Stripe's retry policy, giving us a second chance if a
     // dependency (e.g. DB) was briefly unavailable.
     return NextResponse.json(

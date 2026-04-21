@@ -1153,3 +1153,15 @@ model DripState {
   @@unique([userId, journey])
   @@index([journey, status, nextSendAt])
 }
+
+// Idempotency ledger for Stripe (and future) webhook events. The provider's
+// event id is the primary key; a unique-violation on insert means the event
+// has already been processed and the handler can short-circuit safely.
+model WebhookEvent {
+  id          String   @id
+  provider    String   @default("stripe")
+  type        String
+  processedAt DateTime @default(now())
+
+  @@index([provider, processedAt])
+}

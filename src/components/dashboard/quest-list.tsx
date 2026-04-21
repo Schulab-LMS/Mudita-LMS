@@ -1,4 +1,5 @@
 import { CheckCircle2, Circle, Trophy } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 export interface Quest {
@@ -16,15 +17,16 @@ interface QuestListProps {
 
 /** Daily quests panel — gives kids micro-goals. */
 export function QuestList({ quests, className }: QuestListProps) {
+  const t = useTranslations("dashboard");
   return (
     <div className={cn("card-stem p-5 shadow-elev", className)}>
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-display text-lg font-bold flex items-center gap-2">
           <Trophy className="h-5 w-5 text-amber-500" />
-          Daily quests
+          {t("dailyQuests")}
         </h3>
         <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700">
-          Resets in 8h
+          {t("questResets")}
         </span>
       </div>
       <ul className="space-y-2.5">

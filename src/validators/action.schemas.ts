@@ -416,3 +416,40 @@ export const updateSubmissionSchema = z.object({
   submissionUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   teamName: z.string().max(100).optional(),
 });
+
+// ── Account (self-service) ───────────────────────────────────────────────
+
+export const updateAccountProfileSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
+  locale: z.enum(["en", "de", "ar"]),
+  avatar: z
+    .string()
+    .url("Avatar must be a valid URL")
+    .max(500)
+    .optional()
+    .or(z.literal("")),
+});
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z
+      .string()
+      .min(8, "New password must be at least 8 characters")
+      .max(200),
+    confirmPassword: z.string().min(1, "Please confirm your new password"),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match",
+  });
+
+export const deleteAccountSchema = z.object({
+  // Password is required for credentials users; OAuth-only users confirm by
+  // typing DELETE instead (validated at action level — we don't know the auth
+  // method at schema parse time).
+  password: z.string().optional(),
+  confirmation: z.literal("DELETE", {
+    message: "Type DELETE to confirm",
+  }),
+});

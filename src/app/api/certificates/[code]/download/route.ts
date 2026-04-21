@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/auth-helpers";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params;
+
+  // The decorative certificate HTML is for the holder (to print) and for
+  // admins (for support). Public verification lives at /certificates/verify/
+  // and exposes only the minimum needed to confirm authenticity — it does
+  // not rely on this endpoint.
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const cert = await db.certificate.findUnique({
     where: { code },
@@ -14,6 +25,11 @@ export async function GET(
 
   if (!cert) {
     return NextResponse.json({ error: "Certificate not found" }, { status: 404 });
+  }
+
+  const isOwner = cert.userId === session.user.id;
+  if (!isOwner && !isAdminRole(session.user.role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const course = await db.course.findUnique({

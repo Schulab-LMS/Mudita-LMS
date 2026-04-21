@@ -444,10 +444,16 @@
     "badgesShort": "Abzeichen",
     "certificates": "Zertifikate",
     "dailyQuests": "Tägliche Quests",
+    "questResets": "Neustart um Mitternacht",
     "quests": {
       "completeLesson": "Schließe eine Lektion ab",
       "quizScore": "Erreiche 80%+ in einem Quiz",
-      "earnXp": "Verdiene heute {amount} XP"
+      "earnXp": "Verdiene heute {amount} XP",
+      "takeQuiz": "Mach heute ein Quiz",
+      "enrollFirst": "Schreibe dich in deinen ersten Kurs ein",
+      "keepStreak": "Halte deine Serie am Leben",
+      "activityLabel": "Lernaktivität",
+      "activity7Weeks": "Letzte 7 Wochen"
     },
     "viewAll": "Alle anzeigen",
     "resumeFrom": "Weiter, wo du in {category} aufgehört hast",

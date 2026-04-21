@@ -3,6 +3,12 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { getStudentStats } from "@/services/user.service";
 import { getUserEnrollments } from "@/services/enrollment.service";
+import {
+  getTodayActivity,
+  getLearningStreak,
+  getDynamicQuests,
+  getActivityHeatmap,
+} from "@/services/dashboard.service";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { EnrollmentList } from "@/components/dashboard/enrollment-list";
 import { DailyGoal } from "@/components/dashboard/daily-goal";
@@ -30,39 +36,44 @@ export default async function StudentDashboardPage() {
 
   const t = await getTranslations("dashboard");
 
-  const [stats, enrollments] = await Promise.all([
-    getStudentStats(session.user.id).catch(() => ({
-      enrollments: 0,
-      badges: 0,
-      totalPoints: 0,
-      certificates: 0,
-    })),
-    getUserEnrollments(session.user.id).catch(() => []),
-  ]);
+  const [stats, enrollments, today, streakDays, dynamicQuests, heatmap] =
+    await Promise.all([
+      getStudentStats(session.user.id).catch(() => ({
+        enrollments: 0,
+        badges: 0,
+        totalPoints: 0,
+        certificates: 0,
+      })),
+      getUserEnrollments(session.user.id).catch(() => []),
+      getTodayActivity(session.user.id),
+      getLearningStreak(session.user.id),
+      getDynamicQuests(session.user.id),
+      getActivityHeatmap(session.user.id),
+    ]);
 
   const inProgress = enrollments.filter((e) => e.status !== "COMPLETED");
   const firstName = session.user.name?.split(" ")[0] || t("defaultName");
   const level = Math.floor(stats.totalPoints / 100) + 1;
   const levelProgress = stats.totalPoints % 100;
+  const earnedToday = today.xp;
 
-  // Streak + today's XP come from a real activity service — until that lands,
-  // show 0 instead of a heuristic that inflates numbers on first login.
-  const streakDays = 0;
-  const earnedToday = 0;
-
-  // Only show quests we can truthfully derive. "Complete 1 lesson" is true
-  // when the learner has any in-progress enrollment to open today.
-  const quests: Quest[] = inProgress.length > 0
-    ? [
-        {
-          id: "complete-lesson",
-          title: t("quests.completeLesson"),
-          reward: 20,
-          progress: 0,
-          done: false,
-        },
-      ]
-    : [];
+  // Map dynamic quests from the service to display props. Each quest ID has
+  // a matching translation key under dashboard.quests; the reward/progress
+  // come from real DB state.
+  const questTitle: Record<string, string> = {
+    "complete-lesson": t("quests.completeLesson"),
+    "earn-xp": t("quests.earnXp", { amount: 50 }),
+    "take-quiz": t("quests.takeQuiz"),
+    "enroll-first": t("quests.enrollFirst"),
+    "keep-streak": t("quests.keepStreak"),
+  };
+  const quests: Quest[] = dynamicQuests.map((q) => ({
+    id: q.id,
+    title: questTitle[q.id] ?? q.id,
+    reward: q.reward,
+    progress: q.progress,
+    done: q.done,
+  }));
 
   const resumeTarget = inProgress[0];
 
@@ -201,7 +212,7 @@ export default async function StudentDashboardPage() {
         {quests.length > 0 && (
           <QuestList quests={quests} className="lg:col-span-1" />
         )}
-        <ActivityHeatmap />
+        <ActivityHeatmap data={heatmap} />
       </div>
 
       {/* ============ CONTINUE LEARNING ============ */}

@@ -444,10 +444,16 @@
     "badgesShort": "الشارات",
     "certificates": "الشهادات",
     "dailyQuests": "مهام اليوم",
+    "questResets": "يُعاد في منتصف الليل",
     "quests": {
       "completeLesson": "أكمل درسًا واحدًا",
       "quizScore": "احصل على 80٪ أو أكثر في اختبار",
-      "earnXp": "اكسب {amount} نقطة اليوم"
+      "earnXp": "اكسب {amount} نقطة اليوم",
+      "takeQuiz": "خذ اختبارًا اليوم",
+      "enrollFirst": "سجّل في دورتك الأولى",
+      "keepStreak": "حافظ على سلسلة نشاطك",
+      "activityLabel": "نشاط التعلّم",
+      "activity7Weeks": "آخر 7 أسابيع"
     },
     "viewAll": "عرض الكل",
     "resumeFrom": "تابع من حيث توقفت في {category}",
