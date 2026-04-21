@@ -133,13 +133,14 @@ export const tutorIdSchema = z.object({ tutorProfileId: cuidSchema });
 
 // ── Bookings ────────────────────────────────────────────────────────────
 
+// Price is derived server-side from the tutor's hourlyRate — never trust
+// what the client sends for it, or a student could book a session for $0.01.
 export const createBookingSchema = z.object({
   tutorId: cuidSchema,
-  subject: z.string().min(1, "Subject is required"),
+  subject: z.string().min(1, "Subject is required").max(120),
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),
-  notes: z.string().optional(),
-  price: z.number().min(0),
+  notes: z.string().max(1000).optional(),
 });
 
 export const cancelBookingSchema = z.object({ bookingId: cuidSchema });

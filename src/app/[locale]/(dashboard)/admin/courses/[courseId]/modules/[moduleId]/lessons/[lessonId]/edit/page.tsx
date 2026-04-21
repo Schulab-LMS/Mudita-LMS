@@ -25,7 +25,7 @@ export default async function EditLessonPage({
       select: {
         id: true, title: true, titleAr: true, titleDe: true,
         content: true, contentAr: true, contentDe: true,
-        videoUrl: true, thumbnail: true, duration: true, type: true, order: true, isFree: true,
+        videoUrl: true, videoAssetId: true, thumbnail: true, duration: true, type: true, order: true, isFree: true,
         module: { select: { id: true, title: true, courseId: true } },
       },
     }),
@@ -65,6 +65,7 @@ export default async function EditLessonPage({
           contentAr: lesson.contentAr ?? "",
           contentDe: lesson.contentDe ?? "",
           videoUrl: lesson.videoUrl ?? "",
+          videoAssetId: lesson.videoAssetId,
           thumbnail: lesson.thumbnail ?? null,
           duration: lesson.duration ?? 0,
           type: lesson.type,

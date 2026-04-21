@@ -1,10 +1,19 @@
 import { db } from "@/lib/db";
+import {
+  hasUsableSignals,
+  rankCourses,
+  type RankingSignals,
+} from "@/services/catalog-ranking.service";
 
 interface CourseFilters {
   ageGroup?: string;
   category?: string;
   level?: string;
   search?: string;
+  // When provided, courses are sorted by personalised score before fallback
+  // popularity. Caller is responsible for hydrating signals from the user's
+  // OnboardingProfile + dateOfBirth.
+  signals?: RankingSignals;
 }
 
 export function getLocalizedField<
@@ -57,10 +66,15 @@ export async function getCourses(filters: CourseFilters = {}) {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      // Default order — overridden by personalised ranking when signals are
+      // present. Most popular first, ties broken by recency.
+      orderBy: [
+        { enrollments: { _count: "desc" } },
+        { createdAt: "desc" },
+      ],
     });
 
-    return courses.map((course) => {
+    const hydrated = courses.map((course) => {
       const lessonCount = course.modules.reduce(
         (sum, mod) => sum + mod._count.lessons,
         0
@@ -71,6 +85,20 @@ export async function getCourses(filters: CourseFilters = {}) {
         enrollmentCount: course._count.enrollments,
       };
     });
+
+    if (filters.signals && hasUsableSignals(filters.signals)) {
+      // rankCourses returns the same row shape with `score` /
+      // `scoreBreakdown` appended. Strip those before returning so the
+      // public API doesn't leak ranking details to the client.
+      const ranked = rankCourses(hydrated, filters.signals);
+      return ranked.map(({ score, scoreBreakdown, ...rest }) => {
+        void score;
+        void scoreBreakdown;
+        return rest;
+      });
+    }
+
+    return hydrated;
   } catch {
     return [];
   }

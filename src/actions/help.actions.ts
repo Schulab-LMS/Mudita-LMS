@@ -176,7 +176,7 @@ export async function submitHelpFeedback(data: {
     // single bucket per article, so spam is bounded even without auth.
     const session = await auth();
     const identity = session?.user?.id ?? "anon";
-    const limit = rateLimit(
+    const limit = await rateLimit(
       `help-feedback:${identity}:${parsed.data.articleId}`,
       HELP_FEEDBACK_RATE_LIMIT
     );

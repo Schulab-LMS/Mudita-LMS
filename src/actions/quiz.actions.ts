@@ -22,7 +22,7 @@ export async function submitQuizAttempt(
     const parsed = submitQuizAttemptSchema.safeParse({ quizId, answers });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
-    const limit = rateLimit(
+    const limit = await rateLimit(
       `quiz-submit:${session.user.id}:${parsed.data.quizId}`,
       QUIZ_SUBMIT_RATE_LIMIT
     );

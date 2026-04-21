@@ -25,7 +25,7 @@ export async function submitContactForm(data: {
     return { success: false, error: parsed.error.issues[0].message };
   }
 
-  const rl = rateLimit(`contact:${parsed.data.email}`, CONTACT_RATE_LIMIT);
+  const rl = await rateLimit(`contact:${parsed.data.email}`, CONTACT_RATE_LIMIT);
   if (!rl.success) {
     return { success: false, error: "Too many submissions. Please try again later." };
   }

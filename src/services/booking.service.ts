@@ -1,6 +1,10 @@
 import { db } from "@/lib/db";
 
-export type CreateBookingError = "invalid_range" | "conflict" | "server_error";
+export type CreateBookingError =
+  | "invalid_range"
+  | "conflict"
+  | "tutor_not_found"
+  | "server_error";
 
 export async function createBooking(data: {
   studentId: string;
@@ -9,7 +13,6 @@ export async function createBooking(data: {
   startTime: Date;
   endTime: Date;
   notes?: string;
-  price: number;
 }) {
   if (
     !(data.startTime instanceof Date) ||
@@ -21,6 +24,19 @@ export async function createBooking(data: {
   if (data.startTime.getTime() < Date.now()) {
     return { error: "invalid_range" as const };
   }
+
+  // Price is derived from the tutor's published hourlyRate times the booked
+  // duration — not from the client. This closes the "book a $500/hr tutor
+  // for $0.01" exploit the old signature allowed.
+  const tutor = await db.tutorProfile.findUnique({
+    where: { id: data.tutorId },
+    select: { hourlyRate: true },
+  });
+  if (!tutor) return { error: "tutor_not_found" as const };
+
+  const durationHours =
+    (data.endTime.getTime() - data.startTime.getTime()) / (60 * 60 * 1000);
+  const price = Number((Number(tutor.hourlyRate) * durationHours).toFixed(2));
 
   try {
     // Run the overlap check and the insert in a single transaction so two
@@ -39,8 +55,13 @@ export async function createBooking(data: {
 
       const booking = await tx.booking.create({
         data: {
-          ...data,
-          price: data.price,
+          studentId: data.studentId,
+          tutorId: data.tutorId,
+          subject: data.subject,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          notes: data.notes,
+          price,
           status: "PENDING",
         },
       });

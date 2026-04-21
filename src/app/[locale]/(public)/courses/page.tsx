@@ -1,9 +1,13 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { ageInYears } from "@/lib/compliance";
 import { getCourses } from "@/services/course.service";
 import { CourseGrid } from "@/components/course/course-grid";
 import { CourseFilters } from "@/components/course/course-filters";
 import { Sparkles } from "lucide-react";
+import type { RankingSignals } from "@/services/catalog-ranking.service";
 
 interface CoursesPageProps {
   searchParams: Promise<{
@@ -21,12 +25,46 @@ export const metadata = {
 
 export default async function CoursesPage({ searchParams }: CoursesPageProps) {
   const params = await searchParams;
+
+  // Personalised signals (logged-in users with completed onboarding only —
+  // anonymous browsers see the popularity-ordered catalog).
+  const session = await auth();
+  let signals: RankingSignals | undefined;
+  if (session?.user?.id) {
+    const [profile, user] = await Promise.all([
+      db.onboardingProfile.findUnique({
+        where: { userId: session.user.id },
+        select: {
+          completedAt: true,
+          preferredSubjects: true,
+          goals: true,
+          interests: true,
+          experience: true,
+        },
+      }),
+      db.user.findUnique({
+        where: { id: session.user.id },
+        select: { dateOfBirth: true },
+      }),
+    ]);
+    if (profile?.completedAt) {
+      signals = {
+        preferredSubjects: profile.preferredSubjects,
+        goals: profile.goals,
+        interests: profile.interests,
+        experience: profile.experience,
+        ageYears: user?.dateOfBirth ? ageInYears(user.dateOfBirth) : null,
+      };
+    }
+  }
+
   const [courses, t] = await Promise.all([
     getCourses({
       search: params.q,
       ageGroup: params.ageGroup,
       category: params.category,
       level: params.level,
+      signals,
     }),
     getTranslations("courses"),
   ]);

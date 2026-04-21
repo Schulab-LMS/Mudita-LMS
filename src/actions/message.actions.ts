@@ -17,7 +17,7 @@ export async function sendMessageAction(data: {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Not authenticated" };
 
-    const limit = rateLimit(`send-message:${session.user.id}`, SEND_MESSAGE_RATE_LIMIT);
+    const limit = await rateLimit(`send-message:${session.user.id}`, SEND_MESSAGE_RATE_LIMIT);
     if (!limit.success) {
       return {
         success: false,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import {
   processDueDripRows,
   seedCartAbandonmentJourney,
@@ -17,13 +18,32 @@ export const runtime = "nodejs";
 // Intended to be invoked by an external scheduler (Vercel Cron, GitHub
 // Action, cron-job.org, etc.) every 15 minutes.
 
+function constantTimeEqual(a: string, b: string): boolean {
+  const ba = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ba.length !== bb.length) return false;
+  return timingSafeEqual(ba, bb);
+}
+
 export async function GET(request: NextRequest) {
   const expected = process.env.CRON_SECRET;
-  if (expected) {
+  // Outside of local dev we refuse to run without a secret configured.
+  // Previously a missing CRON_SECRET left the endpoint completely open,
+  // so anyone hitting /api/cron/drip could trigger drip sends — a cheap
+  // way to burn our email quota and rate-limit budgets.
+  if (!expected) {
+    if (process.env.NODE_ENV === "production") {
+      console.error("[cron/drip] CRON_SECRET is not configured");
+      return NextResponse.json(
+        { error: "Cron endpoint is not configured" },
+        { status: 503 }
+      );
+    }
+  } else {
     const supplied = request.headers
       .get("authorization")
       ?.replace(/^Bearer\s+/i, "");
-    if (supplied !== expected) {
+    if (!supplied || !constantTimeEqual(supplied, expected)) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
   }
