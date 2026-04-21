@@ -132,6 +132,61 @@ describe("signPlaybackToken", () => {
       restore();
     }
   });
+
+  it("accepts PKCS#1 PEM (BEGIN RSA PRIVATE KEY)", async () => {
+    const { privateKey } = generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+      publicKeyEncoding: { type: "spki", format: "pem" },
+      privateKeyEncoding: { type: "pkcs1", format: "pem" },
+    });
+    const restore = withMuxEnv({
+      MUX_SIGNING_KEY_ID: "test-kid",
+      MUX_SIGNING_KEY_PRIVATE: privateKey,
+    });
+    try {
+      vi.resetModules();
+      const { signPlaybackToken } = await import("./mux");
+      const token = await signPlaybackToken({
+        playbackId: "pkcs1-id",
+        audience: "v",
+      });
+      expect(token.split(".")).toHaveLength(3);
+    } finally {
+      restore();
+    }
+  });
+
+  it("accepts a base64-encoded PEM blob (Mux dashboard format)", async () => {
+    const pemReal = process.env.MUX_SIGNING_KEY_PRIVATE!;
+    const blob = Buffer.from(pemReal, "utf8").toString("base64");
+    const restore = withMuxEnv({ MUX_SIGNING_KEY_PRIVATE: blob });
+    try {
+      vi.resetModules();
+      const { signPlaybackToken } = await import("./mux");
+      const token = await signPlaybackToken({
+        playbackId: "b64-id",
+        audience: "v",
+      });
+      const publicKey = await importSPKI(publicPem, "RS256");
+      const { payload } = await jwtVerify(token, publicKey);
+      expect(payload.sub).toBe("b64-id");
+    } finally {
+      restore();
+    }
+  });
+
+  it("throws a descriptive error when the key material is garbage", async () => {
+    const restore = withMuxEnv({ MUX_SIGNING_KEY_PRIVATE: "not-a-key" });
+    try {
+      vi.resetModules();
+      const { signPlaybackToken } = await import("./mux");
+      await expect(
+        signPlaybackToken({ playbackId: "x", audience: "v" })
+      ).rejects.toThrow(/MUX_SIGNING_KEY_PRIVATE is not a valid RSA private key/);
+    } finally {
+      restore();
+    }
+  });
 });
 
 describe("playbackUrl / thumbnailUrl", () => {

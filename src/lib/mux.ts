@@ -1,4 +1,5 @@
-import { SignJWT, importPKCS8 } from "jose";
+import { SignJWT } from "jose";
+import { createPrivateKey } from "node:crypto";
 
 // Mux REST client. We deliberately don't use @mux/mux-node — the surface we
 // need (create direct upload, fetch asset, sign playback JWTs) is small and
@@ -129,6 +130,30 @@ export async function deleteAsset(assetId: string): Promise<void> {
 
 // ── Signed playback ──────────────────────────────────────────────────────
 
+// Mux hands out the private key in one of several shapes depending on which
+// path you take through the dashboard:
+//   A. Multi-line PEM, PKCS#8  — `-----BEGIN PRIVATE KEY-----\n…`
+//   B. Multi-line PEM, PKCS#1  — `-----BEGIN RSA PRIVATE KEY-----\n…`
+//   C. Single-line PEM with literal `\n` escapes — what you get after
+//      pasting A or B into a Docker `--env-file`-friendly .env.
+//   D. Base64 blob (no PEM headers) — Mux's "copy" button on the signing
+//      key page returns this form directly.
+//
+// We normalise all four to a single PEM string and then parse with Node's
+// `createPrivateKey`, which accepts both PKCS#1 and PKCS#8, so callers don't
+// have to think about the distinction.
+function normalizeSigningKey(raw: string): string {
+  const trimmed = raw.trim();
+  let pem = trimmed.includes("-----BEGIN")
+    ? trimmed
+    : // Form D: base64 blob. Decode to the PEM bytes Mux originally emitted.
+      Buffer.from(trimmed, "base64").toString("utf8");
+  // Form C: literal `\n` → real newlines. Safe to apply unconditionally —
+  // a PEM that already contains real newlines has no `\n` pairs to rewrite.
+  if (pem.includes("\\n")) pem = pem.replace(/\\n/g, "\n");
+  return pem;
+}
+
 // Mux expects playback JWTs signed with RS256, using the signing key id as
 // `kid`. `aud` encodes the resource type: "v" for video, "t" for thumbnail,
 // "g" for GIF, "s" for storyboard.
@@ -138,16 +163,22 @@ export async function signPlaybackToken(opts: {
   ttlSeconds?: number;
 }): Promise<string> {
   const kid = process.env.MUX_SIGNING_KEY_ID;
-  const pemRaw = process.env.MUX_SIGNING_KEY_PRIVATE;
-  if (!kid || !pemRaw) {
+  const rawKey = process.env.MUX_SIGNING_KEY_PRIVATE;
+  if (!kid || !rawKey) {
     throw new Error(
       "MUX_SIGNING_KEY_ID and MUX_SIGNING_KEY_PRIVATE must be set for signed playback"
     );
   }
-  // Env vars stored on hosts like Vercel can't contain real newlines, so
-  // teams commonly encode the PEM with literal \n. Normalize either form.
-  const pem = pemRaw.includes("\\n") ? pemRaw.replace(/\\n/g, "\n") : pemRaw;
-  const key = await importPKCS8(pem, "RS256");
+  let key;
+  try {
+    key = createPrivateKey(normalizeSigningKey(rawKey));
+  } catch (err) {
+    throw new Error(
+      `MUX_SIGNING_KEY_PRIVATE is not a valid RSA private key. Accepted forms: PEM (PKCS#1 or PKCS#8) with real or literal "\\n" newlines, or the base64 blob copied from the Mux dashboard. Underlying error: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+  }
   const ttl = opts.ttlSeconds ?? 60 * 60; // 1h default
   return new SignJWT({ aud: opts.audience, sub: opts.playbackId })
     .setProtectedHeader({ alg: "RS256", kid, typ: "JWT" })
