@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
   Card,
@@ -19,25 +20,25 @@ import {
   saveOnboardingStep,
 } from "@/actions/onboarding.actions";
 
-const GOAL_OPTIONS = [
-  "Get ahead at school",
-  "Explore coding",
-  "Build STEM projects",
-  "Prepare for exams",
-  "Have fun learning",
-];
+const GOAL_KEYS = [
+  "getAhead",
+  "exploreCoding",
+  "buildProjects",
+  "prepareExams",
+  "haveFun",
+] as const;
 
-const SUBJECT_OPTIONS = [
-  "Math",
-  "Coding",
-  "Robotics",
-  "Science",
-  "Engineering",
-  "AI",
-  "Art + Design",
-];
+const SUBJECT_KEYS = [
+  "math",
+  "coding",
+  "robotics",
+  "science",
+  "engineering",
+  "ai",
+  "artDesign",
+] as const;
 
-const EXPERIENCE_OPTIONS = ["Beginner", "Some experience", "Advanced"];
+const EXPERIENCE_KEYS = ["beginner", "some", "advanced"] as const;
 
 function Pill({
   active,
@@ -70,6 +71,7 @@ function toggle<T>(list: T[], value: T): T[] {
 }
 
 export default function OnboardingWizardPage() {
+  const t = useTranslations("onboarding");
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -81,9 +83,9 @@ export default function OnboardingWizardPage() {
   const [availableHours, setAvailableHours] = useState<string>("");
 
   const steps = [
-    { title: "What brings you here?", description: "Pick all that apply." },
-    { title: "What subjects are you curious about?", description: "We'll recommend courses from these." },
-    { title: "Where are you starting from?", description: "No wrong answers." },
+    { title: t("steps.goalsTitle"), description: t("steps.goalsDescription") },
+    { title: t("steps.subjectsTitle"), description: t("steps.subjectsDescription") },
+    { title: t("steps.experienceTitle"), description: t("steps.experienceDescription") },
   ];
 
   async function advance() {
@@ -110,7 +112,7 @@ export default function OnboardingWizardPage() {
       }
       setStep((s) => s + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("genericError"));
     } finally {
       setLoading(false);
     }
@@ -137,13 +139,13 @@ export default function OnboardingWizardPage() {
         <CardContent className="space-y-4">
           {step === 0 && (
             <div className="flex flex-wrap gap-2">
-              {GOAL_OPTIONS.map((g) => (
+              {GOAL_KEYS.map((key) => (
                 <Pill
-                  key={g}
-                  active={goals.includes(g)}
-                  onClick={() => setGoals((prev) => toggle(prev, g))}
+                  key={key}
+                  active={goals.includes(key)}
+                  onClick={() => setGoals((prev) => toggle(prev, key))}
                 >
-                  {g}
+                  {t(`goals.${key}`)}
                 </Pill>
               ))}
             </div>
@@ -151,13 +153,13 @@ export default function OnboardingWizardPage() {
 
           {step === 1 && (
             <div className="flex flex-wrap gap-2">
-              {SUBJECT_OPTIONS.map((s) => (
+              {SUBJECT_KEYS.map((key) => (
                 <Pill
-                  key={s}
-                  active={subjects.includes(s)}
-                  onClick={() => setSubjects((prev) => toggle(prev, s))}
+                  key={key}
+                  active={subjects.includes(key)}
+                  onClick={() => setSubjects((prev) => toggle(prev, key))}
                 >
-                  {s}
+                  {t(`subjects.${key}`)}
                 </Pill>
               ))}
             </div>
@@ -166,21 +168,21 @@ export default function OnboardingWizardPage() {
           {step === 2 && (
             <>
               <div className="space-y-2">
-                <Label>Your experience</Label>
+                <Label>{t("experienceLabel")}</Label>
                 <div className="flex flex-wrap gap-2">
-                  {EXPERIENCE_OPTIONS.map((e) => (
+                  {EXPERIENCE_KEYS.map((key) => (
                     <Pill
-                      key={e}
-                      active={experience === e}
-                      onClick={() => setExperience(experience === e ? "" : e)}
+                      key={key}
+                      active={experience === key}
+                      onClick={() => setExperience(experience === key ? "" : key)}
                     >
-                      {e}
+                      {t(`experience.${key}`)}
                     </Pill>
                   ))}
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="hours">Hours you can study per week</Label>
+                <Label htmlFor="hours">{t("hoursLabel")}</Label>
                 <Input
                   id="hours"
                   type="number"
@@ -188,7 +190,7 @@ export default function OnboardingWizardPage() {
                   max={40}
                   value={availableHours}
                   onChange={(e) => setAvailableHours(e.target.value)}
-                  placeholder="e.g. 3"
+                  placeholder={t("hoursPlaceholder")}
                 />
               </div>
             </>
@@ -207,11 +209,11 @@ export default function OnboardingWizardPage() {
             disabled={step === 0 || loading}
             onClick={() => setStep((s) => Math.max(0, s - 1))}
           >
-            Back
+            {t("back")}
           </Button>
           <Button onClick={advance} disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {step === steps.length - 1 ? "Finish" : "Continue"}
+            {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+            {step === steps.length - 1 ? t("finish") : t("continue")}
           </Button>
         </CardFooter>
       </Card>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import {
   ChevronDown,
   Shield,
@@ -16,55 +17,82 @@ import { AuroraBlobs } from "@/components/ui/aurora-blobs";
 import { TestimonialCard } from "@/components/shared/testimonial-card";
 import { PricingTiers } from "./pricing-tiers";
 
-export const metadata: Metadata = {
-  title: "Pricing | Schulab",
-  description:
-    "Simple, transparent pricing for Schulab. Free, Pro, and School plans for STEM education.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("pricing");
+  return {
+    title: `${t("title")} | Schulab`,
+    description: t("subtitle"),
+  };
+}
 
 type Cell = boolean | string | "—";
+type ValueKey =
+  | "payPerKit"
+  | "off10"
+  | "bulkPricing"
+  | "discounted"
+  | "included"
+  | "limited"
+  | "full"
+  | "basic"
+  | "advanced"
+  | "advancedReports"
+  | "upTo3"
+  | "unlimited"
+  | "one";
 
-const comparisonMatrix: Array<{
-  group: string;
-  rows: Array<{ label: string; free: Cell; pro: Cell; school: Cell }>;
-}> = [
+type CellSpec = boolean | ValueKey | "—";
+
+interface Row {
+  labelKey: string;
+  free: CellSpec;
+  pro: CellSpec;
+  school: CellSpec;
+}
+
+interface Group {
+  groupKey: string;
+  rows: Row[];
+}
+
+const comparisonMatrix: Group[] = [
   {
-    group: "Learning",
+    groupKey: "learning",
     rows: [
-      { label: "Free courses", free: true, pro: true, school: true },
-      { label: "Premium STEM courses", free: false, pro: true, school: true },
-      { label: "Hands-on STEM kits", free: "Pay per kit", pro: "10% off", school: "Bulk pricing" },
-      { label: "Live tutoring sessions", free: "—", pro: "Discounted", school: "Included" },
-      { label: "Course catalog access", free: "Limited", pro: "Full", school: "Full" },
+      { labelKey: "freeCourses", free: true, pro: true, school: true },
+      { labelKey: "premiumCourses", free: false, pro: true, school: true },
+      { labelKey: "stemKits", free: "payPerKit", pro: "off10", school: "bulkPricing" },
+      { labelKey: "liveTutoring", free: "—", pro: "discounted", school: "included" },
+      { labelKey: "catalogAccess", free: "limited", pro: "full", school: "full" },
     ],
   },
   {
-    group: "Accounts & access",
+    groupKey: "accountsAccess",
     rows: [
-      { label: "Student accounts", free: "1", pro: "Up to 3", school: "Unlimited" },
-      { label: "Parent dashboard", free: true, pro: true, school: true },
-      { label: "Bulk enrollment", free: false, pro: false, school: true },
-      { label: "Custom branding", free: false, pro: false, school: true },
-      { label: "API access", free: false, pro: false, school: true },
+      { labelKey: "studentAccounts", free: "one", pro: "upTo3", school: "unlimited" },
+      { labelKey: "parentDashboard", free: true, pro: true, school: true },
+      { labelKey: "bulkEnrollment", free: false, pro: false, school: true },
+      { labelKey: "customBranding", free: false, pro: false, school: true },
+      { labelKey: "apiAccess", free: false, pro: false, school: true },
     ],
   },
   {
-    group: "Progress & rewards",
+    groupKey: "progressRewards",
     rows: [
-      { label: "Progress tracking", free: "Basic", pro: "Advanced", school: "Advanced + reports" },
-      { label: "Certificates of completion", free: false, pro: true, school: true },
-      { label: "Badges & XP system", free: true, pro: true, school: true },
-      { label: "Leaderboards", free: false, pro: true, school: true },
+      { labelKey: "progressTracking", free: "basic", pro: "advanced", school: "advancedReports" },
+      { labelKey: "certificates", free: false, pro: true, school: true },
+      { labelKey: "badgesXp", free: true, pro: true, school: true },
+      { labelKey: "leaderboards", free: false, pro: true, school: true },
     ],
   },
   {
-    group: "Support",
+    groupKey: "support",
     rows: [
-      { label: "Community support", free: true, pro: true, school: true },
-      { label: "Email support", free: false, pro: true, school: true },
-      { label: "Priority support", free: false, pro: true, school: true },
-      { label: "Dedicated account manager", free: false, pro: false, school: true },
-      { label: "Teacher training", free: false, pro: false, school: true },
+      { labelKey: "community", free: true, pro: true, school: true },
+      { labelKey: "email", free: false, pro: true, school: true },
+      { labelKey: "priority", free: false, pro: true, school: true },
+      { labelKey: "accountManager", free: false, pro: false, school: true },
+      { labelKey: "teacherTraining", free: false, pro: false, school: true },
     ],
   },
 ];
@@ -115,9 +143,44 @@ function CellRender({ value }: { value: Cell }) {
   );
 }
 
+function resolveCell(
+  spec: CellSpec,
+  tVal: (key: ValueKey) => string
+): Cell {
+  if (typeof spec === "boolean" || spec === "—") return spec;
+  return tVal(spec);
+}
+
 export default function PricingPage() {
   const t = useTranslations("pricing");
+  const tGroup = useTranslations("pricing.comparison.groups") as (
+    key: string
+  ) => string;
+  const tRow = useTranslations("pricing.comparison.rows") as (
+    key: string
+  ) => string;
+  const tVal = useTranslations("pricing.comparison.values") as (
+    key: ValueKey
+  ) => string;
   const faqs = t.raw("faq") as { q: string; a: string }[];
+
+  const trustPoints = [
+    {
+      icon: Shield,
+      title: t("trustCancelTitle"),
+      text: t("trustCancelBody"),
+    },
+    {
+      icon: Sparkles,
+      title: t("trustRefundTitle"),
+      text: t("trustRefundBody"),
+    },
+    {
+      icon: Zap,
+      title: t("trustInstantTitle"),
+      text: t("trustInstantBody"),
+    },
+  ];
 
   return (
     <div>
@@ -126,14 +189,14 @@ export default function PricingPage() {
         <AuroraBlobs variant="hero" />
         <div className="pointer-events-none absolute inset-0 bg-stem-grid-fade opacity-40" />
         <div className="pointer-events-none absolute inset-0">
-          <FloatingStar size={24} className="absolute top-10 left-[10%] animate-float opacity-40" />
-          <FloatingStar size={16} className="absolute top-24 right-[12%] animate-float-delayed opacity-30" />
+          <FloatingStar size={24} className="absolute top-10 start-[10%] animate-float opacity-40" />
+          <FloatingStar size={16} className="absolute top-24 end-[12%] animate-float-delayed opacity-30" />
         </div>
         <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
           <ScrollReveal mode="scale">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-4 py-1.5 text-sm font-semibold shadow-sm backdrop-blur">
               <Sparkles className="h-4 w-4 text-[var(--stem-rocket)]" />
-              <GradientText animated>Simple, honest pricing</GradientText>
+              <GradientText animated>{t("simpleHonestPricing")}</GradientText>
             </div>
           </ScrollReveal>
           <ScrollReveal mode="up" delay={80}>
@@ -163,23 +226,7 @@ export default function PricingPage() {
       {/* === Trust strip === */}
       <section className="mx-auto mt-16 max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-          {[
-            {
-              icon: Shield,
-              title: "Cancel anytime",
-              text: "No contracts. Cancel with one click.",
-            },
-            {
-              icon: Sparkles,
-              title: "14-day refund",
-              text: "Not a fit? Full money back within 14 days.",
-            },
-            {
-              icon: Zap,
-              title: "Instant access",
-              text: "Start learning the moment you sign up.",
-            },
-          ].map((trust, i) => (
+          {trustPoints.map((trust, i) => (
             <ScrollReveal key={trust.title} mode="up" delay={i * 90}>
               <div className="card-stem flex items-start gap-4 p-5 hover-lift">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-launch-gradient-soft">
@@ -202,10 +249,10 @@ export default function PricingPage() {
         <ScrollReveal mode="up">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#4f3ff0]">
-              Plan comparison
+              {t("planComparison")}
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
-              Compare every feature
+              {t("compareEveryFeature")}
             </h2>
           </div>
         </ScrollReveal>
@@ -217,53 +264,61 @@ export default function PricingPage() {
             <div className="sticky top-0 grid grid-cols-[2fr_1fr_1.2fr_1fr] items-center gap-4 border-b border-border/60 bg-white/95 px-6 py-5 backdrop-blur">
               <div></div>
               <div className="text-center">
-                <div className="font-display text-base font-bold">Free</div>
+                <div className="font-display text-base font-bold">
+                  {t("free.name")}
+                </div>
                 <div className="mt-0.5 text-xs text-muted-foreground">
-                  $0 / forever
+                  {t("perMo")}
                 </div>
               </div>
               <div className="rounded-2xl bg-launch-gradient-soft px-3 py-2 text-center ring-2 ring-[#4f3ff0]/20">
                 <div className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-[#ff8a3d]">
                   <Sparkles className="h-3 w-3" />
-                  Most popular
+                  {t("mostPopular")}
                 </div>
-                <div className="mt-1 font-display text-base font-bold">Pro</div>
-                <div className="text-xs text-muted-foreground">$19 / mo</div>
+                <div className="mt-1 font-display text-base font-bold">
+                  {t("pro.name")}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  $19 / {t("perMonth")}
+                </div>
               </div>
               <div className="text-center">
-                <div className="font-display text-base font-bold">School</div>
+                <div className="font-display text-base font-bold">
+                  {t("school.name")}
+                </div>
                 <div className="mt-0.5 text-xs text-muted-foreground">
-                  Custom
+                  {t("custom")}
                 </div>
               </div>
             </div>
 
             {/* Groups */}
             {comparisonMatrix.map((group) => (
-              <div key={group.group}>
+              <div key={group.groupKey}>
                 <div className="bg-muted/30 px-6 py-3">
                   <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-[#4f3ff0]">
-                    {group.group}
+                    {tGroup(group.groupKey)}
                   </p>
                 </div>
                 {group.rows.map((row, i) => (
                   <div
-                    key={row.label}
+                    key={row.labelKey}
                     className={`grid grid-cols-[2fr_1fr_1.2fr_1fr] items-center gap-4 px-6 py-4 ${
                       i % 2 === 1 ? "bg-muted/20" : ""
                     }`}
                   >
                     <span className="text-sm font-medium text-foreground/90">
-                      {row.label}
+                      {tRow(row.labelKey)}
                     </span>
                     <div className="flex justify-center">
-                      <CellRender value={row.free} />
+                      <CellRender value={resolveCell(row.free, (k) => tVal(k))} />
                     </div>
                     <div className="flex justify-center">
-                      <CellRender value={row.pro} />
+                      <CellRender value={resolveCell(row.pro, (k) => tVal(k))} />
                     </div>
                     <div className="flex justify-center">
-                      <CellRender value={row.school} />
+                      <CellRender value={resolveCell(row.school, (k) => tVal(k))} />
                     </div>
                   </div>
                 ))}
@@ -283,18 +338,20 @@ export default function PricingPage() {
                     : "border-border bg-white"
                 }`}
               >
-                <p className="font-display text-lg font-bold capitalize">
-                  {planKey}
+                <p className="font-display text-lg font-bold">
+                  {t(`${planKey}.name`)}
                 </p>
                 <ul className="mt-4 space-y-3">
                   {comparisonMatrix.flatMap((g) =>
                     g.rows.map((row) => (
                       <li
-                        key={`${g.group}-${row.label}`}
+                        key={`${g.groupKey}-${row.labelKey}`}
                         className="flex items-start justify-between gap-3 text-sm"
                       >
-                        <span className="text-foreground/80">{row.label}</span>
-                        <CellRender value={row[planKey]} />
+                        <span className="text-foreground/80">
+                          {tRow(row.labelKey)}
+                        </span>
+                        <CellRender value={resolveCell(row[planKey], (k) => tVal(k))} />
                       </li>
                     ))
                   )}
@@ -310,10 +367,10 @@ export default function PricingPage() {
         <ScrollReveal mode="up">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#4f3ff0]">
-              Worth every penny
+              {t("worthEveryPenny")}
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
-              From families &amp; schools who switched
+              {t("fromFamiliesSchools")}
             </h2>
           </div>
         </ScrollReveal>
@@ -331,7 +388,7 @@ export default function PricingPage() {
         <ScrollReveal mode="up">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#4f3ff0]">
-              Pricing FAQ
+              {t("faqTitle")}
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
               {t("faqTitle")}

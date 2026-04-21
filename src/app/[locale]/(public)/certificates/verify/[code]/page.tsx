@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Award, CheckCircle2, XCircle } from "lucide-react";
 import { verifyCertificate } from "@/services/certificate.service";
 
-export const metadata: Metadata = {
-  title: "Verify Certificate | Schulab",
-  description:
-    "Verify the authenticity of a Schulab certificate of completion.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("certificates");
+  return {
+    title: t("verifyPageTitle"),
+    description: t("verifyPageDescription"),
+  };
+}
 
 interface VerifyPageProps {
   params: Promise<{ code: string }>;
@@ -15,7 +18,11 @@ interface VerifyPageProps {
 
 export default async function VerifyCertificatePage({ params }: VerifyPageProps) {
   const { code } = await params;
-  const cert = await verifyCertificate(code);
+  const [t, locale, cert] = await Promise.all([
+    getTranslations("certificates"),
+    getLocale(),
+    verifyCertificate(code),
+  ]);
 
   if (!cert) {
     return (
@@ -25,31 +32,30 @@ export default async function VerifyCertificatePage({ params }: VerifyPageProps)
             <XCircle className="h-8 w-8 text-red-600" />
           </div>
           <h1 className="mt-5 font-display text-2xl font-bold">
-            Certificate not found
+            {t("notFoundTitle")}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            We couldn&apos;t find a certificate matching this code. Check that
-            the code is correct, or ask the issuer for a fresh link.
+            {t("notFoundBody")}
           </p>
           <p className="mt-6 font-mono text-xs text-muted-foreground">
-            Code: {code}
+            {t("codeLabel", { code })}
           </p>
           <Link
             href="/"
             className="mt-8 inline-flex items-center rounded-lg border border-input px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
           >
-            Back to Schulab
+            {t("backToHome")}
           </Link>
         </div>
       </div>
     );
   }
 
-  const issuedDate = new Date(cert.issuedAt).toLocaleDateString("en-US", {
+  const issuedDate = new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
-  });
+  }).format(new Date(cert.issuedAt));
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
@@ -60,10 +66,10 @@ export default async function VerifyCertificatePage({ params }: VerifyPageProps)
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[#047857]">
-              Verified
+              {t("verified")}
             </p>
             <h1 className="font-display text-xl font-bold">
-              This certificate is authentic
+              {t("authentic")}
             </h1>
           </div>
         </div>
@@ -71,15 +77,15 @@ export default async function VerifyCertificatePage({ params }: VerifyPageProps)
         <dl className="mt-8 space-y-5 border-t pt-6 text-sm">
           <div>
             <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Awarded to
+              {t("awardedTo")}
             </dt>
             <dd className="mt-1 font-display text-lg font-semibold">
-              {cert.user.name ?? "Learner"}
+              {cert.user.name ?? t("learner")}
             </dd>
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Course
+              {t("courseLabel")}
             </dt>
             <dd className="mt-1 font-display text-lg font-semibold">
               {cert.course?.title ?? "—"}
@@ -88,12 +94,12 @@ export default async function VerifyCertificatePage({ params }: VerifyPageProps)
           <div className="flex items-center gap-2">
             <Award className="h-4 w-4 text-[#4f3ff0]" />
             <span className="text-muted-foreground">
-              Issued on {issuedDate}
+              {t("issuedOn", { date: issuedDate })}
             </span>
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Certificate ID
+              {t("certificateId")}
             </dt>
             <dd className="mt-1 font-mono text-sm">{cert.code}</dd>
           </div>
@@ -104,7 +110,7 @@ export default async function VerifyCertificatePage({ params }: VerifyPageProps)
             href="/"
             className="inline-flex items-center rounded-lg border border-input px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
           >
-            Learn more about Schulab
+            {t("learnMore")}
           </Link>
         </div>
       </div>

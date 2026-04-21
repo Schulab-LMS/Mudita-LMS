@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 export type BillingCycle = "monthly" | "annual";
@@ -15,9 +16,10 @@ interface BillingToggleProps {
 export function BillingToggle({
   value,
   onChange,
-  saveLabel = "Save 20%",
+  saveLabel,
   className,
 }: BillingToggleProps) {
+  const t = useTranslations("pricing.billing");
   return (
     <div
       className={cn(
@@ -25,7 +27,7 @@ export function BillingToggle({
         className
       )}
       role="radiogroup"
-      aria-label="Billing cycle"
+      aria-label={t("cycleLabel")}
     >
       <button
         type="button"
@@ -39,7 +41,7 @@ export function BillingToggle({
             : "text-muted-foreground hover:text-foreground"
         )}
       >
-        Monthly
+        {t("monthly")}
       </button>
       <button
         type="button"
@@ -53,16 +55,16 @@ export function BillingToggle({
             : "text-muted-foreground hover:text-foreground"
         )}
       >
-        Annual
+        {t("annual")}
         <span
           className={cn(
-            "ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+            "ms-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
             value === "annual"
               ? "bg-white/25 text-white"
               : "bg-[#34d399]/15 text-[#047857]"
           )}
         >
-          {saveLabel}
+          {saveLabel ?? t("save20")}
         </span>
       </button>
     </div>
