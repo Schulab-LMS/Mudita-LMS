@@ -28,6 +28,13 @@ export function TutorCard({ tutor }: TutorCardProps) {
   const ratingNum = Number(tutor.rating);
   const stars = ratingNum > 0 ? Math.round(ratingNum) : 0;
 
+  const requestHref =
+    "/contact?" +
+    new URLSearchParams({
+      subject: `Tutor session — ${tutor.user.name}`,
+      message: `Hi, I'd like to book a session with ${tutor.user.name} (subjects: ${tutor.subjects.slice(0, 3).join(", ") || "any"}). Preferred days/times:`,
+    }).toString();
+
   return (
     <div className="flex flex-col rounded-xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-start gap-3">
@@ -77,10 +84,10 @@ export function TutorCard({ tutor }: TutorCardProps) {
           <span className="font-normal text-muted-foreground"> / hr</span>
         </p>
         <Link
-          href={`/tutors/${tutor.id}`}
+          href={requestHref}
           className="inline-flex items-center rounded-lg bg-primary px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
         >
-          Book Session
+          Request Session
         </Link>
       </div>
     </div>

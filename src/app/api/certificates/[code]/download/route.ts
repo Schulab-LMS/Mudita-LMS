@@ -211,7 +211,7 @@ export async function GET(
         </div>
       </div>
     </div>
-    <div class="verification">Verify at schulab.com/verify/${cert.code}</div>
+    <div class="verification">Verify at schulab.com/certificates/verify/${cert.code}</div>
   </div>
 </body>
 </html>`;

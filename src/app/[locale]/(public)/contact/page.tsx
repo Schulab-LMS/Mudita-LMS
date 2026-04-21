@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -22,6 +23,7 @@ type ContactFormData = z.infer<typeof contactSchema>;
 
 export default function ContactPage() {
   const t = useTranslations("contact");
+  const searchParams = useSearchParams();
   const [sent, setSent] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -31,6 +33,10 @@ export default function ContactPage() {
     formState: { errors, isSubmitting },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
+    defaultValues: {
+      subject: searchParams.get("subject") ?? "",
+      message: searchParams.get("message") ?? "",
+    },
   });
 
   async function onSubmit(data: ContactFormData) {

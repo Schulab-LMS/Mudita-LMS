@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { enrollInCourse } from "@/actions/enrollment.actions";
+import { buyCourse } from "@/actions/billing.actions";
 import { Loader2, Play, CheckCircle2, ShoppingCart } from "lucide-react";
 
 interface EnrollButtonProps {
@@ -76,10 +77,18 @@ export function EnrollButton({
     setError(null);
 
     if (!isFree) {
-      // For paid courses, redirect to a future checkout page
-      // For now, show a message
-      setError("Paid enrollment coming soon. Contact support for access.");
-      setLoading(false);
+      const result = await buyCourse({ courseId });
+      if (!result.success) {
+        if (/not authenticated/i.test(result.error)) {
+          router.push("/login");
+          return;
+        }
+        setError(result.error);
+        setLoading(false);
+        return;
+      }
+      // Hand off to Stripe — full-page redirect (not a client router push).
+      window.location.assign(result.data.url);
       return;
     }
 

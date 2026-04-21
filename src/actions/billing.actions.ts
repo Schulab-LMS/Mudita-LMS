@@ -27,17 +27,17 @@ function guard<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
 
 export async function buyCourse(input: { courseId: string; couponCode?: string }) {
   if (!isStripeConfigured()) {
-    return { success: false, error: "Billing is not configured yet" };
+    return { success: false as const, error: "Billing is not configured yet" };
   }
 
   const session = await auth();
   if (!session?.user?.id) {
-    return { success: false, error: "Not authenticated" };
+    return { success: false as const, error: "Not authenticated" };
   }
 
   const parsed = buyCourseSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
+    return { success: false as const, error: parsed.error.issues[0].message };
   }
 
   return guard(() =>
@@ -51,17 +51,17 @@ export async function buyCourse(input: { courseId: string; couponCode?: string }
 
 export async function startSubscription(input: { planId: string; couponCode?: string }) {
   if (!isStripeConfigured()) {
-    return { success: false, error: "Billing is not configured yet" };
+    return { success: false as const, error: "Billing is not configured yet" };
   }
 
   const session = await auth();
   if (!session?.user?.id) {
-    return { success: false, error: "Not authenticated" };
+    return { success: false as const, error: "Not authenticated" };
   }
 
   const parsed = startSubscriptionSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
+    return { success: false as const, error: parsed.error.issues[0].message };
   }
 
   return guard(() =>
@@ -75,12 +75,12 @@ export async function startSubscription(input: { planId: string; couponCode?: st
 
 export async function openBillingPortal() {
   if (!isStripeConfigured()) {
-    return { success: false, error: "Billing is not configured yet" };
+    return { success: false as const, error: "Billing is not configured yet" };
   }
 
   const session = await auth();
   if (!session?.user?.id) {
-    return { success: false, error: "Not authenticated" };
+    return { success: false as const, error: "Not authenticated" };
   }
 
   return guard(() => createBillingPortalSession({ userId: session.user!.id! }));
