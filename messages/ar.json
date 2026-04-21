@@ -814,6 +814,144 @@
       "COMPLETED": "مكتمل",
       "CANCELLED": "ملغى",
       "EXPIRED": "منتهٍ"
+    },
+    "confirm": {
+      "irreversible": "لا يمكن التراجع عن هذا الإجراء.",
+      "deleteTitle": "حذف {name}؟",
+      "deleteGenericTitle": "تأكيد الحذف",
+      "deleteTutor": {
+        "title": "حذف ملف المدرّس؟",
+        "body": "سيتم حذف ملف المدرّس ”{name}“. لا يمكن التراجع عن هذا الإجراء.",
+        "confirm": "حذف الملف"
+      },
+      "deletePage": {
+        "title": "حذف الصفحة؟",
+        "body": "سيتم حذف ”{name}“. لا يمكن التراجع عن هذا الإجراء.",
+        "confirm": "حذف الصفحة"
+      },
+      "deleteProduct": {
+        "title": "حذف المنتج؟",
+        "body": "سيتم حذف ”{name}“. لا يمكن التراجع عن هذا الإجراء.",
+        "confirm": "حذف المنتج"
+      },
+      "deleteHelp": {
+        "title": "حذف المقالة؟",
+        "body": "سيتم حذف ”{name}“. لا يمكن التراجع عن هذا الإجراء.",
+        "confirm": "حذف المقالة"
+      },
+      "deleteModule": {
+        "title": "حذف الوحدة؟",
+        "body": "سيتم حذف الوحدة وجميع دروسها. لا يمكن التراجع عن هذا الإجراء.",
+        "confirm": "حذف الوحدة"
+      },
+      "deleteLesson": {
+        "title": "حذف الدرس؟",
+        "body": "لا يمكن التراجع عن هذا الإجراء.",
+        "confirm": "حذف الدرس"
+      },
+      "deleteQuiz": {
+        "title": "حذف الاختبار؟",
+        "body": "سيتم حذف الاختبار وجميع أسئلته. لا يمكن التراجع عن هذا الإجراء.",
+        "confirm": "حذف الاختبار"
+      },
+      "deleteQuestion": {
+        "title": "حذف السؤال؟",
+        "body": "لا يمكن التراجع عن هذا الإجراء.",
+        "confirm": "حذف السؤال"
+      },
+      "removeEnrollment": {
+        "title": "إزالة الطالب؟",
+        "body": "إزالة هذا الطالب من الدورة. سيتم فقدان بيانات تقدّمه.",
+        "confirm": "إزالة الطالب"
+      },
+      "removeVideo": {
+        "title": "إزالة الفيديو؟",
+        "body": "سيتم حذف الفيديو من Mux ولا يمكن استعادته.",
+        "confirm": "إزالة الفيديو"
+      },
+      "deleteCourse": {
+        "title": "حذف الدورة؟",
+        "body": "سيتم حذف جميع الوحدات والدروس والتسجيلات. لا يمكن التراجع عن هذا الإجراء.",
+        "confirm": "حذف الدورة"
+      }
+    },
+    "actions": {
+      "publish": "نشر",
+      "unpublish": "إلغاء النشر",
+      "revoke": "إبطال",
+      "revokeFailed": "فشل الإبطال.",
+      "approve": "اعتماد",
+      "reject": "رفض",
+      "verify": "تحقّق",
+      "remove": "إزالة",
+      "removeVideo": "إزالة الفيديو",
+      "feature": "تمييز",
+      "unfeature": "إلغاء التمييز",
+      "archive": "أرشفة",
+      "reopen": "إعادة فتح"
+    },
+    "certificates": {
+      "issueTitle": "إصدار شهادة",
+      "issueButton": "إصدار الشهادة",
+      "issueSuccess": "تم إصدار الشهادة بنجاح.",
+      "issueFailed": "فشل إصدار الشهادة.",
+      "userIdLabel": "معرّف المستخدم",
+      "courseIdLabel": "معرّف الدورة",
+      "revokeConfirm": "إبطال"
+    },
+    "rolesPage": {
+      "pageTitle": "الأدوار والصلاحيات",
+      "permissionCol": "الصلاحية"
+    },
+    "modules": {
+      "heading": "الوحدات والدروس",
+      "addModule": "إضافة وحدة",
+      "moduleTitlePlaceholder": "عنوان الوحدة…",
+      "addingButton": "جارٍ الإضافة…",
+      "addButton": "إضافة",
+      "cancelButton": "إلغاء",
+      "emptyMessage": "لا توجد وحدات بعد. أضف أول وحدة لتبدأ ببناء محتوى الدورة.",
+      "lessonCount": "{count, plural, zero {لا دروس} one {درس واحد} two {درسان} few {# دروس} many {# درساً} other {# درس}}",
+      "addLesson": "درس",
+      "noLessonsPrefix": "لا دروس بعد.",
+      "addLessonLink": "إضافة درس",
+      "hasVideo": "يحتوي على فيديو",
+      "quizAttached": "اختبار ✓",
+      "addQuiz": "اختبار",
+      "lessonTypes": {
+        "VIDEO": "فيديو",
+        "TEXT": "نص",
+        "QUIZ": "اختبار",
+        "INTERACTIVE": "تفاعلي",
+        "ASSIGNMENT": "واجب"
+      },
+      "durationMinutes": "{m} د"
+    },
+    "enrollments": {
+      "heading": "الطلاب المسجّلون ({count})",
+      "enrollStudent": "تسجيل طالب",
+      "enrollButton": "تسجيل",
+      "enrollingButton": "جارٍ التسجيل…",
+      "userIdPlaceholder": "معرّف المستخدم (من صفحة المستخدمين)",
+      "enrollFailed": "فشل تسجيل المستخدم.",
+      "emptyMessage": "لا طلاب مسجّلون بعد.",
+      "studentCol": "الطالب",
+      "progressCol": "التقدّم",
+      "enrolledCol": "تاريخ التسجيل"
+    },
+    "videoUpload": {
+      "uploaded": "تم رفع الفيديو",
+      "processing": "(قيد المعالجة)",
+      "uploading": "جارٍ الرفع…",
+      "creatingTicket": "جارٍ إنشاء تذكرة الرفع…",
+      "confirming": "جارٍ التأكيد…",
+      "muxReportedFailed": "أبلغ Mux بفشل الرفع. حاول مجددًا.",
+      "uploadFailedWithStatus": "فشل الرفع ({status})",
+      "uploadFailedGeneric": "فشل الرفع.",
+      "networkError": "خطأ في الشبكة أثناء الرفع.",
+      "tryAgain": "حاول مجددًا",
+      "clickToUpload": "انقر لرفع فيديو",
+      "formatsHint": "MP4 أو MOV أو WEBM حتى عدّة غيغابايت"
     }
   }
 }

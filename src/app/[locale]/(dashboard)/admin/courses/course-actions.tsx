@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { deleteCourse, toggleCourseStatus } from "@/actions/admin.actions";
 import { Link } from "@/i18n/navigation";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface Props {
   courseId: string;
@@ -10,21 +12,24 @@ interface Props {
 }
 
 export function CourseActions({ courseId, status }: Props) {
+  const tConfirm = useTranslations("admin.confirm.deleteCourse");
+  const tCommon = useTranslations("admin.common");
+  const tActions = useTranslations("admin.actions");
   const [pending, startTransition] = useTransition();
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   function handleStatusChange(newStatus: string) {
     startTransition(async () => {
       const result = await toggleCourseStatus(courseId, newStatus);
-      if (!result.success) alert(result.error);
+      if (!result.success) alert(result.error ?? tCommon("genericError"));
     });
   }
 
   function handleDelete() {
     startTransition(async () => {
       const result = await deleteCourse(courseId);
-      if (!result.success) alert(result.error);
-      setShowConfirm(false);
+      if (!result.success) alert(result.error ?? tCommon("genericError"));
+      setConfirmOpen(false);
     });
   }
 
@@ -37,7 +42,7 @@ export function CourseActions({ courseId, status }: Props) {
           disabled={pending}
           className="rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50 disabled:opacity-50"
         >
-          Publish
+          {tActions("publish")}
         </button>
       )}
       {status === "PUBLISHED" && (
@@ -46,7 +51,7 @@ export function CourseActions({ courseId, status }: Props) {
           disabled={pending}
           className="rounded px-2 py-1 text-xs font-medium text-yellow-700 hover:bg-yellow-50 disabled:opacity-50"
         >
-          Archive
+          {tActions("archive")}
         </button>
       )}
       {status === "ARCHIVED" && (
@@ -55,7 +60,7 @@ export function CourseActions({ courseId, status }: Props) {
           disabled={pending}
           className="rounded px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50"
         >
-          Reopen
+          {tActions("reopen")}
         </button>
       )}
 
@@ -64,34 +69,29 @@ export function CourseActions({ courseId, status }: Props) {
         href={`/admin/courses/${courseId}/edit`}
         className="rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
       >
-        Edit
+        {tCommon("edit")}
       </Link>
 
       {/* Delete */}
-      {showConfirm ? (
-        <div className="flex items-center gap-1">
-          <button
-            onClick={handleDelete}
-            disabled={pending}
-            className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
-          >
-            {pending ? "..." : "Confirm"}
-          </button>
-          <button
-            onClick={() => setShowConfirm(false)}
-            className="rounded px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
-          >
-            Cancel
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => setShowConfirm(true)}
-          className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
-        >
-          Delete
-        </button>
-      )}
+      <button
+        onClick={() => setConfirmOpen(true)}
+        disabled={pending}
+        className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+      >
+        {tCommon("delete")}
+      </button>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={tConfirm("title")}
+        description={tConfirm("body")}
+        confirmLabel={tConfirm("confirm")}
+        cancelLabel={tCommon("cancel")}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmOpen(false)}
+        variant="destructive"
+        loading={pending}
+      />
     </div>
   );
 }

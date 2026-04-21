@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createModule, deleteModule } from "@/actions/course-content.actions";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface Lesson {
   id: string;
@@ -35,11 +37,18 @@ const TYPE_ICONS: Record<string, string> = {
   ASSIGNMENT: "📋",
 };
 
+const KNOWN_LESSON_TYPES = new Set(Object.keys(TYPE_ICONS));
+
 export function ModuleList({ courseId, modules }: Props) {
+  const t = useTranslations("admin.modules");
+  const tTypes = useTranslations("admin.modules.lessonTypes");
+  const tCommon = useTranslations("admin.common");
+  const tConfirm = useTranslations("admin.confirm.deleteModule");
   const [showAddModule, setShowAddModule] = useState(false);
   const [newModuleTitle, setNewModuleTitle] = useState("");
   const [pending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmModuleId, setConfirmModuleId] = useState<string | null>(null);
 
   function handleAddModule() {
     if (!newModuleTitle.trim()) return;
@@ -53,36 +62,38 @@ export function ModuleList({ courseId, modules }: Props) {
         setNewModuleTitle("");
         setShowAddModule(false);
       } else {
-        alert(result.error);
+        alert(result.error ?? tCommon("genericError"));
       }
     });
   }
 
-  function handleDeleteModule(moduleId: string) {
-    if (!confirm("Delete this module and all its lessons?")) return;
+  function handleDeleteModule() {
+    if (!confirmModuleId) return;
+    const moduleId = confirmModuleId;
     setDeletingId(moduleId);
     startTransition(async () => {
       const result = await deleteModule(moduleId);
-      if (!result.success) alert(result.error);
+      if (!result.success) alert(result.error ?? tCommon("genericError"));
       setDeletingId(null);
+      setConfirmModuleId(null);
     });
   }
 
   function formatDuration(seconds: number | null) {
     if (!seconds) return "";
     const mins = Math.floor(seconds / 60);
-    return `${mins}m`;
+    return t("durationMinutes", { m: mins });
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Modules & Lessons</h2>
+        <h2 className="text-lg font-semibold">{t("heading")}</h2>
         <button
           onClick={() => setShowAddModule(true)}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
         >
-          + Add Module
+          + {t("addModule")}
         </button>
       </div>
 
@@ -91,7 +102,7 @@ export function ModuleList({ courseId, modules }: Props) {
         <div className="flex items-center gap-3 rounded-lg border bg-white p-4">
           <input
             type="text"
-            placeholder="Module title..."
+            placeholder={t("moduleTitlePlaceholder")}
             value={newModuleTitle}
             onChange={(e) => setNewModuleTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddModule()}
@@ -103,13 +114,13 @@ export function ModuleList({ courseId, modules }: Props) {
             disabled={pending || !newModuleTitle.trim()}
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
           >
-            {pending ? "Adding..." : "Add"}
+            {pending ? t("addingButton") : t("addButton")}
           </button>
           <button
             onClick={() => { setShowAddModule(false); setNewModuleTitle(""); }}
             className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
           >
-            Cancel
+            {t("cancelButton")}
           </button>
         </div>
       )}
@@ -117,7 +128,7 @@ export function ModuleList({ courseId, modules }: Props) {
       {/* Module list */}
       {modules.length === 0 && !showAddModule ? (
         <div className="rounded-lg border bg-white p-8 text-center text-muted-foreground">
-          No modules yet. Add your first module to start building course content.
+          {t("emptyMessage")}
         </div>
       ) : (
         modules.map((mod) => (
@@ -130,7 +141,7 @@ export function ModuleList({ courseId, modules }: Props) {
                 </span>
                 <h3 className="font-semibold">{mod.title}</h3>
                 <span className="text-xs text-muted-foreground">
-                  {mod.lessons.length} lesson{mod.lessons.length !== 1 ? "s" : ""}
+                  {t("lessonCount", { count: mod.lessons.length })}
                 </span>
               </div>
               <div className="flex items-center gap-1">
@@ -138,20 +149,20 @@ export function ModuleList({ courseId, modules }: Props) {
                   href={`/admin/courses/${courseId}/modules/${mod.id}/edit`}
                   className="rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
                 >
-                  Edit
+                  {tCommon("edit")}
                 </Link>
                 <Link
                   href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/new`}
                   className="rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
                 >
-                  + Lesson
+                  + {t("addLesson")}
                 </Link>
                 <button
-                  onClick={() => handleDeleteModule(mod.id)}
+                  onClick={() => setConfirmModuleId(mod.id)}
                   disabled={pending && deletingId === mod.id}
                   className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
                 >
-                  {deletingId === mod.id ? "..." : "Delete"}
+                  {deletingId === mod.id ? "..." : tCommon("delete")}
                 </button>
               </div>
             </div>
@@ -159,12 +170,12 @@ export function ModuleList({ courseId, modules }: Props) {
             {/* Lesson list */}
             {mod.lessons.length === 0 ? (
               <div className="px-4 py-4 text-center text-sm text-muted-foreground">
-                No lessons yet.{" "}
+                {t("noLessonsPrefix")}{" "}
                 <Link
                   href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/new`}
                   className="text-primary hover:underline"
                 >
-                  Add a lesson
+                  {t("addLessonLink")}
                 </Link>
               </div>
             ) : (
@@ -175,18 +186,25 @@ export function ModuleList({ courseId, modules }: Props) {
                     className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/30"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-base" title={lesson.type}>
+                      <span
+                        className="text-base"
+                        title={KNOWN_LESSON_TYPES.has(lesson.type) ? tTypes(lesson.type) : lesson.type}
+                      >
                         {TYPE_ICONS[lesson.type] ?? "📄"}
                       </span>
                       <div>
                         <span className="text-sm font-medium">{lesson.title}</span>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{lesson.type}</span>
+                          <span>
+                            {KNOWN_LESSON_TYPES.has(lesson.type) ? tTypes(lesson.type) : lesson.type}
+                          </span>
                           {lesson.duration && <span>&middot; {formatDuration(lesson.duration)}</span>}
                           {lesson.isFree && (
-                            <span className="rounded bg-green-100 px-1.5 py-0.5 text-green-800">Free</span>
+                            <span className="rounded bg-green-100 px-1.5 py-0.5 text-green-800">
+                              {tCommon("free")}
+                            </span>
                           )}
-                          {lesson.videoUrl && <span>&middot; Has video</span>}
+                          {lesson.videoUrl && <span>&middot; {t("hasVideo")}</span>}
                         </div>
                       </div>
                     </div>
@@ -199,13 +217,13 @@ export function ModuleList({ courseId, modules }: Props) {
                             : "text-muted-foreground hover:bg-muted"
                         }`}
                       >
-                        {lesson.quiz ? "Quiz ✓" : "+ Quiz"}
+                        {lesson.quiz ? t("quizAttached") : `+ ${t("addQuiz")}`}
                       </Link>
                       <Link
                         href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/edit`}
                         className="rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
                       >
-                        Edit
+                        {tCommon("edit")}
                       </Link>
                     </div>
                   </div>
@@ -215,6 +233,18 @@ export function ModuleList({ courseId, modules }: Props) {
           </div>
         ))
       )}
+
+      <ConfirmDialog
+        open={confirmModuleId !== null}
+        title={tConfirm("title")}
+        description={tConfirm("body")}
+        confirmLabel={tConfirm("confirm")}
+        cancelLabel={tCommon("cancel")}
+        onConfirm={handleDeleteModule}
+        onCancel={() => setConfirmModuleId(null)}
+        variant="destructive"
+        loading={pending}
+      />
     </div>
   );
 }

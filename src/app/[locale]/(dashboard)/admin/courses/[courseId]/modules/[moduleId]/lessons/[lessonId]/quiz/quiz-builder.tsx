@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   createQuiz,
@@ -10,6 +11,7 @@ import {
   updateQuestion,
   deleteQuestion,
 } from "@/actions/quiz-admin.actions";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface Answer {
   id?: string;
@@ -52,11 +54,16 @@ const QUESTION_TYPES = [
 ];
 
 export function QuizBuilder({ lessonId, courseId, quiz: initialQuiz }: Props) {
+  const tConfirmQuiz = useTranslations("admin.confirm.deleteQuiz");
+  const tConfirmQuestion = useTranslations("admin.confirm.deleteQuestion");
+  const tCommon = useTranslations("admin.common");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [showNewQuestion, setShowNewQuestion] = useState(false);
+  const [confirmDeleteQuizOpen, setConfirmDeleteQuizOpen] = useState(false);
+  const [confirmDeleteQuestionId, setConfirmDeleteQuestionId] = useState<string | null>(null);
 
   // ── Create / Update / Delete Quiz ─────────────────────────────────────
 
@@ -97,14 +104,16 @@ export function QuizBuilder({ lessonId, courseId, quiz: initialQuiz }: Props) {
     });
   }
 
-  function handleDeleteQuiz() {
-    if (!initialQuiz || !confirm("Delete this quiz and all its questions?")) return;
+  function handleDeleteQuizConfirmed() {
+    if (!initialQuiz) return;
     startTransition(async () => {
       const result = await deleteQuiz(initialQuiz.id);
       if (result.success) {
+        setConfirmDeleteQuizOpen(false);
         router.refresh();
       } else {
-        setMessage({ type: "error", text: result.error ?? "Failed" });
+        setMessage({ type: "error", text: result.error ?? tCommon("genericError") });
+        setConfirmDeleteQuizOpen(false);
       }
     });
   }
@@ -158,12 +167,14 @@ export function QuizBuilder({ lessonId, courseId, quiz: initialQuiz }: Props) {
     });
   }
 
-  function handleDeleteQuestion(questionId: string) {
-    if (!confirm("Delete this question?")) return;
+  function handleDeleteQuestionConfirmed() {
+    if (!confirmDeleteQuestionId) return;
+    const questionId = confirmDeleteQuestionId;
     startTransition(async () => {
       const result = await deleteQuestion(questionId);
+      setConfirmDeleteQuestionId(null);
       if (result.success) router.refresh();
-      else setMessage({ type: "error", text: result.error ?? "Failed" });
+      else setMessage({ type: "error", text: result.error ?? tCommon("genericError") });
     });
   }
 
@@ -232,9 +243,9 @@ export function QuizBuilder({ lessonId, courseId, quiz: initialQuiz }: Props) {
               className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">
               {pending ? "Saving..." : "Save Settings"}
             </button>
-            <button type="button" onClick={handleDeleteQuiz} disabled={pending}
+            <button type="button" onClick={() => setConfirmDeleteQuizOpen(true)} disabled={pending}
               className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
-              Delete Quiz
+              {tConfirmQuiz("confirm")}
             </button>
           </div>
         </form>
@@ -299,9 +310,9 @@ export function QuizBuilder({ lessonId, courseId, quiz: initialQuiz }: Props) {
                       className="rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10">
                       Edit
                     </button>
-                    <button onClick={() => handleDeleteQuestion(q.id)} disabled={pending}
+                    <button onClick={() => setConfirmDeleteQuestionId(q.id)} disabled={pending}
                       className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
-                      Delete
+                      {tCommon("delete")}
                     </button>
                   </div>
                 </div>
@@ -334,6 +345,29 @@ export function QuizBuilder({ lessonId, courseId, quiz: initialQuiz }: Props) {
         className="inline-flex items-center text-sm text-primary hover:underline">
         ← Back to course
       </a>
+
+      <ConfirmDialog
+        open={confirmDeleteQuizOpen}
+        title={tConfirmQuiz("title")}
+        description={tConfirmQuiz("body")}
+        confirmLabel={tConfirmQuiz("confirm")}
+        cancelLabel={tCommon("cancel")}
+        onConfirm={handleDeleteQuizConfirmed}
+        onCancel={() => setConfirmDeleteQuizOpen(false)}
+        variant="destructive"
+        loading={pending}
+      />
+      <ConfirmDialog
+        open={confirmDeleteQuestionId !== null}
+        title={tConfirmQuestion("title")}
+        description={tConfirmQuestion("body")}
+        confirmLabel={tConfirmQuestion("confirm")}
+        cancelLabel={tCommon("cancel")}
+        onConfirm={handleDeleteQuestionConfirmed}
+        onCancel={() => setConfirmDeleteQuestionId(null)}
+        variant="destructive"
+        loading={pending}
+      />
     </div>
   );
 }
