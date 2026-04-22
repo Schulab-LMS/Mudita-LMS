@@ -132,6 +132,25 @@ jobs:
 
             export IMAGE_TAG="${IMAGE_TAG}"
 
+            # Preflight: docker --env-file can't parse multi-line values.
+            # Reject before we waste a pull + migrate on a .env that will
+            # blow up with "variable '…' contains whitespaces". Valid lines
+            # are blank, comments (#…), or NAME=VALUE where NAME is an
+            # identifier. Anything else means a value wrapped to a new line.
+            echo "==> Validating .env has no multi-line values"
+            if ! awk '
+              /^[[:space:]]*$/ { next }
+              /^[[:space:]]*#/ { next }
+              /^[A-Za-z_][A-Za-z0-9_]*=/ { next }
+              { print "invalid .env line " NR ": " $0; bad=1 }
+              END { exit bad ? 1 : 0 }
+            ' .env; then
+              echo "!! .env contains multi-line or malformed entries."
+              echo "!! Fix: put each value on one line. For PEM keys use"
+              echo "!!      literal \\n separators (see .env.example)."
+              exit 1
+            fi
+
             echo "==> Writing docker-compose.yml (synced from repo @ ${IMAGE_TAG})"
             cat > docker-compose.yml <<'COMPOSE_EOF'
             services:
