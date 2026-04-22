@@ -30,23 +30,23 @@ type ValueKey =
   | "payPerKit"
   | "off10"
   | "bulkPricing"
-  | "discounted"
+  | "twoFree"
+  | "twoPerChild"
   | "included"
   | "limited"
   | "full"
-  | "basic"
   | "advanced"
   | "advancedReports"
-  | "upTo3"
-  | "unlimited"
-  | "one";
+  | "one"
+  | "twoToThreePlus"
+  | "unlimited";
 
 type CellSpec = boolean | ValueKey | "—";
 
 interface Row {
   labelKey: string;
-  free: CellSpec;
-  pro: CellSpec;
+  basic: CellSpec;
+  family: CellSpec;
   school: CellSpec;
 }
 
@@ -59,40 +59,40 @@ const comparisonMatrix: Group[] = [
   {
     groupKey: "learning",
     rows: [
-      { labelKey: "freeCourses", free: true, pro: true, school: true },
-      { labelKey: "premiumCourses", free: false, pro: true, school: true },
-      { labelKey: "stemKits", free: "payPerKit", pro: "off10", school: "bulkPricing" },
-      { labelKey: "liveTutoring", free: "—", pro: "discounted", school: "included" },
-      { labelKey: "catalogAccess", free: "limited", pro: "full", school: "full" },
+      { labelKey: "freeCourses", basic: true, family: true, school: true },
+      { labelKey: "premiumCourses", basic: true, family: true, school: true },
+      { labelKey: "stemKits", basic: "off10", family: "off10", school: "bulkPricing" },
+      { labelKey: "liveTutoring", basic: "twoFree", family: "twoPerChild", school: "included" },
+      { labelKey: "catalogAccess", basic: "full", family: "full", school: "full" },
     ],
   },
   {
     groupKey: "accountsAccess",
     rows: [
-      { labelKey: "studentAccounts", free: "one", pro: "upTo3", school: "unlimited" },
-      { labelKey: "parentDashboard", free: true, pro: true, school: true },
-      { labelKey: "bulkEnrollment", free: false, pro: false, school: true },
-      { labelKey: "customBranding", free: false, pro: false, school: true },
-      { labelKey: "apiAccess", free: false, pro: false, school: true },
+      { labelKey: "studentAccounts", basic: "one", family: "twoToThreePlus", school: "unlimited" },
+      { labelKey: "parentDashboard", basic: true, family: true, school: true },
+      { labelKey: "bulkEnrollment", basic: false, family: false, school: true },
+      { labelKey: "customBranding", basic: false, family: false, school: true },
+      { labelKey: "apiAccess", basic: false, family: false, school: true },
     ],
   },
   {
     groupKey: "progressRewards",
     rows: [
-      { labelKey: "progressTracking", free: "basic", pro: "advanced", school: "advancedReports" },
-      { labelKey: "certificates", free: false, pro: true, school: true },
-      { labelKey: "badgesXp", free: true, pro: true, school: true },
-      { labelKey: "leaderboards", free: false, pro: true, school: true },
+      { labelKey: "progressTracking", basic: "advanced", family: "advanced", school: "advancedReports" },
+      { labelKey: "certificates", basic: true, family: true, school: true },
+      { labelKey: "badgesXp", basic: true, family: true, school: true },
+      { labelKey: "leaderboards", basic: true, family: true, school: true },
     ],
   },
   {
     groupKey: "support",
     rows: [
-      { labelKey: "community", free: true, pro: true, school: true },
-      { labelKey: "email", free: false, pro: true, school: true },
-      { labelKey: "priority", free: false, pro: true, school: true },
-      { labelKey: "accountManager", free: false, pro: false, school: true },
-      { labelKey: "teacherTraining", free: false, pro: false, school: true },
+      { labelKey: "community", basic: true, family: true, school: true },
+      { labelKey: "email", basic: true, family: true, school: true },
+      { labelKey: "priority", basic: false, family: true, school: true },
+      { labelKey: "accountManager", basic: false, family: false, school: true },
+      { labelKey: "teacherTraining", basic: false, family: false, school: true },
     ],
   },
 ];
@@ -265,10 +265,10 @@ export default function PricingPage() {
               <div></div>
               <div className="text-center">
                 <div className="font-display text-base font-bold">
-                  {t("free.name")}
+                  {t("basic.name")}
                 </div>
                 <div className="mt-0.5 text-xs text-muted-foreground">
-                  {t("perMo")}
+                  {t("basic.headerPrice")}
                 </div>
               </div>
               <div className="rounded-2xl bg-launch-gradient-soft px-3 py-2 text-center ring-2 ring-[#4f3ff0]/20">
@@ -277,10 +277,10 @@ export default function PricingPage() {
                   {t("mostPopular")}
                 </div>
                 <div className="mt-1 font-display text-base font-bold">
-                  {t("pro.name")}
+                  {t("family.name")}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  $19 / {t("perMonth")}
+                  {t("family.headerPrice")}
                 </div>
               </div>
               <div className="text-center">
@@ -312,10 +312,10 @@ export default function PricingPage() {
                       {tRow(row.labelKey)}
                     </span>
                     <div className="flex justify-center">
-                      <CellRender value={resolveCell(row.free, (k) => tVal(k))} />
+                      <CellRender value={resolveCell(row.basic, (k) => tVal(k))} />
                     </div>
                     <div className="flex justify-center">
-                      <CellRender value={resolveCell(row.pro, (k) => tVal(k))} />
+                      <CellRender value={resolveCell(row.family, (k) => tVal(k))} />
                     </div>
                     <div className="flex justify-center">
                       <CellRender value={resolveCell(row.school, (k) => tVal(k))} />
@@ -329,11 +329,11 @@ export default function PricingPage() {
 
         {/* Mobile stacked */}
         <div className="mt-10 space-y-6 md:hidden">
-          {(["free", "pro", "school"] as const).map((planKey) => (
+          {(["basic", "family", "school"] as const).map((planKey) => (
             <ScrollReveal key={planKey} mode="up">
               <div
                 className={`rounded-2xl border p-5 shadow-sm ${
-                  planKey === "pro"
+                  planKey === "family"
                     ? "border-[#4f3ff0]/40 bg-launch-gradient-soft"
                     : "border-border bg-white"
                 }`}

@@ -258,33 +258,46 @@
   },
   "pricing": {
     "title": "Simple, Transparent Pricing",
-    "subtitle": "Choose the plan that works best for your family. Start free, upgrade anytime.",
+    "subtitle": "Pick a monthly plan, then add 1:1 tutoring whenever you need a boost.",
     "guarantee": "14-day money-back guarantee on all paid plans",
-    "free": {
-      "name": "Free",
-      "price": "$0",
-      "period": "forever",
+    "subscriptionsLabel": "Monthly plans",
+    "subscriptionsTitle": "Subscriptions",
+    "subscriptionsSubtitle": "Unlimited self-paced learning paths, parent dashboard, and community — one simple price.",
+    "tutoringLabel": "1:1 tutoring",
+    "tutoringTitle": "Personalised tutoring, on demand",
+    "tutoringSubtitle": "50-minute sessions with certified STEM tutors. Buy once, book anytime — credits never expire.",
+    "tutoringFootnote": "Basic and Family subscriptions include 2 free tutoring sessions to get you started.",
+    "bestValue": "Best value",
+    "perSession": "{price}/session",
+    "saveAmount": "Save {amount}",
+    "basic": {
+      "name": "Basic",
+      "tagline": "For a single learner",
+      "period": "month",
+      "headerPrice": "€49 / month",
       "features": [
-        "Access to free courses",
-        "Basic progress tracking",
-        "Community access",
-        "1 child account"
+        "Full course catalogue + premium STEM content",
+        "Self-paced learning paths & projects",
+        "Parent dashboard with weekly progress",
+        "Community & email support",
+        "2 free tutoring sessions to get started"
       ],
-      "cta": "Create Free Account"
+      "cta": "Start learning"
     },
-    "pro": {
-      "name": "Pro",
-      "price": "$19",
-      "period": "per month",
+    "family": {
+      "name": "Family",
+      "tagline": "For households with multiple kids",
+      "period": "month",
+      "headerPrice": "€88 / month",
+      "secondaryLine": "or {price} / month for 3+ children",
       "features": [
-        "All free courses + premium content",
-        "Advanced progress tracking & analytics",
-        "Certificates of completion",
-        "Up to 3 child accounts",
-        "Priority support",
-        "Live tutoring discounts"
+        "Everything in Basic, for up to 3+ children",
+        "Shared parent dashboard across all learners",
+        "10% off for 2 children, 20% off for 3+",
+        "2 free tutoring sessions per child",
+        "Priority email support"
       ],
-      "cta": "Try Pro Free for 7 Days"
+      "cta": "Start your family plan"
     },
     "school": {
       "name": "School",
@@ -301,6 +314,37 @@
       ],
       "cta": "Get a Custom Quote"
     },
+    "tutoring": {
+      "single": {
+        "name": "Single session",
+        "features": [
+          "One 50-minute 1:1 session",
+          "Book any certified STEM tutor",
+          "Perfect for one-off help"
+        ],
+        "cta": "Book a session"
+      },
+      "pack4": {
+        "name": "4-session pack",
+        "features": [
+          "Four 50-minute sessions",
+          "Save vs buying singles",
+          "Share across subjects or tutors",
+          "Credits never expire"
+        ],
+        "cta": "Buy 4-pack"
+      },
+      "pack8": {
+        "name": "8-session pack",
+        "features": [
+          "Eight 50-minute sessions",
+          "Our biggest per-session discount",
+          "Share across subjects or tutors",
+          "Credits never expire"
+        ],
+        "cta": "Buy 8-pack"
+      }
+    },
     "faqTitle": "Pricing FAQ",
     "faq": [
       {
@@ -308,12 +352,16 @@
         "a": "Yes. You can cancel your subscription at any time from your account settings. Your access continues until the end of the billing period."
       },
       {
-        "q": "Is there a free trial for Pro?",
-        "a": "Yes! Pro comes with a 7-day free trial. No charge until the trial ends, and you can cancel anytime."
+        "q": "Do the 2 free tutoring sessions reset each month?",
+        "a": "They're a one-time welcome gift — 2 free sessions per learner when you first subscribe. After that, individual sessions are €25, or you can save with a 4- or 8-pack."
+      },
+      {
+        "q": "Do tutoring credits expire?",
+        "a": "No. Pack credits stay on your account until you use them, even if you pause or cancel a subscription."
       },
       {
         "q": "What payment methods do you accept?",
-        "a": "We accept all major credit cards, PayPal, and bank transfers for School plans."
+        "a": "We accept all major credit cards, SEPA direct debit, and bank transfers for School plans."
       },
       {
         "q": "Can I switch plans?",
@@ -323,8 +371,8 @@
     "mostPopular": "Most Popular",
     "forever": "forever",
     "custom": "Custom",
-    "perMonth": "per month",
-    "perMo": "$0 / forever",
+    "perMonth": "month",
+    "perMo": "€49 / month",
     "simpleHonestPricing": "Simple, honest pricing",
     "planComparison": "Plan comparison",
     "compareEveryFeature": "Compare every feature",
@@ -375,16 +423,16 @@
         "payPerKit": "Pay per kit",
         "off10": "10% off",
         "bulkPricing": "Bulk pricing",
-        "discounted": "Discounted",
+        "twoFree": "2 free, then €25/session",
+        "twoPerChild": "2 free/child, then €25",
         "included": "Included",
         "limited": "Limited",
         "full": "Full",
-        "basic": "Basic",
         "advanced": "Advanced",
         "advancedReports": "Advanced + reports",
-        "upTo3": "Up to 3",
-        "unlimited": "Unlimited",
-        "one": "1"
+        "one": "1",
+        "twoToThreePlus": "2 to 3+",
+        "unlimited": "Unlimited"
       }
     }
   },

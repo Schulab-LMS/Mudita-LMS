@@ -3,7 +3,17 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Check, Sparkles, Zap, ArrowRight } from "lucide-react";
+import {
+  Check,
+  Sparkles,
+  ArrowRight,
+  Rocket,
+  Users,
+  GraduationCap,
+  Zap,
+  BookOpen,
+  Star,
+} from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -14,51 +24,103 @@ import {
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { BillingToggle, type BillingCycle } from "@/components/shared/billing-toggle";
 
-interface Plan {
-  key: "free" | "pro" | "school";
+type SubKey = "basic" | "family" | "school";
+type PackKey = "single" | "pack4" | "pack8";
+
+interface SubPlan {
+  key: SubKey;
   featured: boolean;
   href: string;
-  monthlyUsd: number | null; // null = custom pricing
+  monthlyEur: number | null;
+  secondaryMonthlyEur?: number;
   accent: string;
-  accentBg: string;
   ringColor: string;
+  Icon: typeof Rocket;
 }
 
-const plans: Plan[] = [
+const subPlans: SubPlan[] = [
   {
-    key: "free",
+    key: "basic",
     featured: false,
     href: "/register",
-    monthlyUsd: 0,
+    monthlyEur: 49,
     accent: "text-[#4f3ff0]",
-    accentBg: "bg-[#4f3ff0]/10",
     ringColor: "from-[#4f3ff0]/20 to-[#8b5cf6]/20",
+    Icon: Rocket,
   },
   {
-    key: "pro",
+    key: "family",
     featured: true,
-    href: "/register",
-    monthlyUsd: 19,
+    href: "/register?plan=family",
+    monthlyEur: 88,
+    secondaryMonthlyEur: 118,
     accent: "text-[#ff8a3d]",
-    accentBg: "bg-[#ff8a3d]/10",
     ringColor: "from-[#ff8a3d]/30 to-[#ef4444]/30",
+    Icon: Users,
   },
   {
     key: "school",
     featured: false,
     href: "/contact?subject=School%20Plan%20Inquiry",
-    monthlyUsd: null,
+    monthlyEur: null,
     accent: "text-[#8b5cf6]",
-    accentBg: "bg-[#8b5cf6]/10",
     ringColor: "from-[#8b5cf6]/20 to-[#ec4899]/20",
+    Icon: GraduationCap,
   },
 ];
 
-function formatUsd(locale: string, amount: number): string {
+interface Pack {
+  key: PackKey;
+  priceEur: number;
+  sessions: number;
+  featured: boolean;
+  href: string;
+  accent: string;
+  ringColor: string;
+  Icon: typeof Zap;
+}
+
+const packs: Pack[] = [
+  {
+    key: "single",
+    priceEur: 25,
+    sessions: 1,
+    featured: false,
+    href: "/tutors",
+    accent: "text-[#4f3ff0]",
+    ringColor: "from-[#4f3ff0]/15 to-[#8b5cf6]/15",
+    Icon: Zap,
+  },
+  {
+    key: "pack4",
+    priceEur: 90,
+    sessions: 4,
+    featured: false,
+    href: "/tutors?pack=4",
+    accent: "text-[#ff8a3d]",
+    ringColor: "from-[#ff8a3d]/15 to-[#ef4444]/15",
+    Icon: BookOpen,
+  },
+  {
+    key: "pack8",
+    priceEur: 160,
+    sessions: 8,
+    featured: true,
+    href: "/tutors?pack=8",
+    accent: "text-[#ec4899]",
+    ringColor: "from-[#ec4899]/20 to-[#ff8a3d]/20",
+    Icon: Star,
+  },
+];
+
+const SINGLE_SESSION_EUR = 25;
+
+function formatEur(locale: string, amount: number, decimals = 0): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
+    currency: "EUR",
+    maximumFractionDigits: decimals,
+    minimumFractionDigits: decimals,
   }).format(amount);
 }
 
@@ -68,141 +130,287 @@ export function PricingTiers() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
 
   return (
-    <>
-      {/* Billing toggle */}
-      <ScrollReveal mode="up">
-        <div className="flex justify-center">
-          <BillingToggle value={cycle} onChange={setCycle} />
-        </div>
-      </ScrollReveal>
+    <div className="space-y-20">
+      {/* ============ SUBSCRIPTIONS ============ */}
+      <section>
+        <ScrollReveal mode="up">
+          <div className="text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#4f3ff0]">
+              {t("subscriptionsLabel")}
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">
+              {t("subscriptionsTitle")}
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
+              {t("subscriptionsSubtitle")}
+            </p>
+          </div>
+        </ScrollReveal>
 
-      {/* Plans */}
-      <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
-        {plans.map((plan, i) => {
-          const features = t.raw(`${plan.key}.features`) as string[];
+        <ScrollReveal mode="up" delay={80}>
+          <div className="mt-8 flex justify-center">
+            <BillingToggle value={cycle} onChange={setCycle} />
+          </div>
+        </ScrollReveal>
 
-          // Compute price label based on cycle (annual = 20% off)
-          let priceNode: React.ReactNode;
-          let periodLabel: string;
-          if (plan.monthlyUsd === null) {
-            priceNode = t("custom");
-            periodLabel = t(`${plan.key}.period`);
-          } else if (plan.monthlyUsd === 0) {
-            priceNode = formatUsd(locale, 0);
-            periodLabel = t("forever");
-          } else {
-            const display =
-              cycle === "annual"
-                ? Math.round(plan.monthlyUsd * 0.8)
-                : plan.monthlyUsd;
-            priceNode = formatUsd(locale, display);
-            periodLabel = t("perMonth");
-          }
+        <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
+          {subPlans.map((plan, i) => {
+            const features = t.raw(`${plan.key}.features`) as string[];
+            const Icon = plan.Icon;
 
-          return (
-            <ScrollReveal key={plan.key} mode="up" delay={i * 100}>
-              <Card
-                className={`relative flex h-full flex-col transition-all hover-lift shine ${
-                  plan.featured
-                    ? "ring-launch-gradient shadow-hero md:-translate-y-4 bg-gradient-to-b from-white to-indigo-50/30"
-                    : "border hover:shadow-elev"
-                }`}
-              >
-                {plan.featured && (
-                  <div className="absolute -top-3 inset-x-0 flex justify-center">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-launch-gradient px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-md">
-                      <Sparkles className="h-3 w-3" />
-                      {t("mostPopular")}
-                    </span>
-                  </div>
-                )}
+            let priceNode: React.ReactNode;
+            let periodLabel: string;
+            let secondaryLine: React.ReactNode = null;
+            let annualSavings: React.ReactNode = null;
 
-                <CardHeader className="text-center">
-                  <div
-                    className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${plan.ringColor}`}
-                  >
-                    <Zap className={`h-6 w-6 ${plan.accent}`} />
-                  </div>
-                  <CardTitle className="mt-4 font-display text-xl">
-                    {t(`${plan.key}.name`)}
-                  </CardTitle>
-                  <div className="mt-4">
-                    <span
-                      className={`font-display text-5xl font-extrabold ${
-                        plan.featured ? "text-launch-gradient" : ""
+            if (plan.monthlyEur === null) {
+              priceNode = t("custom");
+              periodLabel = t(`${plan.key}.period`);
+            } else {
+              const monthly = plan.monthlyEur;
+              const display =
+                cycle === "annual" ? Math.round(monthly * 0.8) : monthly;
+              priceNode = formatEur(locale, display);
+              periodLabel = t("perMonth");
+
+              if (plan.secondaryMonthlyEur) {
+                const secondary = plan.secondaryMonthlyEur;
+                const secDisplay =
+                  cycle === "annual"
+                    ? Math.round(secondary * 0.8)
+                    : secondary;
+                secondaryLine = (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {t("family.secondaryLine", {
+                      price: formatEur(locale, secDisplay),
+                    })}
+                  </p>
+                );
+              }
+
+              if (cycle === "annual") {
+                annualSavings = (
+                  <p className="mt-1 text-xs font-semibold text-[#047857]">
+                    {t("billedYearlySave", {
+                      billed: formatEur(locale, Math.round(monthly * 0.8) * 12),
+                      save: formatEur(
+                        locale,
+                        monthly * 12 - Math.round(monthly * 0.8) * 12
+                      ),
+                    })}
+                  </p>
+                );
+              }
+            }
+
+            return (
+              <ScrollReveal key={plan.key} mode="up" delay={i * 100}>
+                <Card
+                  className={`relative flex h-full flex-col transition-all hover-lift shine ${
+                    plan.featured
+                      ? "ring-launch-gradient shadow-hero md:-translate-y-4 bg-gradient-to-b from-white to-indigo-50/30"
+                      : "border hover:shadow-elev"
+                  }`}
+                >
+                  {plan.featured && (
+                    <div className="absolute -top-3 inset-x-0 flex justify-center">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-launch-gradient px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-md">
+                        <Sparkles className="h-3 w-3" />
+                        {t("mostPopular")}
+                      </span>
+                    </div>
+                  )}
+
+                  <CardHeader className="text-center">
+                    <div
+                      className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${plan.ringColor}`}
+                    >
+                      <Icon className={`h-6 w-6 ${plan.accent}`} />
+                    </div>
+                    <CardTitle className="mt-4 font-display text-xl">
+                      {t(`${plan.key}.name`)}
+                    </CardTitle>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {t(`${plan.key}.tagline`)}
+                    </p>
+                    <div className="mt-4">
+                      <span
+                        className={`font-display text-5xl font-extrabold ${
+                          plan.featured ? "text-launch-gradient" : ""
+                        }`}
+                      >
+                        {priceNode}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {" "}
+                        / {periodLabel}
+                      </span>
+                    </div>
+                    {secondaryLine}
+                    {annualSavings}
+                  </CardHeader>
+
+                  <CardContent className="flex-1">
+                    <ul className="space-y-3">
+                      {features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <div
+                            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                              plan.featured
+                                ? "bg-[#ff8a3d]/15"
+                                : "bg-[#34d399]/15"
+                            }`}
+                          >
+                            <Check
+                              className={`h-3 w-3 ${
+                                plan.featured
+                                  ? "text-[#ff8a3d]"
+                                  : "text-[#34d399]"
+                              }`}
+                            />
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+
+                  <CardFooter>
+                    <Link
+                      href={plan.href}
+                      className={`group/cta flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                        plan.featured
+                          ? "bg-launch-gradient text-white shadow-lg hover:shadow-xl hover-blastoff"
+                          : "border border-input bg-background hover:bg-muted hover-lift"
                       }`}
                     >
-                      {priceNode}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {" "}
-                      / {periodLabel}
-                    </span>
-                  </div>
-                  {plan.monthlyUsd !== null &&
-                    plan.monthlyUsd > 0 &&
-                    cycle === "annual" && (
-                      <p className="mt-1 text-xs font-semibold text-[#047857]">
-                        {t("billedYearlySave", {
-                          billed: formatUsd(
-                            locale,
-                            Math.round(plan.monthlyUsd * 0.8) * 12
-                          ),
-                          save: formatUsd(
-                            locale,
-                            plan.monthlyUsd * 12 -
-                              Math.round(plan.monthlyUsd * 0.8) * 12
-                          ),
+                      {t(`${plan.key}.cta`)}
+                      <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform group-hover/cta:translate-x-1 rtl:group-hover/cta:-translate-x-1" />
+                    </Link>
+                  </CardFooter>
+                </Card>
+              </ScrollReveal>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ============ 1:1 TUTORING ============ */}
+      <section>
+        <ScrollReveal mode="up">
+          <div className="text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#ff8a3d]">
+              {t("tutoringLabel")}
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">
+              {t("tutoringTitle")}
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
+              {t("tutoringSubtitle")}
+            </p>
+          </div>
+        </ScrollReveal>
+
+        <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
+          {packs.map((pack, i) => {
+            const features = t.raw(`tutoring.${pack.key}.features`) as string[];
+            const perSession = pack.priceEur / pack.sessions;
+            const perSessionDecimals = perSession % 1 === 0 ? 0 : 2;
+            const savings = SINGLE_SESSION_EUR * pack.sessions - pack.priceEur;
+            const Icon = pack.Icon;
+
+            return (
+              <ScrollReveal key={pack.key} mode="up" delay={i * 100}>
+                <Card
+                  className={`relative flex h-full flex-col transition-all hover-lift ${
+                    pack.featured
+                      ? "ring-2 ring-[#ec4899]/40 shadow-elev bg-gradient-to-b from-white to-pink-50/40 md:-translate-y-2"
+                      : "border hover:shadow-elev"
+                  }`}
+                >
+                  {pack.featured && (
+                    <div className="absolute -top-3 inset-x-0 flex justify-center">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#ec4899] px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-md">
+                        <Sparkles className="h-3 w-3" />
+                        {t("bestValue")}
+                      </span>
+                    </div>
+                  )}
+
+                  <CardHeader className="text-center">
+                    <div
+                      className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${pack.ringColor}`}
+                    >
+                      <Icon className={`h-6 w-6 ${pack.accent}`} />
+                    </div>
+                    <CardTitle className="mt-4 font-display text-xl">
+                      {t(`tutoring.${pack.key}.name`)}
+                    </CardTitle>
+                    <div className="mt-4">
+                      <span className="font-display text-5xl font-extrabold">
+                        {formatEur(locale, pack.priceEur)}
+                      </span>
+                    </div>
+                    <p className={`mt-2 text-sm font-semibold ${pack.accent}`}>
+                      {t("perSession", {
+                        price: formatEur(
+                          locale,
+                          perSession,
+                          perSessionDecimals
+                        ),
+                      })}
+                    </p>
+                    {savings > 0 && (
+                      <p className="mt-1 inline-flex items-center rounded-full bg-[#34d399]/15 px-2.5 py-0.5 text-xs font-bold text-[#047857]">
+                        {t("saveAmount", {
+                          amount: formatEur(locale, savings),
                         })}
                       </p>
                     )}
-                </CardHeader>
+                  </CardHeader>
 
-                <CardContent className="flex-1">
-                  <ul className="space-y-3">
-                    {features.map((feature: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <div
-                          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                            plan.featured
-                              ? "bg-[#ff8a3d]/15"
-                              : "bg-[#34d399]/15"
-                          }`}
-                        >
-                          <Check
-                            className={`h-3 w-3 ${
-                              plan.featured
-                                ? "text-[#ff8a3d]"
-                                : "text-[#34d399]"
-                            }`}
-                          />
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
+                  <CardContent className="flex-1">
+                    <ul className="space-y-3">
+                      {features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#34d399]/15">
+                            <Check className="h-3 w-3 text-[#34d399]" />
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
 
-                <CardFooter>
-                  <Link
-                    href={plan.href}
-                    className={`group/cta flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
-                      plan.featured
-                        ? "bg-launch-gradient text-white shadow-lg hover:shadow-xl hover-blastoff"
-                        : "border border-input bg-background hover:bg-muted hover-lift"
-                    }`}
-                  >
-                    {t(`${plan.key}.cta`)}
-                    <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform group-hover/cta:translate-x-1 rtl:group-hover/cta:-translate-x-1" />
-                  </Link>
-                </CardFooter>
-              </Card>
-            </ScrollReveal>
-          );
-        })}
-      </div>
-    </>
+                  <CardFooter>
+                    <Link
+                      href={pack.href}
+                      className={`group/cta flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                        pack.featured
+                          ? "bg-[#ec4899] text-white shadow-lg hover:shadow-xl hover-blastoff"
+                          : "border border-input bg-background hover:bg-muted hover-lift"
+                      }`}
+                    >
+                      {t(`tutoring.${pack.key}.cta`)}
+                      <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform group-hover/cta:translate-x-1 rtl:group-hover/cta:-translate-x-1" />
+                    </Link>
+                  </CardFooter>
+                </Card>
+              </ScrollReveal>
+            );
+          })}
+        </div>
+
+        <ScrollReveal mode="fade" delay={200}>
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            {t("tutoringFootnote")}
+          </p>
+        </ScrollReveal>
+      </section>
+    </div>
   );
 }

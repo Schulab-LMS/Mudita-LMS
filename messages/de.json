@@ -258,33 +258,46 @@
   },
   "pricing": {
     "title": "Einfache, transparente Preise",
-    "subtitle": "Wählen Sie den Plan, der am besten zu Ihrer Familie passt. Kostenlos starten, jederzeit upgraden.",
+    "subtitle": "Wähle einen Monatsplan und buche 1:1-Nachhilfe nach Bedarf dazu.",
     "guarantee": "14-Tage-Geld-zurück-Garantie auf alle bezahlten Pläne",
-    "free": {
-      "name": "Kostenlos",
-      "price": "0€",
-      "period": "für immer",
+    "subscriptionsLabel": "Monatliche Pläne",
+    "subscriptionsTitle": "Abonnements",
+    "subscriptionsSubtitle": "Unbegrenzte Lernpfade im eigenen Tempo, Eltern-Dashboard und Community — zu einem einfachen Preis.",
+    "tutoringLabel": "1:1-Nachhilfe",
+    "tutoringTitle": "Persönliche Nachhilfe auf Abruf",
+    "tutoringSubtitle": "50-minütige Sitzungen mit zertifizierten STEM-Nachhilfelehrern. Einmal kaufen, jederzeit buchen — Guthaben verfällt nie.",
+    "tutoringFootnote": "Basis- und Familienabos enthalten 2 kostenlose Nachhilfestunden zum Start.",
+    "bestValue": "Bestes Angebot",
+    "perSession": "{price}/Sitzung",
+    "saveAmount": "Spare {amount}",
+    "basic": {
+      "name": "Basis",
+      "tagline": "Für einen einzelnen Lernenden",
+      "period": "Monat",
+      "headerPrice": "49 € / Monat",
       "features": [
-        "Zugang zu kostenlosen Kursen",
-        "Grundlegende Fortschrittsverfolgung",
-        "Community-Zugang",
-        "1 Kinderkonto"
+        "Voller Kurskatalog + Premium-STEM-Inhalte",
+        "Lernpfade & Projekte im eigenen Tempo",
+        "Eltern-Dashboard mit wöchentlichem Fortschritt",
+        "Community- & E-Mail-Support",
+        "2 kostenlose Nachhilfestunden zum Start"
       ],
-      "cta": "Kostenloses Konto erstellen"
+      "cta": "Jetzt starten"
     },
-    "pro": {
-      "name": "Pro",
-      "price": "19€",
-      "period": "pro Monat",
+    "family": {
+      "name": "Familie",
+      "tagline": "Für Familien mit mehreren Kindern",
+      "period": "Monat",
+      "headerPrice": "88 € / Monat",
+      "secondaryLine": "oder {price} / Monat für 3+ Kinder",
       "features": [
-        "Alle kostenlosen + Premium-Inhalte",
-        "Erweiterte Fortschrittsverfolgung & Analysen",
-        "Abschlusszertifikate",
-        "Bis zu 3 Kinderkonten",
-        "Prioritäts-Support",
-        "Live-Nachhilfe-Rabatte"
+        "Alles aus Basis, für bis zu 3+ Kinder",
+        "Gemeinsames Eltern-Dashboard für alle Lernenden",
+        "10 % Rabatt für 2 Kinder, 20 % Rabatt für 3+",
+        "2 kostenlose Nachhilfestunden pro Kind",
+        "Vorrangiger E-Mail-Support"
       ],
-      "cta": "Pro 7 Tage kostenlos testen"
+      "cta": "Familienplan starten"
     },
     "school": {
       "name": "Schule",
@@ -301,6 +314,37 @@
       ],
       "cta": "Individuelles Angebot anfordern"
     },
+    "tutoring": {
+      "single": {
+        "name": "Einzelstunde",
+        "features": [
+          "Eine 50-minütige 1:1-Sitzung",
+          "Jede zertifizierte STEM-Lehrkraft buchbar",
+          "Ideal für einmalige Hilfe"
+        ],
+        "cta": "Sitzung buchen"
+      },
+      "pack4": {
+        "name": "4er-Paket",
+        "features": [
+          "Vier 50-minütige Sitzungen",
+          "Spare gegenüber Einzelstunden",
+          "Über Fächer und Lehrkräfte hinweg nutzbar",
+          "Guthaben verfällt nie"
+        ],
+        "cta": "4er-Paket kaufen"
+      },
+      "pack8": {
+        "name": "8er-Paket",
+        "features": [
+          "Acht 50-minütige Sitzungen",
+          "Größter Rabatt pro Sitzung",
+          "Über Fächer und Lehrkräfte hinweg nutzbar",
+          "Guthaben verfällt nie"
+        ],
+        "cta": "8er-Paket kaufen"
+      }
+    },
     "faqTitle": "Preis-FAQ",
     "faq": [
       {
@@ -308,12 +352,16 @@
         "a": "Ja. Sie können Ihr Abonnement jederzeit kündigen. Ihr Zugang bleibt bis zum Ende des Abrechnungszeitraums bestehen."
       },
       {
-        "q": "Gibt es eine kostenlose Testphase für Pro?",
-        "a": "Ja! Pro kommt mit einer 7-tägigen kostenlosen Testphase."
+        "q": "Werden die 2 kostenlosen Nachhilfestunden jeden Monat erneuert?",
+        "a": "Nein — es sind 2 kostenlose Sitzungen pro Lernendem als einmaliges Willkommensgeschenk. Danach kostet eine Einzelstunde 25 €, oder Sie sparen mit einem 4er- oder 8er-Paket."
+      },
+      {
+        "q": "Verfallen Paket-Guthaben?",
+        "a": "Nein. Guthaben aus Paketen bleibt auf deinem Konto, bis du es nutzt — auch wenn du ein Abo pausierst oder kündigst."
       },
       {
         "q": "Welche Zahlungsmethoden werden akzeptiert?",
-        "a": "Wir akzeptieren alle gängigen Kreditkarten, PayPal und Banküberweisungen für Schulpläne."
+        "a": "Wir akzeptieren alle gängigen Kreditkarten, SEPA-Lastschrift und Banküberweisungen für Schulpläne."
       },
       {
         "q": "Kann ich den Plan wechseln?",
@@ -323,8 +371,8 @@
     "mostPopular": "Am beliebtesten",
     "forever": "für immer",
     "custom": "Individuell",
-    "perMonth": "pro Monat",
-    "perMo": "0€ / für immer",
+    "perMonth": "Monat",
+    "perMo": "49 € / Monat",
     "simpleHonestPricing": "Einfache, ehrliche Preise",
     "planComparison": "Plan-Vergleich",
     "compareEveryFeature": "Alle Funktionen vergleichen",
@@ -375,16 +423,16 @@
         "payPerKit": "Pro Set zahlen",
         "off10": "10% Rabatt",
         "bulkPricing": "Mengenpreise",
-        "discounted": "Vergünstigt",
+        "twoFree": "2 gratis, dann 25 €/Sitzung",
+        "twoPerChild": "2 gratis/Kind, dann 25 €",
         "included": "Enthalten",
         "limited": "Begrenzt",
         "full": "Vollständig",
-        "basic": "Grundlegend",
         "advanced": "Erweitert",
         "advancedReports": "Erweitert + Berichte",
-        "upTo3": "Bis zu 3",
-        "unlimited": "Unbegrenzt",
-        "one": "1"
+        "one": "1",
+        "twoToThreePlus": "2 bis 3+",
+        "unlimited": "Unbegrenzt"
       }
     }
   },
