@@ -301,6 +301,7 @@
     },
     "school": {
       "name": "School",
+      "tagline": "For classrooms and districts",
       "price": "Custom",
       "period": "per institution",
       "features": [

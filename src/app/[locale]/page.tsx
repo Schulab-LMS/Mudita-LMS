@@ -211,23 +211,36 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              {/* Trust badges */}
+              {/* Trust strip — with rating + compliance badges */}
               <div
-                className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground lg:justify-start animate-slide-up"
+                className="mt-8 animate-slide-up"
                 style={{ animationDelay: "320ms" }}
               >
-                <span className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-emerald-500" />
-                  Child-Safe & COPPA Compliant
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-amber-500" />
-                  No Credit Card Required
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Flame className="h-3.5 w-3.5 text-orange-500" />
-                  Daily streaks & XP
-                </span>
+                <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 shadow-soft backdrop-blur">
+                    <div className="flex items-center gap-0.5 text-amber-400">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                      ))}
+                    </div>
+                    <span className="text-xs font-bold text-foreground">4.9</span>
+                    <span className="text-xs text-muted-foreground">from 2,400+ parents</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5 text-emerald-500" />
+                      COPPA & GDPR
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-amber-500" />
+                      No credit card required
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Flame className="h-3.5 w-3.5 text-orange-500" />
+                      Daily streaks & XP
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -4,6 +4,14 @@ import { getMessages } from "next-intl/server";
 import { SessionProvider } from "next-auth/react";
 import { Inter, Space_Grotesk, Nunito } from "next/font/google";
 import { locales, isRtl, type Locale } from "@/i18n/config";
+import { ThemeProvider } from "@/components/ui/theme-provider";
+import { ToastProvider } from "@/components/ui/toast";
+
+// Inline script avoids dark-mode FOUC — runs before React hydrates, setting
+// data-theme on <html> from localStorage or OS preference.
+const themeScript = `
+(function(){try{var t=localStorage.getItem('mudita-theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.setAttribute('data-theme','dark');}else if(t==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(_){}} )();
+`;
 
 // next/font self-hosts the font files at build time, eliminating the
 // render-blocking request to fonts.googleapis.com and the FOUT window
@@ -54,11 +62,17 @@ export default async function LocaleLayout({
       lang={locale}
       dir={rtl ? "rtl" : "ltr"}
       className={`h-full antialiased ${inter.variable} ${spaceGrotesk.variable} ${nunito.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="min-h-full flex flex-col font-sans">
         <SessionProvider>
           <NextIntlClientProvider messages={messages}>
-            {children}
+            <ThemeProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </ThemeProvider>
           </NextIntlClientProvider>
         </SessionProvider>
       </body>
