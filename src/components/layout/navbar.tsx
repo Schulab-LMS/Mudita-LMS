@@ -5,10 +5,11 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
-import { Menu, X, Globe, ChevronDown } from "lucide-react";
+import { Menu, X, Globe, ChevronDown, Building2 } from "lucide-react";
 import { HelpButton } from "@/components/help/help-button";
 import { SchulabLogo } from "@/components/brand/schulab-logo";
 import { UserMenu } from "@/components/layout/user-menu";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { locales, localeNames, type Locale } from "@/i18n/config";
 import { publicNavItems } from "@/config/navigation";
 
@@ -21,7 +22,7 @@ export function Navbar() {
   const { data: session } = useSession();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-white/70 backdrop-blur-xl supports-[backdrop-filter]:bg-white/55">
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link
@@ -76,7 +77,7 @@ export function Navbar() {
               <ChevronDown className="h-3 w-3" />
             </button>
             {localeOpen && (
-              <div className="absolute end-0 top-full mt-1 w-40 rounded-lg border bg-white py-1 shadow-lg">
+              <div className="absolute end-0 top-full mt-1 w-40 rounded-lg border border-border bg-popover py-1 shadow-lg">
                 {locales.map((l) => (
                   <a
                     key={l}
@@ -95,6 +96,9 @@ export function Navbar() {
             )}
           </div>
 
+          {/* Theme toggle */}
+          <ThemeToggle size="sm" />
+
           {/* Help */}
           <HelpButton variant="navbar" />
 
@@ -103,6 +107,13 @@ export function Navbar() {
             <UserMenu variant="navbar" />
           ) : (
             <div className="flex items-center gap-2">
+              <Link
+                href="/for-schools"
+                className="hidden lg:inline-flex h-9 items-center justify-center gap-1.5 rounded-full border border-border bg-background/60 px-3 text-xs font-semibold text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
+              >
+                <Building2 className="h-3.5 w-3.5" aria-hidden />
+                {t("nav.forSchools")}
+              </Link>
               <Link
                 href="/login"
                 className="inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -136,7 +147,7 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="border-t bg-white md:hidden">
+        <div className="border-t border-border bg-background md:hidden">
           <nav className="mx-auto max-w-7xl space-y-1 px-4 py-3">
             {publicNavItems.map((item) => (
               <Link
@@ -174,12 +185,13 @@ export function Navbar() {
               ))}
             </div>
 
-            {/* Mobile Help */}
-            <div className="border-t pt-3">
+            {/* Mobile Help + Theme */}
+            <div className="flex items-center gap-2 border-t border-border/60 pt-3">
               <HelpButton
                 variant="navbar"
-                className="w-full justify-start"
+                className="flex-1 justify-start"
               />
+              <ThemeToggle />
             </div>
 
             {/* Mobile Auth */}

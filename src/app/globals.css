@@ -71,13 +71,29 @@
   --ring: #4f3ff0;
   --radius: 1rem;
 
-  /* STEM theme colors */
+  /* Semantic surfaces — used to normalize card/panel elevation */
+  --surface-1: #ffffff;
+  --surface-2: #f7f8fc;
+  --surface-3: #edeef7;
+  --border-subtle: rgba(15, 16, 51, 0.06);
+  --border-strong: rgba(15, 16, 51, 0.12);
+  --text-strong: #0f1033;
+  --text-muted: #5c5f8a;
+  --text-subtle: #8a8daf;
+
+  /* STEM theme colors — expanded from 6 → 12 for richer filter/category styling */
   --stem-space: #4f3ff0;
   --stem-robot: #8b5cf6;
   --stem-science: #34d399;
-  --stem-code: #4f3ff0;
+  --stem-code: #0ea5e9;
   --stem-math: #ff8a3d;
-  --stem-rocket: #ff8a3d;
+  --stem-rocket: #ef4444;
+  --stem-art: #ec4899;
+  --stem-music: #f59e0b;
+  --stem-language: #14b8a6;
+  --stem-biology: #84cc16;
+  --stem-chemistry: #a855f7;
+  --stem-engineering: #6366f1;
 
   /* Premium elevation system — cooler, softer shadows that feel tactile */
   --shadow-xs: 0 1px 2px rgba(15, 16, 51, 0.04);
@@ -87,6 +103,71 @@
   --shadow-xl: 0 32px 64px -24px rgba(15, 16, 51, 0.18), 0 8px 16px -6px rgba(15, 16, 51, 0.08);
   --shadow-glow: 0 0 40px -8px rgba(79, 63, 240, 0.35);
   --shadow-glow-warm: 0 0 40px -8px rgba(255, 138, 61, 0.35);
+}
+
+/* Dark mode — opt-in via <html data-theme="dark"> set by ThemeProvider */
+:root[data-theme="dark"] {
+  --background: #0b0c24;
+  --foreground: #ecedfa;
+  --primary: #7c6bff;
+  --primary-foreground: #ffffff;
+  --secondary: #a78bfa;
+  --secondary-foreground: #ffffff;
+  --accent: #ff9a57;
+  --accent-foreground: #1a0e06;
+  --muted: #161832;
+  --muted-foreground: #9ca0cc;
+  --card: #12142e;
+  --card-foreground: #ecedfa;
+  --popover: #161832;
+  --popover-foreground: #ecedfa;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #7c6bff;
+
+  --surface-1: #12142e;
+  --surface-2: #0b0c24;
+  --surface-3: #161832;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text-strong: #ecedfa;
+  --text-muted: #9ca0cc;
+  --text-subtle: #6b6e94;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.55), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 40px -16px rgba(0, 0, 0, 0.7), 0 4px 12px -4px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 32px 64px -24px rgba(0, 0, 0, 0.8), 0 8px 16px -6px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 48px -8px rgba(124, 107, 255, 0.5);
+  --shadow-glow-warm: 0 0 48px -8px rgba(255, 154, 87, 0.45);
+}
+
+/* System-preference dark mode fallback (before user toggles) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --background: #0b0c24;
+    --foreground: #ecedfa;
+    --primary: #7c6bff;
+    --secondary: #a78bfa;
+    --accent: #ff9a57;
+    --muted: #161832;
+    --muted-foreground: #9ca0cc;
+    --card: #12142e;
+    --card-foreground: #ecedfa;
+    --popover: #161832;
+    --popover-foreground: #ecedfa;
+    --border: rgba(255, 255, 255, 0.08);
+    --input: rgba(255, 255, 255, 0.08);
+    --surface-1: #12142e;
+    --surface-2: #0b0c24;
+    --surface-3: #161832;
+    --text-strong: #ecedfa;
+    --text-muted: #9ca0cc;
+    --text-subtle: #6b6e94;
+  }
 }
 
 body {
@@ -607,5 +688,120 @@ body {
 
 /* Utility: RTL-safe horizontal padding for marquees */
 [dir="rtl"] .animate-marquee { animation-direction: reverse; }
+
+/* Skeleton shimmer — used by SkeletonCard/Row/Avatar/Text/Stat */
+@keyframes shimmer-sweep {
+  0% { background-position: -800px 0; }
+  100% { background-position: 800px 0; }
+}
+.skeleton-shimmer {
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    color-mix(in srgb, var(--muted) 70%, white) 50%,
+    var(--muted) 100%
+  );
+  background-size: 1600px 100%;
+  animation: shimmer-sweep 1.8s ease-in-out infinite;
+}
+:root[data-theme="dark"] .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    color-mix(in srgb, var(--muted) 70%, #2a2d52) 50%,
+    var(--muted) 100%
+  );
+  background-size: 1600px 100%;
+}
+
+/* Toast stack — top-right, with entry/exit animations */
+@keyframes toast-in-right {
+  from { opacity: 0; transform: translateX(24px) scale(0.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes toast-out-right {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to { opacity: 0; transform: translateX(24px) scale(0.96); }
+}
+.animate-toast-in { animation: toast-in-right 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-toast-out { animation: toast-out-right 0.25s ease-in both; }
+
+/* Sheet / drawer slide — 4 edges */
+@keyframes sheet-slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes sheet-slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes sheet-slide-in-bottom {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes sheet-slide-in-top {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+.animate-sheet-right { animation: sheet-slide-in-right 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-sheet-left { animation: sheet-slide-in-left 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-sheet-bottom { animation: sheet-slide-in-bottom 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-sheet-top { animation: sheet-slide-in-top 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Tooltip fade + scale */
+@keyframes tooltip-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-tooltip-in { animation: tooltip-in 0.15s ease-out both; }
+
+/* Command palette / popover entrance */
+@keyframes popover-in {
+  from { opacity: 0; transform: scale(0.97) translateY(-4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-popover-in { animation: popover-in 0.18s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ===== CHIP / TAG VARIANTS ===== */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.chip-primary  { background: rgba(79, 63, 240, 0.1);  color: var(--primary);     border: 1px solid rgba(79, 63, 240, 0.15); }
+.chip-secondary{ background: rgba(139, 92, 246, 0.1); color: var(--secondary);   border: 1px solid rgba(139, 92, 246, 0.15); }
+.chip-accent   { background: rgba(255, 138, 61, 0.1); color: var(--accent);      border: 1px solid rgba(255, 138, 61, 0.18); }
+.chip-success  { background: rgba(52, 211, 153, 0.12);color: #059669;            border: 1px solid rgba(52, 211, 153, 0.2); }
+.chip-neutral  { background: var(--muted);            color: var(--muted-foreground); border: 1px solid var(--border); }
+
+/* Hover "premium" state on cards with soft inner ring */
+.card-premium {
+  border-radius: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.card-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(79, 63, 240, 0.25);
+}
+
+/* Pulse ring around "Most Popular" pricing card */
+@keyframes most-popular-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(79, 63, 240, 0.35); }
+  50%      { box-shadow: 0 0 0 16px rgba(79, 63, 240, 0); }
+}
+.ring-pulse { animation: most-popular-pulse 2.4s ease-in-out infinite; }
 
 /* Font imports loaded at top of file */
