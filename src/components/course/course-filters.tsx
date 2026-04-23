@@ -52,16 +52,16 @@ export function CourseFilters() {
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-soft">
       {/* Search */}
-      <div className="relative flex-1 min-w-[200px]">
-        <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative min-w-[200px] flex-1">
+        <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
         <input
-          type="text"
+          type="search"
           placeholder={t("searchPlaceholder")}
           defaultValue={searchParams.get("q") ?? ""}
           onChange={(e) => updateParam("q", e.target.value)}
-          className="w-full rounded-lg border bg-white py-2 ps-9 pe-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="input-pretty h-10 w-full rounded-lg border border-input bg-background py-2 ps-9 pe-3 text-sm focus-visible:outline-none"
         />
       </div>
 
@@ -70,7 +70,7 @@ export function CourseFilters() {
         aria-label={t("ageGroupLabel")}
         defaultValue={searchParams.get("ageGroup") ?? ""}
         onChange={(e) => updateParam("ageGroup", e.target.value)}
-        className="rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        className="input-pretty h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
       >
         {AGE_GROUP_VALUES.map((value) => (
           <option key={value || "all"} value={value}>
@@ -84,7 +84,7 @@ export function CourseFilters() {
         aria-label={t("categoryLabel")}
         defaultValue={searchParams.get("category") ?? ""}
         onChange={(e) => updateParam("category", e.target.value)}
-        className="rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        className="input-pretty h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
       >
         {CATEGORY_VALUES.map((value) => (
           <option key={value || "all"} value={value}>
@@ -98,7 +98,7 @@ export function CourseFilters() {
         aria-label={t("levelLabel")}
         defaultValue={searchParams.get("level") ?? ""}
         onChange={(e) => updateParam("level", e.target.value)}
-        className="rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        className="input-pretty h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
       >
         {LEVEL_VALUES.map((value) => (
           <option key={value || "all"} value={value}>
