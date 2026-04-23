@@ -301,6 +301,7 @@
     },
     "school": {
       "name": "Schule",
+      "tagline": "Für Klassen und Schulbezirke",
       "price": "Individuell",
       "period": "pro Institution",
       "features": [

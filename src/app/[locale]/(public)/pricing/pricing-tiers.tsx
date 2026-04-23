@@ -153,25 +153,26 @@ export function PricingTiers() {
           </div>
         </ScrollReveal>
 
-        <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="mt-10 grid grid-cols-1 items-stretch gap-8 md:grid-cols-3">
           {subPlans.map((plan, i) => {
             const features = t.raw(`${plan.key}.features`) as string[];
             const Icon = plan.Icon;
 
-            let priceNode: React.ReactNode;
+            let priceValue: string;
             let periodLabel: string;
             let secondaryLine: React.ReactNode = null;
             let annualSavings: React.ReactNode = null;
+            const isCustom = plan.monthlyEur === null;
 
             if (plan.monthlyEur === null) {
-              priceNode = t("custom");
+              priceValue = t("custom");
               periodLabel = t(`${plan.key}.period`);
             } else {
               const monthly = plan.monthlyEur;
               const display =
                 cycle === "annual" ? Math.round(monthly * 0.8) : monthly;
-              priceNode = formatEur(locale, display);
-              periodLabel = t("perMonth");
+              priceValue = formatEur(locale, display);
+              periodLabel = `/ ${t("perMonth")}`;
 
               if (plan.secondaryMonthlyEur) {
                 const secondary = plan.secondaryMonthlyEur;
@@ -180,7 +181,7 @@ export function PricingTiers() {
                     ? Math.round(secondary * 0.8)
                     : secondary;
                 secondaryLine = (
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {t("family.secondaryLine", {
                       price: formatEur(locale, secDisplay),
                     })}
@@ -190,7 +191,7 @@ export function PricingTiers() {
 
               if (cycle === "annual") {
                 annualSavings = (
-                  <p className="mt-1 text-xs font-semibold text-[#047857]">
+                  <p className="text-xs font-semibold text-[#047857]">
                     {t("billedYearlySave", {
                       billed: formatEur(locale, Math.round(monthly * 0.8) * 12),
                       save: formatEur(
@@ -204,16 +205,14 @@ export function PricingTiers() {
             }
 
             return (
-              <ScrollReveal key={plan.key} mode="up" delay={i * 100}>
-                <Card
-                  className={`relative flex h-full flex-col transition-all hover-lift shine ${
-                    plan.featured
-                      ? "ring-launch-gradient shadow-hero md:-translate-y-4 bg-gradient-to-b from-white to-indigo-50/30"
-                      : "border hover:shadow-elev"
-                  }`}
+              <ScrollReveal key={plan.key} mode="up" delay={i * 100} className="h-full">
+                {/* Wrapper: relative + non-clipping, holds the "Most Popular" ribbon
+                    so it's never cut by the card's own overflow: hidden. */}
+                <div
+                  className={`relative h-full ${plan.featured ? "md:-translate-y-4" : ""}`}
                 >
                   {plan.featured && (
-                    <div className="absolute -top-3 inset-x-0 flex justify-center">
+                    <div className="pointer-events-none absolute -top-3 inset-x-0 z-10 flex justify-center">
                       <span className="inline-flex items-center gap-1 rounded-full bg-launch-gradient px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-md">
                         <Sparkles className="h-3 w-3" />
                         {t("mostPopular")}
@@ -221,76 +220,92 @@ export function PricingTiers() {
                     </div>
                   )}
 
-                  <CardHeader className="text-center">
-                    <div
-                      className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${plan.ringColor}`}
-                    >
-                      <Icon className={`h-6 w-6 ${plan.accent}`} />
-                    </div>
-                    <CardTitle className="mt-4 font-display text-xl">
-                      {t(`${plan.key}.name`)}
-                    </CardTitle>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {t(`${plan.key}.tagline`)}
-                    </p>
-                    <div className="mt-4">
-                      <span
-                        className={`font-display text-5xl font-extrabold ${
-                          plan.featured ? "text-launch-gradient" : ""
+                  <Card
+                    className={`relative flex h-full flex-col overflow-hidden transition-all hover-lift shine ${
+                      plan.featured
+                        ? "ring-launch-gradient shadow-hero bg-gradient-to-b from-white to-indigo-50/30"
+                        : "border hover:shadow-elev"
+                    }`}
+                  >
+                    <CardHeader className="text-center">
+                      <div
+                        className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${plan.ringColor}`}
+                      >
+                        <Icon className={`h-6 w-6 ${plan.accent}`} />
+                      </div>
+                      <CardTitle className="mt-4 font-display text-xl">
+                        {t(`${plan.key}.name`)}
+                      </CardTitle>
+                      {/* Reserve 2 lines so taglines of any length keep the
+                          icons/prices below visually aligned across cards. */}
+                      <p className="mt-1 min-h-[2.5rem] text-xs text-muted-foreground">
+                        {t(`${plan.key}.tagline`)}
+                      </p>
+
+                      {/* Price block — fixed min-height so all three cards
+                          show their price at the same baseline regardless of
+                          whether a secondary line / annual-savings line is
+                          rendered. */}
+                      <div className="mt-4 flex min-h-[8rem] flex-col items-center justify-start gap-1">
+                        <div className="flex items-baseline justify-center gap-1 whitespace-nowrap">
+                          <span
+                            className={`font-display font-extrabold leading-none ${
+                              isCustom ? "text-4xl sm:text-5xl" : "text-5xl"
+                            } ${plan.featured ? "text-launch-gradient" : ""}`}
+                          >
+                            {priceValue}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {periodLabel}
+                          </span>
+                        </div>
+                        {secondaryLine}
+                        {annualSavings}
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="flex-1">
+                      <ul className="space-y-3">
+                        {features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <div
+                              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                                plan.featured
+                                  ? "bg-[#ff8a3d]/15"
+                                  : "bg-[#34d399]/15"
+                              }`}
+                            >
+                              <Check
+                                className={`h-3 w-3 ${
+                                  plan.featured
+                                    ? "text-[#ff8a3d]"
+                                    : "text-[#34d399]"
+                                }`}
+                              />
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {feature}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+
+                    <CardFooter>
+                      <Link
+                        href={plan.href}
+                        className={`group/cta flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                          plan.featured
+                            ? "bg-launch-gradient text-white shadow-lg hover:shadow-xl hover-blastoff"
+                            : "border border-input bg-background hover:bg-muted hover-lift"
                         }`}
                       >
-                        {priceNode}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {" "}
-                        / {periodLabel}
-                      </span>
-                    </div>
-                    {secondaryLine}
-                    {annualSavings}
-                  </CardHeader>
-
-                  <CardContent className="flex-1">
-                    <ul className="space-y-3">
-                      {features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <div
-                            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                              plan.featured
-                                ? "bg-[#ff8a3d]/15"
-                                : "bg-[#34d399]/15"
-                            }`}
-                          >
-                            <Check
-                              className={`h-3 w-3 ${
-                                plan.featured
-                                  ? "text-[#ff8a3d]"
-                                  : "text-[#34d399]"
-                              }`}
-                            />
-                          </div>
-                          <span className="text-sm text-muted-foreground">
-                            {feature}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-
-                  <CardFooter>
-                    <Link
-                      href={plan.href}
-                      className={`group/cta flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
-                        plan.featured
-                          ? "bg-launch-gradient text-white shadow-lg hover:shadow-xl hover-blastoff"
-                          : "border border-input bg-background hover:bg-muted hover-lift"
-                      }`}
-                    >
-                      {t(`${plan.key}.cta`)}
-                      <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform group-hover/cta:translate-x-1 rtl:group-hover/cta:-translate-x-1" />
-                    </Link>
-                  </CardFooter>
-                </Card>
+                        {t(`${plan.key}.cta`)}
+                        <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform group-hover/cta:translate-x-1 rtl:group-hover/cta:-translate-x-1" />
+                      </Link>
+                    </CardFooter>
+                  </Card>
+                </div>
               </ScrollReveal>
             );
           })}
@@ -313,7 +328,7 @@ export function PricingTiers() {
           </div>
         </ScrollReveal>
 
-        <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="mt-10 grid grid-cols-1 items-stretch gap-8 md:grid-cols-3">
           {packs.map((pack, i) => {
             const features = t.raw(`tutoring.${pack.key}.features`) as string[];
             const perSession = pack.priceEur / pack.sessions;
@@ -322,16 +337,10 @@ export function PricingTiers() {
             const Icon = pack.Icon;
 
             return (
-              <ScrollReveal key={pack.key} mode="up" delay={i * 100}>
-                <Card
-                  className={`relative flex h-full flex-col transition-all hover-lift ${
-                    pack.featured
-                      ? "ring-2 ring-[#ec4899]/40 shadow-elev bg-gradient-to-b from-white to-pink-50/40 md:-translate-y-2"
-                      : "border hover:shadow-elev"
-                  }`}
-                >
+              <ScrollReveal key={pack.key} mode="up" delay={i * 100} className="h-full">
+                <div className={`relative h-full ${pack.featured ? "md:-translate-y-2" : ""}`}>
                   {pack.featured && (
-                    <div className="absolute -top-3 inset-x-0 flex justify-center">
+                    <div className="pointer-events-none absolute -top-3 inset-x-0 z-10 flex justify-center">
                       <span className="inline-flex items-center gap-1 rounded-full bg-[#ec4899] px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-md">
                         <Sparkles className="h-3 w-3" />
                         {t("bestValue")}
@@ -339,67 +348,76 @@ export function PricingTiers() {
                     </div>
                   )}
 
-                  <CardHeader className="text-center">
-                    <div
-                      className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${pack.ringColor}`}
-                    >
-                      <Icon className={`h-6 w-6 ${pack.accent}`} />
-                    </div>
-                    <CardTitle className="mt-4 font-display text-xl">
-                      {t(`tutoring.${pack.key}.name`)}
-                    </CardTitle>
-                    <div className="mt-4">
-                      <span className="font-display text-5xl font-extrabold">
-                        {formatEur(locale, pack.priceEur)}
-                      </span>
-                    </div>
-                    <p className={`mt-2 text-sm font-semibold ${pack.accent}`}>
-                      {t("perSession", {
-                        price: formatEur(
-                          locale,
-                          perSession,
-                          perSessionDecimals
-                        ),
-                      })}
-                    </p>
-                    {savings > 0 && (
-                      <p className="mt-1 inline-flex items-center rounded-full bg-[#34d399]/15 px-2.5 py-0.5 text-xs font-bold text-[#047857]">
-                        {t("saveAmount", {
-                          amount: formatEur(locale, savings),
-                        })}
-                      </p>
-                    )}
-                  </CardHeader>
+                  <Card
+                    className={`relative flex h-full flex-col overflow-hidden transition-all hover-lift ${
+                      pack.featured
+                        ? "ring-2 ring-[#ec4899]/40 shadow-elev bg-gradient-to-b from-white to-pink-50/40"
+                        : "border hover:shadow-elev"
+                    }`}
+                  >
+                    <CardHeader className="text-center">
+                      <div
+                        className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${pack.ringColor}`}
+                      >
+                        <Icon className={`h-6 w-6 ${pack.accent}`} />
+                      </div>
+                      <CardTitle className="mt-4 font-display text-xl">
+                        {t(`tutoring.${pack.key}.name`)}
+                      </CardTitle>
+                      {/* Reserved price block — same min-height across all 3 cards */}
+                      <div className="mt-4 flex min-h-[7.5rem] flex-col items-center justify-start gap-1">
+                        <span className="font-display text-5xl font-extrabold leading-none">
+                          {formatEur(locale, pack.priceEur)}
+                        </span>
+                        <p className={`text-sm font-semibold ${pack.accent}`}>
+                          {t("perSession", {
+                            price: formatEur(
+                              locale,
+                              perSession,
+                              perSessionDecimals
+                            ),
+                          })}
+                        </p>
+                        {savings > 0 && (
+                          <p className="inline-flex items-center rounded-full bg-[#34d399]/15 px-2.5 py-0.5 text-xs font-bold text-[#047857]">
+                            {t("saveAmount", {
+                              amount: formatEur(locale, savings),
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    </CardHeader>
 
-                  <CardContent className="flex-1">
-                    <ul className="space-y-3">
-                      {features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#34d399]/15">
-                            <Check className="h-3 w-3 text-[#34d399]" />
-                          </div>
-                          <span className="text-sm text-muted-foreground">
-                            {feature}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
+                    <CardContent className="flex-1">
+                      <ul className="space-y-3">
+                        {features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#34d399]/15">
+                              <Check className="h-3 w-3 text-[#34d399]" />
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {feature}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
 
-                  <CardFooter>
-                    <Link
-                      href={pack.href}
-                      className={`group/cta flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
-                        pack.featured
-                          ? "bg-[#ec4899] text-white shadow-lg hover:shadow-xl hover-blastoff"
-                          : "border border-input bg-background hover:bg-muted hover-lift"
-                      }`}
-                    >
-                      {t(`tutoring.${pack.key}.cta`)}
-                      <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform group-hover/cta:translate-x-1 rtl:group-hover/cta:-translate-x-1" />
-                    </Link>
-                  </CardFooter>
-                </Card>
+                    <CardFooter>
+                      <Link
+                        href={pack.href}
+                        className={`group/cta flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                          pack.featured
+                            ? "bg-[#ec4899] text-white shadow-lg hover:shadow-xl hover-blastoff"
+                            : "border border-input bg-background hover:bg-muted hover-lift"
+                        }`}
+                      >
+                        {t(`tutoring.${pack.key}.cta`)}
+                        <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform group-hover/cta:translate-x-1 rtl:group-hover/cta:-translate-x-1" />
+                      </Link>
+                    </CardFooter>
+                  </Card>
+                </div>
               </ScrollReveal>
             );
           })}
