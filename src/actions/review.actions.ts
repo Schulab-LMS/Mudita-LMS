@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { assertEmailVerified, requireAdmin } from "@/lib/auth-helpers";
 import { audit } from "@/lib/audit";
 import {
   moderateReview,
@@ -30,6 +30,9 @@ export async function submitReview(input: {
 }): Promise<ActionResult<{ id: string; status: string }>> {
   const session = await auth();
   if (!session?.user?.id) return { success: false, error: "Not authenticated" };
+
+  const emailCheck = await assertEmailVerified(session.user.id);
+  if (!emailCheck.ok) return { success: false, error: emailCheck.error };
 
   const parsed = submitReviewSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };

@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { isStripeConfigured } from "@/lib/stripe";
 import { assertMinorConsent } from "@/lib/compliance";
+import { assertEmailVerified } from "@/lib/auth-helpers";
 import {
   createBillingPortalSession,
   createCourseCheckoutSession,
@@ -58,6 +59,9 @@ export async function buyCourse(input: { courseId: string; couponCode?: string }
     return { success: false as const, error: parsed.error.issues[0].message };
   }
 
+  const emailCheck = await assertEmailVerified(session.user.id);
+  if (!emailCheck.ok) return { success: false as const, error: emailCheck.error };
+
   const consentFail = await guardMinorConsent(session.user.id);
   if (consentFail) return consentFail;
 
@@ -84,6 +88,9 @@ export async function startSubscription(input: { planId: string; couponCode?: st
   if (!parsed.success) {
     return { success: false as const, error: parsed.error.issues[0].message };
   }
+
+  const emailCheck = await assertEmailVerified(session.user.id);
+  if (!emailCheck.ok) return { success: false as const, error: emailCheck.error };
 
   const consentFail = await guardMinorConsent(session.user.id);
   if (consentFail) return consentFail;

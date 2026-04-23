@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { assertEmailVerified } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
 import { sendMessage, markThreadAsRead } from "@/services/message.service";
 import { sendMessageSchema, markThreadReadSchema } from "@/validators/action.schemas";
@@ -16,6 +17,9 @@ export async function sendMessageAction(data: {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Not authenticated" };
+
+    const emailCheck = await assertEmailVerified(session.user.id);
+    if (!emailCheck.ok) return { success: false, error: emailCheck.error };
 
     const limit = await rateLimit(`send-message:${session.user.id}`, SEND_MESSAGE_RATE_LIMIT);
     if (!limit.success) {

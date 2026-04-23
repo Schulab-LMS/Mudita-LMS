@@ -120,6 +120,30 @@ export function Footer() {
                   {t("terms")}
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/impressum"
+                  className="text-sm transition-colors hover:text-white"
+                >
+                  {t("impressum")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/agb"
+                  className="text-sm transition-colors hover:text-white"
+                >
+                  {t("agb")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/widerruf"
+                  className="text-sm transition-colors hover:text-white"
+                >
+                  {t("widerruf")}
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

@@ -125,7 +125,7 @@ Stripe · Resend · Mux (+ Cloudflare Stream/Vimeo/YouTube fallbacks) · UploadT
 - No marketing landing page or hero with conversion CTA (only catalog `(public)/courses`).
 - No SSO for enterprise (SAML/OIDC) — blocks schools/universities.
 - No invite-token signup flow (despite B2B narrative and `B2B_PARTNER` role).
-- No email-verification **enforcement** — unverified users can enroll, purchase, and post reviews.
+- Email-verification enforcement is now wired into `enrollInCourse`, `buyCourse`, `startSubscription`, `submitReview`, and `sendMessageAction` via `assertEmailVerified()` in `src/lib/auth-helpers.ts` (matching the `assertMinorConsent` pattern). Still not gated on the Google OAuth signup path (users arriving through Google are auto-verified so it's a non-issue) or on tutor booking flows — follow-up.
 - No separate B2B/institution onboarding form (org name, seat count, VAT ID).
 
 **Issues:**
@@ -347,7 +347,7 @@ Stripe · Resend · Mux (+ Cloudflare Stream/Vimeo/YouTube fallbacks) · UploadT
 - Google OAuth account linking via `@auth/prisma-adapter`.
 
 **Gaps:**
-- **`AuditLog` is partially populated — not orphaned.** `src/lib/audit.ts` exports a defensive `audit()` helper already called from `admin.actions.ts` (role change, user deactivate, course delete / create / update / status-change / badge create), `account.actions.ts` (3 sites), `review.actions.ts` (2 sites), and `coupon.actions.ts` (2 sites). Remaining gap: `course-content.actions.ts` (module / lesson CRUD), `quiz-admin.actions.ts`, and tutor-management actions — and there is no `/admin/audit` read view. Earlier revisions of this doc claimed the model was orphaned; that was incorrect.
+- **`AuditLog` is well-populated.** `src/lib/audit.ts` exports a defensive `audit()` helper called from `admin.actions.ts` (role change, user (de)activate, course CRUD + status-change, badge create), `course-content.actions.ts` (module / lesson CRUD), `quiz-admin.actions.ts` (quiz + question CRUD), `account.actions.ts` (3 sites), `review.actions.ts` (2 sites), and `coupon.actions.ts` (2 sites). Remaining gap: tutor/booking admin actions, and there is no `/admin/audit` read view. Earlier revisions of this doc claimed the model was orphaned; that was incorrect.
 - **`Permission` + `RolePermission` tables are declared but never queried** — RBAC is hardcoded role-string checks only. Admin role changes cannot be fine-grained per feature.
 - **No bulk CSV import** for institutional B2B onboarding (primary DACH EdTech use case).
 - No admin-initiated password reset / impersonation / magic-link for support.
@@ -370,9 +370,9 @@ Stripe · Resend · Mux (+ Cloudflare Stream/Vimeo/YouTube fallbacks) · UploadT
 - Legal pages present: `/(public)/privacy`, `/(public)/terms`.
 
 **Gaps (DACH legal-critical):**
-- **No Impressum** — mandatory under §5 TMG for any commercial German website. Missing = immediate Abmahnung risk (legal cease-and-desist with cost recovery).
-- **No AGB** (German-specific T&Cs distinct from generic Terms). The existing `/terms` page is English-centric.
-- **No Widerrufsbelehrung** (14-day right-of-withdrawal notice, required for consumer sales under BGB §312g).
+- **Impressum placeholder page exists** at `/impressum` (env-driven company fields — `COMPANY_LEGAL_NAME`, `COMPANY_ADDRESS_LINE1/2`, `COMPANY_REGISTER_COURT`, `COMPANY_REGISTER_NUMBER`, `COMPANY_MANAGING_DIRECTOR`, `COMPANY_VAT_ID`, `COMPANY_RESPONSIBLE_EDITOR`). Must be populated with real data + reviewed by counsel before German launch.
+- **AGB placeholder page exists** at `/agb` with a 9-section skeleton (Geltungsbereich, Vertragsgegenstand, Widerrufsrecht reference, etc.). Draft only — legal review required.
+- **Widerrufsbelehrung placeholder page exists** at `/widerruf` with the 14-day cancellation text + sample withdrawal form + digital-content exception clause. Draft only — legal review required.
 - **No Datenschutzerklärung** that enumerates the specific processors used (Stripe, Resend, Mux, UploadThing, Google OAuth, PostHog/GA4 if enabled). Generic privacy page is insufficient.
 - Translation completeness unverified — 1005 keys per file but no translator QA evidence; legal phrasings (especially Arabic) need attorney review.
 - Currency / number formatting is per-locale but the **price in `Course.price` is a single `Decimal`** — no multi-currency price table, so a DACH learner still sees the same numeric value formatted differently.
@@ -466,9 +466,9 @@ Legend: ✅ Complete · ⚠️ Partial · ❌ Missing
    - Files: `prisma/schema.prisma` `Invoice`, any invoice render path.
    - Fix: extend `Invoice` with seller fields or reference a `SellerProfile` singleton (company name, address, USt-IdNr., HRB-no., court). Render own branded invoice PDF for DE/AT/CH buyers instead of relying on Stripe-hosted. Add buyer VAT ID field for B2B.
 
-5. **Missing Impressum, AGB, Widerrufsbelehrung (DE legal).**
-   - Files: `src/app/[locale]/(public)/` — add `/impressum`, `/agb`, `/widerruf`.
-   - Fix: draft with a German attorney; render via `next-intl`. Link in footer site-wide before any German marketing.
+5. **Impressum, AGB, Widerrufsbelehrung — placeholder pages only (draft).**
+   - Files: `src/app/[locale]/(public)/impressum/page.tsx`, `/agb/page.tsx`, `/widerruf/page.tsx`. Footer links added across all locales (`messages/{en,de,ar}.json`).
+   - Fix: populate `COMPANY_*` env vars with real company data and have the draft AGB + Widerrufsbelehrung reviewed / signed off by a German lawyer before DE launch. Add last-updated dates.
 
 6. **No GDPR data-subject-request endpoints.**
    - Files: need new `src/actions/gdpr.actions.ts` + `api/user/export`, `api/user/delete`.
@@ -478,9 +478,9 @@ Legend: ✅ Complete · ⚠️ Partial · ❌ Missing
    - Files: root `src/app/[locale]/layout.tsx` + new `src/components/compliance/cookie-banner.tsx`.
    - Fix: gate analytics + marketing scripts on `ConsentRecord{type: COOKIES_ANALYTICS | COOKIES_MARKETING}`. Banner must be pre-deny, with granular toggles, GDPR-compliant dismiss behavior.
 
-8. **`AuditLog` coverage is incomplete.**
-   - Files: `src/lib/audit.ts` (helper exists), admin mutations in `src/actions/admin.actions.ts` (wired for user role/activate, course CRUD + status-change, badge-create), `account.actions.ts`, `review.actions.ts`, `coupon.actions.ts`. Remaining gap: `course-content.actions.ts` (modules/lessons), `quiz-admin.actions.ts`, tutor/booking admin actions.
-   - Fix: wrap every remaining admin-side mutation in `audit({ actorId, action, resource, resourceId, metadata })`. Add a read-only `/admin/audit` view with filter-by-resource / by-actor. RBAC tables (`Permission`, `RolePermission`) remain unused and should either be wired into `auth-helpers.ts` or dropped from schema.
+8. **`AuditLog` coverage is nearly complete; reader view still missing.**
+   - Files: `src/lib/audit.ts` (helper), `admin.actions.ts` (user role/activate, course CRUD + status-change, badge create), `course-content.actions.ts` (module + lesson CRUD — wired), `quiz-admin.actions.ts` (quiz + question CRUD — wired), `account.actions.ts`, `review.actions.ts`, `coupon.actions.ts`. Remaining gap: tutor / booking admin mutations.
+   - Fix: wrap tutor/booking admin mutations in `audit(...)`, then build a read-only `/admin/audit` view with filter-by-resource / by-actor / by-date. RBAC tables (`Permission`, `RolePermission`) remain unused and should either be wired into `auth-helpers.ts` or dropped from schema.
 
 9. **No auth gate in `src/proxy.ts` — every admin/authenticated route depends on inline guards.**
    - File: `src/proxy.ts` (Next.js 16 renamed `middleware.ts` → `proxy.ts`; this file currently only runs `next-intl/middleware`).
@@ -492,7 +492,7 @@ Legend: ✅ Complete · ⚠️ Partial · ❌ Missing
 ### High Priority (P1 — Launch-Blockers)
 
 1. **Login schema accepts any non-empty password for legacy accounts.** Add a `passwordNeedsReset` flag (or re-use `User.emailVerified` bump) and force a reset on next login for anyone with a hash shorter than the current 8-char rule. Then tighten `loginSchema`.
-2. **Email verification partially enforced.** `enrollInCourse()` now blocks unverified users (`src/actions/enrollment.actions.ts`); still need equivalent gates in `createCourseCheckoutSession`, `createReview`, and any message-send action.
+2. **Email verification now enforced on enrolment, checkout (`buyCourse`, `startSubscription`), review submission, and messaging.** Helper at `src/lib/auth-helpers.ts#assertEmailVerified`. Follow-up: extend to tutor booking creation.
 3. **Assignment submission missing despite being advertised.** Add `AssignmentSubmission{lessonId, userId, fileUrl, text, submittedAt, grade, feedback, gradedBy, gradedAt}`, UI in the lesson viewer, instructor review page.
 4. **Manual grading UI.** Gradebook at `/admin/courses/[slug]/grading` surfacing pending `SHORT_ANSWER` attempts + `AssignmentSubmission` records with override.
 5. **B2B onboarding + bulk CSV import.** New `/admin/organizations` + `/admin/users/import` with Zod-validated CSV parser, dry-run, rollback.
@@ -534,10 +534,11 @@ Legend: ✅ Complete · ⚠️ Partial · ❌ Missing
 
 - **Add Impressum placeholder page** with legally-required fields pulled from env vars — unblocks any DE traffic while AGB is being drafted.
 - **Link existing `/privacy` + `/terms` + new `/impressum` in global footer** across all locales.
-- ~~**Enforce email verification** in `enrollInCourse()`~~ — **done** (`src/actions/enrollment.actions.ts`).
+- ~~**Enforce email verification** in `enrollInCourse()` + extend to checkout / reviews / messaging~~ — **done** (`src/lib/auth-helpers.ts#assertEmailVerified`).
 - **Unify password min-length to 8** — needs a forced-reset flag, not a pure schema tightening (legacy users).
-- ~~**Populate `AuditLog`** in remaining `admin.actions.ts` course/badge sites~~ — **done** for `createCourse`, `updateCourse`, `toggleCourseStatus`, `createBadge`. Outstanding: `course-content.actions.ts`, `quiz-admin.actions.ts`, tutor admin.
+- ~~**Populate `AuditLog`** in remaining `admin.actions.ts` course/badge sites + `course-content.actions.ts` + `quiz-admin.actions.ts`~~ — **done**. Outstanding: tutor admin + `/admin/audit` reader view.
 - ~~**Harden Cloudflare Stream fallback**~~ — **done** (soft fallback + warning in `src/lib/video-provider.ts`).
+- ~~**Add Impressum, AGB, Widerrufsbelehrung placeholder pages + footer links**~~ — **done**; still needs real `COMPANY_*` env values and attorney sign-off before DE launch.
 - **Add an auth gate in `src/proxy.ts`** — blocked on NextAuth v5 Edge-safe config split (separate PR).
 - **Pre-deny cookie banner** shown once, persisted via `ConsentRecord` — minimal design, unblock DE visibility.
 - **CSV export of enrollments** — one Prisma query → `papaparse` → download. Solves most urgent reporting ask.

@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { audit } from "@/lib/audit";
 import {
   createQuizSchema,
   updateQuizSchema,
@@ -20,7 +21,7 @@ export async function createQuiz(data: {
   timeLimit?: number;
 }) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = createQuizSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -33,6 +34,16 @@ export async function createQuiz(data: {
         title: parsed.data.title,
         passingScore: parsed.data.passingScore,
         timeLimit: parsed.data.timeLimit || null,
+      },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "quiz.create",
+      resource: "Quiz",
+      resourceId: quiz.id,
+      metadata: {
+        lessonId: parsed.data.lessonId,
+        passingScore: parsed.data.passingScore,
       },
     });
 
@@ -50,7 +61,7 @@ export async function updateQuiz(data: {
   timeLimit?: number;
 }) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = updateQuizSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -62,6 +73,13 @@ export async function updateQuiz(data: {
         timeLimit: parsed.data.timeLimit || null,
       },
     });
+    await audit({
+      actorId: session.user!.id,
+      action: "quiz.update",
+      resource: "Quiz",
+      resourceId: parsed.data.quizId,
+      metadata: { passingScore: parsed.data.passingScore },
+    });
 
     return { success: true };
   } catch (error) {
@@ -72,11 +90,17 @@ export async function updateQuiz(data: {
 
 export async function deleteQuiz(quizId: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = deleteQuizSchema.safeParse({ quizId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
     await db.quiz.delete({ where: { id: parsed.data.quizId } });
+    await audit({
+      actorId: session.user!.id,
+      action: "quiz.delete",
+      resource: "Quiz",
+      resourceId: parsed.data.quizId,
+    });
     return { success: true };
   } catch (error) {
     console.error("deleteQuiz error:", error);
@@ -98,11 +122,11 @@ export async function createQuestion(data: {
   answers: { text: string; textAr?: string; textDe?: string; isCorrect: boolean }[];
 }) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = createQuestionSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
-    await db.question.create({
+    const question = await db.question.create({
       data: {
         quizId: parsed.data.quizId,
         text: parsed.data.text,
@@ -121,6 +145,18 @@ export async function createQuestion(data: {
             order: i,
           })),
         },
+      },
+      select: { id: true },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "question.create",
+      resource: "Question",
+      resourceId: question.id,
+      metadata: {
+        quizId: parsed.data.quizId,
+        type: parsed.data.type,
+        answerCount: parsed.data.answers.length,
       },
     });
 
@@ -143,7 +179,7 @@ export async function updateQuestion(data: {
   answers: { id?: string; text: string; textAr?: string; textDe?: string; isCorrect: boolean }[];
 }) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = updateQuestionSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -175,6 +211,13 @@ export async function updateQuestion(data: {
         })),
       });
     });
+    await audit({
+      actorId: session.user!.id,
+      action: "question.update",
+      resource: "Question",
+      resourceId: parsed.data.questionId,
+      metadata: { type: parsed.data.type, answerCount: parsed.data.answers.length },
+    });
 
     return { success: true };
   } catch (error) {
@@ -185,11 +228,17 @@ export async function updateQuestion(data: {
 
 export async function deleteQuestion(questionId: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = deleteQuestionSchema.safeParse({ questionId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
     await db.question.delete({ where: { id: parsed.data.questionId } });
+    await audit({
+      actorId: session.user!.id,
+      action: "question.delete",
+      resource: "Question",
+      resourceId: parsed.data.questionId,
+    });
     return { success: true };
   } catch (error) {
     console.error("deleteQuestion error:", error);
