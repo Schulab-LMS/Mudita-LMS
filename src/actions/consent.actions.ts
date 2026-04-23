@@ -4,6 +4,12 @@ import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  COOKIE_CONSENT_COOKIE,
+  COOKIE_CONSENT_VERSION,
+  type CookieConsentPayload,
+  type StoredCookieConsent,
+} from "@/lib/consent";
 
 // Stores the visitor's cookie-category choices in an HTTP cookie so client
 // scripts (analytics / marketing loaders) can read them before the first
@@ -16,23 +22,10 @@ import { db } from "@/lib/db";
 // remains authoritative until they change their preference from inside the
 // app and we persist it to the DB.
 
-export const COOKIE_CONSENT_COOKIE = "schulab_cookie_consent";
-export const COOKIE_CONSENT_VERSION = process.env.COOKIE_CONSENT_VERSION ?? "1";
-
 const schema = z.object({
   analytics: z.boolean(),
   marketing: z.boolean(),
 });
-
-export type CookieConsentPayload = z.infer<typeof schema>;
-
-export type StoredCookieConsent = {
-  v: string;
-  functional: true;
-  analytics: boolean;
-  marketing: boolean;
-  ts: string;
-};
 
 export async function saveCookieConsent(input: CookieConsentPayload) {
   const parsed = schema.safeParse(input);
