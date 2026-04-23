@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Link } from "@/i18n/navigation";
 
 export const metadata: Metadata = {
   title: "Allgemeine Geschäftsbedingungen | Schulab",
@@ -64,12 +65,12 @@ export default function AgbPage() {
         <p className="mb-4 leading-relaxed text-muted-foreground">
           Verbraucherinnen und Verbrauchern steht ein 14-tägiges Widerrufs­recht
           zu. Die Einzelheiten und Rechtsfolgen entnehmen Sie bitte der{" "}
-          <a
+          <Link
             href="/widerruf"
             className="text-primary underline underline-offset-4 hover:text-primary/80"
           >
             Widerrufsbelehrung
-          </a>
+          </Link>
           .
         </p>
 
