@@ -26,6 +26,7 @@ import {
   MessageSquare,
   HelpCircle,
   Bell,
+  ClipboardList,
 } from "lucide-react";
 import { SchulabLogo } from "@/components/brand/schulab-logo";
 
@@ -48,6 +49,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MessageSquare,
   HelpCircle,
   Bell,
+  ClipboardList,
 };
 
 interface SidebarProps {

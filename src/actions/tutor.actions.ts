@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getTutorByUserId, updateTutorAvailability } from "@/services/tutor.service";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { audit } from "@/lib/audit";
 import {
   submitTutorApplicationSchema,
   updateTutorProfileSchema,
@@ -143,7 +144,7 @@ export async function setAvailability(
 
 export async function verifyTutor(tutorProfileId: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = tutorIdSchema.safeParse({ tutorProfileId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -151,6 +152,13 @@ export async function verifyTutor(tutorProfileId: string) {
       where: { id: parsed.data.tutorProfileId },
       data: { isVerified: true },
       include: { user: { select: { email: true, name: true } } },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "tutor.verify",
+      resource: "TutorProfile",
+      resourceId: parsed.data.tutorProfileId,
+      metadata: { tutorUserId: tutor.userId },
     });
 
     // Send approval email (non-blocking)
@@ -180,7 +188,7 @@ export async function verifyTutor(tutorProfileId: string) {
 
 export async function rejectTutor(tutorProfileId: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = tutorIdSchema.safeParse({ tutorProfileId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -188,6 +196,13 @@ export async function rejectTutor(tutorProfileId: string) {
       where: { id: parsed.data.tutorProfileId },
       data: { isVerified: false },
       include: { user: { select: { email: true, name: true } } },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "tutor.reject",
+      resource: "TutorProfile",
+      resourceId: parsed.data.tutorProfileId,
+      metadata: { tutorUserId: tutor.userId },
     });
 
     // Send rejection email (non-blocking)
@@ -217,11 +232,22 @@ export async function rejectTutor(tutorProfileId: string) {
 
 export async function deleteTutorProfile(tutorProfileId: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = tutorIdSchema.safeParse({ tutorProfileId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const existing = await db.tutorProfile.findUnique({
+      where: { id: parsed.data.tutorProfileId },
+      select: { userId: true },
+    });
     await db.tutorProfile.delete({ where: { id: parsed.data.tutorProfileId } });
+    await audit({
+      actorId: session.user!.id,
+      action: "tutor.delete_profile",
+      resource: "TutorProfile",
+      resourceId: parsed.data.tutorProfileId,
+      metadata: existing ? { tutorUserId: existing.userId } : null,
+    });
     revalidatePath("/admin/tutors");
     return { success: true };
   } catch (error) {

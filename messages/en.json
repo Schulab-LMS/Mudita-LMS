@@ -57,6 +57,7 @@
     "becomeTutor": "Become a Tutor",
     "tutors": "Tutors",
     "roles": "Roles",
+    "audit": "Audit Log",
     "logout": "Log Out",
     "search": "Search",
     "login": "Log In",
@@ -619,6 +620,21 @@
     "howItWorks": "How It Works",
     "forSchools": "For Schools",
     "copyright": "© {year} Schulab. All rights reserved."
+  },
+  "cookieBanner": {
+    "title": "Your privacy matters",
+    "description": "We use cookies to keep the site working, measure how it is used, and (with your permission) show relevant content. You can change these choices at any time.",
+    "learnMore": "Read our Privacy Policy",
+    "acceptAll": "Accept all",
+    "rejectAll": "Reject all",
+    "customize": "Customize",
+    "acceptSelection": "Save preferences",
+    "cookiesFunctionalLabel": "Functional (required)",
+    "cookiesFunctionalDesc": "Login sessions, language preference, and other cookies needed for the site to work.",
+    "cookiesAnalyticsLabel": "Analytics",
+    "cookiesAnalyticsDesc": "Aggregated usage metrics so we can understand which lessons and features are working.",
+    "cookiesMarketingLabel": "Marketing",
+    "cookiesMarketingDesc": "Ads and content tailored to you on other sites. Off by default."
   },
   "roles": {
     "STUDENT": "Student",

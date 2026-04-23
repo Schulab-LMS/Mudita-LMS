@@ -57,6 +57,7 @@
     "becomeTutor": "Tutor werden",
     "tutors": "Tutoren",
     "roles": "Rollen",
+    "audit": "Audit-Log",
     "logout": "Abmelden",
     "search": "Suchen",
     "login": "Anmelden",
@@ -619,6 +620,21 @@
     "howItWorks": "So funktioniert's",
     "forSchools": "Für Schulen",
     "copyright": "© {year} Schulab. Alle Rechte vorbehalten."
+  },
+  "cookieBanner": {
+    "title": "Ihre Privatsphäre ist uns wichtig",
+    "description": "Wir nutzen Cookies, um die Website funktionsfähig zu halten, ihre Nutzung zu messen und – mit Ihrer Zustimmung – relevante Inhalte anzuzeigen. Sie können diese Einstellungen jederzeit ändern.",
+    "learnMore": "Unsere Datenschutzerklärung lesen",
+    "acceptAll": "Alle akzeptieren",
+    "rejectAll": "Alle ablehnen",
+    "customize": "Anpassen",
+    "acceptSelection": "Auswahl speichern",
+    "cookiesFunctionalLabel": "Notwendig (erforderlich)",
+    "cookiesFunctionalDesc": "Login-Sitzungen, Spracheinstellung und weitere für den Betrieb der Website notwendige Cookies.",
+    "cookiesAnalyticsLabel": "Analyse",
+    "cookiesAnalyticsDesc": "Aggregierte Nutzungskennzahlen, damit wir verstehen, welche Lektionen und Funktionen wirken.",
+    "cookiesMarketingLabel": "Marketing",
+    "cookiesMarketingDesc": "Anzeigen und Inhalte, die auf anderen Websites auf Sie zugeschnitten sind. Standardmäßig deaktiviert."
   },
   "roles": {
     "STUDENT": "Schüler",

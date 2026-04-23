@@ -57,6 +57,7 @@
     "becomeTutor": "كن معلمًا",
     "tutors": "المعلمون",
     "roles": "الأدوار",
+    "audit": "سجل التدقيق",
     "logout": "تسجيل الخروج",
     "search": "بحث",
     "login": "تسجيل الدخول",
@@ -619,6 +620,21 @@
     "howItWorks": "كيف يعمل",
     "forSchools": "للمدارس",
     "copyright": "© {year} Schulab. جميع الحقوق محفوظة."
+  },
+  "cookieBanner": {
+    "title": "خصوصيتك تهمنا",
+    "description": "نستخدم ملفات تعريف الارتباط لتشغيل الموقع وقياس طريقة استخدامه، وبموافقتك لعرض محتوى ذي صلة. يمكنك تغيير هذه الخيارات في أي وقت.",
+    "learnMore": "اقرأ سياسة الخصوصية",
+    "acceptAll": "قبول الكل",
+    "rejectAll": "رفض الكل",
+    "customize": "تخصيص",
+    "acceptSelection": "حفظ التفضيلات",
+    "cookiesFunctionalLabel": "ضرورية (مطلوبة)",
+    "cookiesFunctionalDesc": "جلسات تسجيل الدخول وتفضيلات اللغة وملفات تعريف ارتباط أخرى لازمة لتشغيل الموقع.",
+    "cookiesAnalyticsLabel": "التحليلات",
+    "cookiesAnalyticsDesc": "مقاييس استخدام مجمّعة تساعدنا على فهم أي الدروس والميزات يعمل بفعالية.",
+    "cookiesMarketingLabel": "التسويق",
+    "cookiesMarketingDesc": "إعلانات ومحتوى مخصص لك على مواقع أخرى. معطّل افتراضيًا."
   },
   "roles": {
     "STUDENT": "طالب",

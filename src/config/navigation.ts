@@ -29,6 +29,7 @@ const adminItems: NavItem[] = [
   { href: "/admin/help", labelKey: "nav.helpArticles", icon: "HelpCircle" },
   { href: "/admin/tutors", labelKey: "nav.tutors", icon: "ShieldCheck" },
   { href: "/admin/roles", labelKey: "nav.roles", icon: "Lock" },
+  { href: "/admin/audit", labelKey: "nav.audit", icon: "ClipboardList" },
   { href: "/admin/settings", labelKey: "nav.settings", icon: "Settings" },
 ];
 

@@ -347,7 +347,7 @@ Stripe · Resend · Mux (+ Cloudflare Stream/Vimeo/YouTube fallbacks) · UploadT
 - Google OAuth account linking via `@auth/prisma-adapter`.
 
 **Gaps:**
-- **`AuditLog` is well-populated.** `src/lib/audit.ts` exports a defensive `audit()` helper called from `admin.actions.ts` (role change, user (de)activate, course CRUD + status-change, badge create), `course-content.actions.ts` (module / lesson CRUD), `quiz-admin.actions.ts` (quiz + question CRUD), `account.actions.ts` (3 sites), `review.actions.ts` (2 sites), and `coupon.actions.ts` (2 sites). Remaining gap: tutor/booking admin actions, and there is no `/admin/audit` read view. Earlier revisions of this doc claimed the model was orphaned; that was incorrect.
+- **`AuditLog` is well-populated and has a reader view.** `src/lib/audit.ts` exports a defensive `audit()` helper called from `admin.actions.ts` (role change, user (de)activate, course CRUD + status-change, badge create), `course-content.actions.ts` (module / lesson CRUD), `quiz-admin.actions.ts` (quiz + question CRUD), `tutor.actions.ts` (verify / reject / delete-profile), `account.actions.ts` (3 sites), `review.actions.ts` (2 sites), and `coupon.actions.ts` (2 sites). Admin reader at `/admin/audit` with filters (resource, action-contains, actor id) and pagination. Earlier revisions of this doc claimed the model was orphaned; that was incorrect.
 - **`Permission` + `RolePermission` tables are declared but never queried** — RBAC is hardcoded role-string checks only. Admin role changes cannot be fine-grained per feature.
 - **No bulk CSV import** for institutional B2B onboarding (primary DACH EdTech use case).
 - No admin-initiated password reset / impersonation / magic-link for support.
@@ -399,7 +399,7 @@ Stripe · Resend · Mux (+ Cloudflare Stream/Vimeo/YouTube fallbacks) · UploadT
 - `ConsentRecord` append-only ledger is well-designed (TERMS, PRIVACY, MARKETING_EMAIL, PARENTAL_COPPA, PARENTAL_GDPR_K, IP/UA recorded).
 - **No data export endpoint** (Art. 15/20 right of access / portability).
 - **No right-to-be-forgotten flow** (Art. 17) — no anonymization routine, no cascade-delete strategy across 48 models.
-- **No cookie banner** — all `COOKIES_*` consent enums exist in `ConsentRecord` but are never captured UI-side.
+- **Cookie banner now captures consent.** `src/components/compliance/cookie-banner.tsx` (mounted in `src/app/[locale]/layout.tsx`) + `src/actions/consent.actions.ts`: anonymous visitors get an HTTP cookie (`schulab_cookie_consent` — JSON `{functional, analytics, marketing, v, ts}`); authenticated visitors additionally get `ConsentRecord` rows for `COOKIES_ANALYTICS` and `COOKIES_MARKETING`. "Reject all" is the default if the visitor ignores the banner. Still outstanding: client-side analytics/marketing script loaders need to read this cookie before firing (relevant when the PostHog/GA4 stub is filled in).
 - No data-retention schedule / automatic purge.
 - No data-residency isolation (single Hetzner region is fine for EU, but no documented processor register / TOMs).
 - `Profile`, `User` PII is plaintext in DB; no field-level encryption.
@@ -474,13 +474,12 @@ Legend: ✅ Complete · ⚠️ Partial · ❌ Missing
    - Files: need new `src/actions/gdpr.actions.ts` + `api/user/export`, `api/user/delete`.
    - Fix: (a) export: JSON dump of all records referencing `userId`, 48-model cascade defined once. (b) delete: anonymize `User`, cascade-delete owned data (LessonProgress, QuizAttempt, Enrollment, OnboardingProfile, Notification, Message, Booking) while **retaining** `ConsentRecord` / `AuditLog` / `Invoice` (legal retention under AO §147, 10 years). Provide self-serve UI at `/account/privacy`.
 
-7. **No cookie banner / cookie consent capture.**
-   - Files: root `src/app/[locale]/layout.tsx` + new `src/components/compliance/cookie-banner.tsx`.
-   - Fix: gate analytics + marketing scripts on `ConsentRecord{type: COOKIES_ANALYTICS | COOKIES_MARKETING}`. Banner must be pre-deny, with granular toggles, GDPR-compliant dismiss behavior.
+7. **Cookie banner + cookie-consent capture — implemented.**
+   - Files: `src/components/compliance/cookie-banner.tsx`, `src/actions/consent.actions.ts`, `src/app/[locale]/layout.tsx` (mount), `messages/{en,de,ar}.json` (i18n). Banner is pre-deny, offers "Accept all / Reject all / Customize", and the cookie is readable client-side so analytics loaders can gate themselves once they're wired in. Follow-up: wire PostHog/GA4 initialisation behind `document.cookie` check on `schulab_cookie_consent.analytics`.
 
-8. **`AuditLog` coverage is nearly complete; reader view still missing.**
-   - Files: `src/lib/audit.ts` (helper), `admin.actions.ts` (user role/activate, course CRUD + status-change, badge create), `course-content.actions.ts` (module + lesson CRUD — wired), `quiz-admin.actions.ts` (quiz + question CRUD — wired), `account.actions.ts`, `review.actions.ts`, `coupon.actions.ts`. Remaining gap: tutor / booking admin mutations.
-   - Fix: wrap tutor/booking admin mutations in `audit(...)`, then build a read-only `/admin/audit` view with filter-by-resource / by-actor / by-date. RBAC tables (`Permission`, `RolePermission`) remain unused and should either be wired into `auth-helpers.ts` or dropped from schema.
+8. **`AuditLog` coverage is now comprehensive + has a reader view.**
+   - Files: `src/lib/audit.ts` (helper), `admin.actions.ts`, `course-content.actions.ts`, `quiz-admin.actions.ts`, `tutor.actions.ts` (verify / reject / delete — wired in batch 3), `account.actions.ts`, `review.actions.ts`, `coupon.actions.ts`. Reader at `src/app/[locale]/(dashboard)/admin/audit/page.tsx` with resource / action-contains / actor filters + pagination. Nav entry at `src/config/navigation.ts`.
+   - Follow-up: RBAC tables (`Permission`, `RolePermission`) remain unused — wire into `auth-helpers.ts` or drop from schema. Booking user-initiated actions (`createBooking`, `cancelBooking`) are not audited; they're not admin actions and the booking lifecycle is reconstructable from the `Booking` table itself.
 
 9. **No auth gate in `src/proxy.ts` — every admin/authenticated route depends on inline guards.**
    - File: `src/proxy.ts` (Next.js 16 renamed `middleware.ts` → `proxy.ts`; this file currently only runs `next-intl/middleware`).

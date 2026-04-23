@@ -6,6 +6,7 @@ import { Inter, Space_Grotesk, Nunito } from "next/font/google";
 import { locales, isRtl, type Locale } from "@/i18n/config";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { CookieBanner } from "@/components/compliance/cookie-banner";
 
 // Inline script avoids dark-mode FOUC — runs before React hydrates, setting
 // data-theme on <html> from localStorage or OS preference.
@@ -72,6 +73,7 @@ export default async function LocaleLayout({
           <NextIntlClientProvider messages={messages}>
             <ThemeProvider>
               <ToastProvider>{children}</ToastProvider>
+              <CookieBanner />
             </ThemeProvider>
           </NextIntlClientProvider>
         </SessionProvider>
