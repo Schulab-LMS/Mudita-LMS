@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
 import { ChevronLeft } from "lucide-react";
 import { SendForm } from "./send-form";
+import { getInitials } from "@/lib/utils";
 
 interface Props {
   params: Promise<{ userId: string; locale: string }>;
@@ -69,47 +70,61 @@ export default async function ThreadPage({ params }: Props) {
   ]);
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border bg-card overflow-hidden">
-      <div className="flex items-center gap-3 border-b px-4 py-3">
+    <div className="card-premium flex h-[calc(100vh-8rem)] flex-col overflow-hidden">
+      <div className="flex items-center gap-3 border-b border-border bg-muted/30 px-4 py-3">
         <Link
           href="/messages"
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
-          <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
+          <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />
           <span className="hidden sm:inline">{t("inbox")}</span>
         </Link>
         <div className="h-4 w-px bg-border" />
-        <div className="flex items-center gap-3">
-          {otherUser.avatar ? (
-            <Image
-              src={otherUser.avatar}
-              alt={otherUser.name ?? ""}
-              width={36}
-              height={36}
-              className="h-9 w-9 rounded-full object-cover"
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="relative shrink-0">
+            {otherUser.avatar ? (
+              <Image
+                src={otherUser.avatar}
+                alt={otherUser.name ?? ""}
+                width={36}
+                height={36}
+                className="h-9 w-9 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 text-xs font-semibold text-foreground">
+                {getInitials(otherUser.name ?? "?")}
+              </div>
+            )}
+            <span
+              aria-hidden
+              className="absolute -bottom-0.5 -end-0.5 inline-flex h-2.5 w-2.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-card"
             />
-          ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
-              {(otherUser.name ?? "?")[0].toUpperCase()}
-            </div>
-          )}
-          <div>
-            <p className="text-sm font-semibold">{otherUser.name ?? t("unknownUser")}</p>
-            <p className="text-xs text-muted-foreground">
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-foreground">
+              {otherUser.name ?? t("unknownUser")}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
               {tRoles(otherUser.role as "STUDENT" | "TUTOR" | "PARENT" | "ADMIN" | "SUPER_ADMIN" | "B2B_PARTNER")}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <p className="text-4xl mb-3">👋</p>
-            <p className="font-medium text-muted-foreground">
+          <div className="flex h-full flex-col items-center justify-center text-center">
+            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-launch-gradient-soft">
+              <span className="text-3xl" role="img" aria-label="wave">
+                👋
+              </span>
+            </div>
+            <p className="font-semibold text-foreground">
               {t("startWith", { name: otherUser.name ?? t("unknownUser") })}
             </p>
-            <p className="text-sm text-muted-foreground/70 mt-1">{t("privateMessages")}</p>
+            <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+              {t("privateMessages")}
+            </p>
           </div>
         ) : (
           messages.map((msg, index) => {

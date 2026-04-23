@@ -1,15 +1,16 @@
 import { Suspense } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import ResetPasswordClient from "./reset-password-client";
 
 function ResetFallback() {
   return (
-    <Card>
-      <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center gap-4 py-12 text-center">
+      <Loader2
+        className="h-10 w-10 animate-spin text-primary"
+        aria-hidden
+      />
+      <p className="text-sm text-muted-foreground">Loading reset form…</p>
+    </div>
   );
 }
 

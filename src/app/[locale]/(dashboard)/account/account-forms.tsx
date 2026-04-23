@@ -492,13 +492,15 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-sm">
+    <div className="card-premium p-6">
       <div className="mb-5 flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
           {icon}
-        </div>
-        <div>
-          <h2 className="font-display text-lg font-semibold">{title}</h2>
+        </span>
+        <div className="min-w-0">
+          <h2 className="font-display text-lg font-semibold text-foreground">
+            {title}
+          </h2>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
