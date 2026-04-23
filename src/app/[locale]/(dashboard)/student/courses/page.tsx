@@ -3,8 +3,17 @@ import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { getUserEnrollments } from "@/services/enrollment.service";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { BookOpen } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/shared/empty-state";
+import { NoCoursesScene } from "@/components/illustrations/empty-scenes";
+import { CategoryIcon } from "@/components/illustrations/category-icons";
+import {
+  BookOpen,
+  ArrowRight,
+  PlayCircle,
+  CheckCircle2,
+  Trophy,
+} from "lucide-react";
 
 export const metadata = { title: "My Courses | Schulab" };
 
@@ -14,91 +23,169 @@ export default async function StudentCoursesPage() {
 
   const enrollments = await getUserEnrollments(session.user.id);
 
+  const active = enrollments.filter((e) => e.status === "ACTIVE");
+  const completed = enrollments.filter((e) => e.status === "COMPLETED");
+  const saved = enrollments.filter(
+    (e) => e.status !== "ACTIVE" && e.status !== "COMPLETED"
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">My Courses</h1>
-          <p className="text-muted-foreground">
-            {enrollments.length} course{enrollments.length !== 1 ? "s" : ""} enrolled
-          </p>
-        </div>
-        <Link
-          href="/courses"
-          className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-        >
-          <BookOpen className="h-4 w-4" />
-          Browse more
-        </Link>
-      </div>
-
-      {enrollments.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
-          <BookOpen className="mb-3 h-12 w-12 text-muted-foreground" />
-          <h3 className="mb-2 text-lg font-semibold text-muted-foreground">
-            No courses yet
-          </h3>
-          <p className="mb-4 text-sm text-muted-foreground">
-            Start your learning journey today.
-          </p>
+      <PageHeader
+        title="My Courses"
+        description={`${enrollments.length} course${
+          enrollments.length === 1 ? "" : "s"
+        } · ${active.length} active · ${completed.length} completed`}
+        breadcrumbs={[{ label: "Courses" }]}
+        actions={
           <Link
             href="/courses"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+            className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-launch-gradient px-3 text-xs font-semibold text-white shadow-sm transition-transform hover:-translate-y-0.5"
           >
-            Browse Courses
+            <BookOpen className="h-3.5 w-3.5" aria-hidden />
+            Browse more
           </Link>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {enrollments.map((enrollment) => {
-            const allLessons = enrollment.course.modules.flatMap((m) => m.lessons);
-            const totalLessons = allLessons.length;
+        }
+      />
 
-            return (
-              <div
-                key={enrollment.id}
-                className="rounded-xl border bg-white overflow-hidden"
-              >
-                <div className="flex h-32 items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                  <span className="text-4xl">📚</span>
-                </div>
-                <div className="p-4">
-                  <h3 className="mb-1 font-semibold line-clamp-2">
-                    {enrollment.course.title}
-                  </h3>
-                  <div className="mb-3 flex items-center gap-2">
-                    <Badge
-                      variant={
-                        enrollment.status === "COMPLETED" ? "default" : "secondary"
-                      }
-                      className="text-xs"
-                    >
-                      {enrollment.status === "COMPLETED" ? "Completed" : "In progress"}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {totalLessons} lessons
-                    </span>
-                  </div>
-                  <Progress value={enrollment.progress} className="h-1.5 mb-3" />
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      {enrollment.progress}% complete
-                    </span>
-                    {totalLessons > 0 && (
-                      <Link
-                        href={`/student/learn/${enrollment.course.slug}/${allLessons[0]?.id}`}
-                        className="text-xs font-medium text-primary hover:underline"
-                      >
-                        {enrollment.progress > 0 ? "Continue" : "Start"}
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+      {enrollments.length === 0 ? (
+        <EmptyState
+          illustration={<NoCoursesScene />}
+          title="No courses yet"
+          description="Start your learning journey today — pick a course that excites you."
+          action={{ label: "Browse courses", href: "/courses" }}
+          tone="first-use"
+          size="lg"
+        />
+      ) : (
+        <div className="space-y-8">
+          {active.length > 0 && (
+            <CourseSection
+              title="In progress"
+              tone="primary"
+              enrollments={active}
+            />
+          )}
+          {completed.length > 0 && (
+            <CourseSection
+              title="Completed"
+              tone="success"
+              enrollments={completed}
+            />
+          )}
+          {saved.length > 0 && (
+            <CourseSection
+              title="Saved"
+              tone="neutral"
+              enrollments={saved}
+            />
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+type Enrollment = Awaited<ReturnType<typeof getUserEnrollments>>[number];
+
+function CourseSection({
+  title,
+  tone,
+  enrollments,
+}: {
+  title: string;
+  tone: "primary" | "success" | "neutral";
+  enrollments: Enrollment[];
+}) {
+  const chip: Record<typeof tone, string> = {
+    primary: "chip chip-primary",
+    success: "chip chip-success",
+    neutral: "chip chip-neutral",
+  };
+  return (
+    <section>
+      <div className="mb-4 flex items-center gap-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          {title}
+        </h2>
+        <span className={chip[tone]}>{enrollments.length}</span>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {enrollments.map((enrollment) => {
+          const allLessons = enrollment.course.modules.flatMap(
+            (m) => m.lessons
+          );
+          const totalLessons = allLessons.length;
+          const isDone = enrollment.status === "COMPLETED";
+          const firstLessonId = allLessons[0]?.id;
+          const category = enrollment.course.category ?? "rocket";
+
+          return (
+            <div
+              key={enrollment.id}
+              className="card-premium group overflow-hidden"
+            >
+              {/* Thumbnail */}
+              <div className="relative flex h-32 items-center justify-center overflow-hidden bg-launch-gradient-soft">
+                <div className="rounded-2xl bg-white/70 p-3 shadow-soft ring-1 ring-border backdrop-blur">
+                  <CategoryIcon category={category} size={56} />
+                </div>
+                {isDone && (
+                  <span className="absolute top-3 end-3 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
+                    <Trophy className="h-3 w-3" aria-hidden />
+                    Completed
+                  </span>
+                )}
+              </div>
+
+              <div className="p-4">
+                <h3 className="mb-2 line-clamp-2 font-display font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
+                  {enrollment.course.title}
+                </h3>
+
+                <div className="mb-3 flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <BookOpen className="h-3 w-3" aria-hidden />
+                  {totalLessons} lesson{totalLessons === 1 ? "" : "s"}
+                  <span>·</span>
+                  <span>
+                    {enrollment.progress}% complete
+                  </span>
+                </div>
+
+                <Progress
+                  value={enrollment.progress}
+                  className="h-1.5"
+                />
+
+                <div className="mt-4 flex items-center justify-between">
+                  {firstLessonId && (
+                    <Link
+                      href={`/student/learn/${enrollment.course.slug}/${firstLessonId}`}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition-transform hover:translate-x-0.5 rtl:rotate-180 rtl:hover:-translate-x-0.5"
+                    >
+                      {isDone ? (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                          Review
+                        </>
+                      ) : (
+                        <>
+                          <PlayCircle className="h-3.5 w-3.5" aria-hidden />
+                          {enrollment.progress > 0 ? "Continue" : "Start"}
+                        </>
+                      )}
+                    </Link>
+                  )}
+                  <ArrowRight
+                    className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+                    aria-hidden
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
