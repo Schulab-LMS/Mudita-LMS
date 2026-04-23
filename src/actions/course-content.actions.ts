@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { audit } from "@/lib/audit";
 import {
   createModuleSchema,
   updateModuleSchema,
@@ -24,7 +25,7 @@ export async function createModule(data: {
   order: number;
 }) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = createModuleSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -36,6 +37,13 @@ export async function createModule(data: {
         titleDe: parsed.data.titleDe || null,
         order: parsed.data.order,
       },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "module.create",
+      resource: "Module",
+      resourceId: mod.id,
+      metadata: { courseId: parsed.data.courseId, title: parsed.data.title },
     });
 
     revalidatePath(`/admin/courses/${parsed.data.courseId}`);
@@ -54,7 +62,7 @@ export async function updateModule(data: {
   order?: number;
 }) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = updateModuleSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -68,6 +76,13 @@ export async function updateModule(data: {
       },
       select: { courseId: true },
     });
+    await audit({
+      actorId: session.user!.id,
+      action: "module.update",
+      resource: "Module",
+      resourceId: parsed.data.moduleId,
+      metadata: { courseId: mod.courseId },
+    });
 
     revalidatePath(`/admin/courses/${mod.courseId}`);
     return { success: true };
@@ -79,13 +94,20 @@ export async function updateModule(data: {
 
 export async function deleteModule(moduleId: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = deleteModuleSchema.safeParse({ moduleId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
     const mod = await db.module.delete({
       where: { id: parsed.data.moduleId },
       select: { courseId: true },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "module.delete",
+      resource: "Module",
+      resourceId: parsed.data.moduleId,
+      metadata: { courseId: mod.courseId },
     });
 
     revalidatePath(`/admin/courses/${mod.courseId}`);
@@ -134,7 +156,7 @@ export async function createLesson(data: {
   isFree: boolean;
 }) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = createLessonSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -155,6 +177,17 @@ export async function createLesson(data: {
         isFree: parsed.data.isFree,
       },
       include: { module: { select: { courseId: true } } },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "lesson.create",
+      resource: "Lesson",
+      resourceId: lesson.id,
+      metadata: {
+        moduleId: parsed.data.moduleId,
+        courseId: lesson.module.courseId,
+        type: parsed.data.type,
+      },
     });
 
     revalidatePath(`/admin/courses/${lesson.module.courseId}`);
@@ -181,7 +214,7 @@ export async function updateLesson(data: {
   isFree: boolean;
 }) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = updateLessonSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -203,6 +236,13 @@ export async function updateLesson(data: {
       },
       include: { module: { select: { courseId: true } } },
     });
+    await audit({
+      actorId: session.user!.id,
+      action: "lesson.update",
+      resource: "Lesson",
+      resourceId: parsed.data.lessonId,
+      metadata: { courseId: lesson.module.courseId, type: parsed.data.type },
+    });
 
     revalidatePath(`/admin/courses/${lesson.module.courseId}`);
     return { success: true };
@@ -214,13 +254,20 @@ export async function updateLesson(data: {
 
 export async function deleteLesson(lessonId: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = deleteLessonSchema.safeParse({ lessonId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
     const lesson = await db.lesson.delete({
       where: { id: parsed.data.lessonId },
       include: { module: { select: { courseId: true } } },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "lesson.delete",
+      resource: "Lesson",
+      resourceId: parsed.data.lessonId,
+      metadata: { courseId: lesson.module.courseId },
     });
 
     revalidatePath(`/admin/courses/${lesson.module.courseId}`);

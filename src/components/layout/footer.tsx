@@ -121,6 +121,9 @@ export function Footer() {
             <ul className="space-y-2">
               <li><FooterLink href="/privacy" label={t("privacy")} /></li>
               <li><FooterLink href="/terms" label={t("terms")} /></li>
+              <li><FooterLink href="/impressum" label={t("impressum")} /></li>
+              <li><FooterLink href="/agb" label={t("agb")} /></li>
+              <li><FooterLink href="/widerruf" label={t("widerruf")} /></li>
             </ul>
           </nav>
         </div>

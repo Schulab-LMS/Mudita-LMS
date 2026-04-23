@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { assertEmailVerified, requireAdmin } from "@/lib/auth-helpers";
 import { enrollUser, unenroll } from "@/services/enrollment.service";
 import {
   markLessonComplete,
@@ -27,6 +27,9 @@ export async function enrollInCourse(courseId: string) {
 
     const parsed = enrollInCourseSchema.safeParse({ courseId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const emailCheck = await assertEmailVerified(session.user.id);
+    if (!emailCheck.ok) return { success: false, error: emailCheck.error };
 
     // Only allow self-enrolment in published free courses. Paid courses must
     // go through Stripe checkout — granting access here would bypass payment.

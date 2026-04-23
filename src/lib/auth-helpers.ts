@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 /**
  * Check if a role has admin-level access (ADMIN or SUPER_ADMIN).
@@ -34,4 +35,23 @@ export async function requireSuperAdmin() {
   if (!session?.user?.id) throw new Error("Not authenticated");
   if (!isSuperAdmin(session.user.role)) throw new Error("Forbidden");
   return session;
+}
+
+// Returns an object instead of throwing so callers can translate the
+// reason into a user-friendly action result. Mirrors the pattern used by
+// `assertMinorConsent` in src/lib/compliance.ts.
+export async function assertEmailVerified(
+  userId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { emailVerified: true },
+  });
+  if (!user?.emailVerified) {
+    return {
+      ok: false,
+      error: "Please verify your email address before continuing",
+    };
+  }
+  return { ok: true };
 }
