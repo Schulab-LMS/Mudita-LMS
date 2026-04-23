@@ -35,7 +35,11 @@ export default async function AdminAuditLogPage({
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
   const skip = (page - 1) * PAGE_SIZE;
 
-  const where: Record<string, unknown> = {};
+  const where: {
+    resource?: string;
+    actorId?: string;
+    action?: { contains: string };
+  } = {};
   if (sp.resource) where.resource = sp.resource;
   if (sp.actor) where.actorId = sp.actor;
   if (sp.action) where.action = { contains: sp.action };
