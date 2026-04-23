@@ -82,7 +82,7 @@ export async function createCourse(data: {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
-    await db.course.create({
+    const created = await db.course.create({
       data: {
         title: parsed.data.title,
         description: parsed.data.description,
@@ -95,6 +95,14 @@ export async function createCourse(data: {
         slug,
         createdById: session.user.id,
       },
+      select: { id: true, slug: true, title: true },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "course.create",
+      resource: "Course",
+      resourceId: created.id,
+      metadata: { slug: created.slug, title: created.title },
     });
 
     revalidatePath("/admin/courses");
@@ -120,11 +128,18 @@ export async function updateCourse(
   }>
 ) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = updateCourseSchema.safeParse({ courseId, data });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
     await db.course.update({ where: { id: parsed.data.courseId }, data: parsed.data.data as never });
+    await audit({
+      actorId: session.user!.id,
+      action: "course.update",
+      resource: "Course",
+      resourceId: parsed.data.courseId,
+      metadata: { fields: Object.keys(parsed.data.data ?? {}) },
+    });
     revalidatePath("/admin/courses");
     return { success: true };
   } catch (error) {
@@ -161,7 +176,7 @@ export async function deleteCourse(courseId: string) {
 
 export async function toggleCourseStatus(courseId: string, status: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = deleteCourseSchema.safeParse({ courseId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -169,9 +184,20 @@ export async function toggleCourseStatus(courseId: string, status: string) {
       return { success: false, error: "Invalid status" };
     }
 
+    const prev = await db.course.findUnique({
+      where: { id: parsed.data.courseId },
+      select: { status: true },
+    });
     await db.course.update({
       where: { id: parsed.data.courseId },
       data: { status: status as never },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "course.status_change",
+      resource: "Course",
+      resourceId: parsed.data.courseId,
+      metadata: { from: prev?.status, to: status },
     });
     revalidatePath("/admin/courses");
     return { success: true };
@@ -189,7 +215,7 @@ export async function createBadge(data: {
   points?: number;
 }) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
     const parsed = createBadgeSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
@@ -198,7 +224,7 @@ export async function createBadge(data: {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
-    await db.badge.create({
+    const created = await db.badge.create({
       data: {
         slug,
         name: parsed.data.name,
@@ -207,6 +233,14 @@ export async function createBadge(data: {
         criteria: parsed.data.criteria as never,
         points: parsed.data.points ?? 0,
       },
+      select: { id: true, slug: true, name: true },
+    });
+    await audit({
+      actorId: session.user!.id,
+      action: "badge.create",
+      resource: "Badge",
+      resourceId: created.id,
+      metadata: { slug: created.slug, name: created.name },
     });
 
     revalidatePath("/admin/badges");

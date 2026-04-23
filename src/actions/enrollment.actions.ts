@@ -28,6 +28,21 @@ export async function enrollInCourse(courseId: string) {
     const parsed = enrollInCourseSchema.safeParse({ courseId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    // Require a verified email before self-enrolment. Without this, anyone
+    // who can submit a registration form can flood us with enrolments from
+    // throwaway addresses — and we'd have no way to reliably deliver the
+    // completion email or certificate.
+    const actor = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { emailVerified: true },
+    });
+    if (!actor?.emailVerified) {
+      return {
+        success: false,
+        error: "Please verify your email address before enrolling",
+      };
+    }
+
     // Only allow self-enrolment in published free courses. Paid courses must
     // go through Stripe checkout — granting access here would bypass payment.
     // Drafts and archived courses can still be administered via `adminEnrollUser`.

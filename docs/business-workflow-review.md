@@ -62,7 +62,7 @@ Single app, no monorepo. Mix of server actions + API route handlers.
 Enum `User.role` in `prisma/schema.prisma`:
 `STUDENT` (default) · `PARENT` · `TUTOR` · `ADMIN` · `SUPER_ADMIN` · `B2B_PARTNER` (defined, unused).
 
-Guard helpers in `src/lib/auth-helpers.ts`: `isAdminRole()`, `isSuperAdmin()`, `requireAdmin()`, `requireSuperAdmin()`. **There is a `Permission` + `RolePermission` table in the schema that is never queried** — all authorization is hardcoded string comparison on `role`. No `middleware.ts` exists; every route handler / server action is expected to call `auth()` and check roles inline.
+Guard helpers in `src/lib/auth-helpers.ts`: `isAdminRole()`, `isSuperAdmin()`, `requireAdmin()`, `requireSuperAdmin()`. **There is a `Permission` + `RolePermission` table in the schema that is never queried** — all authorization is hardcoded string comparison on `role`. Route-level protection exists only for i18n routing (Next.js 16 renamed `middleware.ts` → `proxy.ts`; see `src/proxy.ts`, which runs `next-intl/middleware`); there is **no auth gate** in the proxy, so every route handler / server action still must call `auth()` and check roles inline. `B2B_PARTNER` is an active role (used in navigation, role matrix, admin UI).
 
 ### 1.4 API Routes
 
@@ -129,7 +129,7 @@ Stripe · Resend · Mux (+ Cloudflare Stream/Vimeo/YouTube fallbacks) · UploadT
 - No separate B2B/institution onboarding form (org name, seat count, VAT ID).
 
 **Issues:**
-- Credentials login accepts 6+ char passwords (`src/validators/auth.schema.ts` login schema), while register/reset require 8+. Legacy mismatch → degraded security.
+- Credentials login schema (`src/validators/auth.schema.ts`) accepts any non-empty password, which is **intentional** (see inline comment) to keep legacy 6-char accounts able to sign in; register/reset require 8+. Migrating to uniform 8+ needs a forced-reset-on-next-login flag, not a schema tightening.
 - Google OAuth bypasses DOB capture; a minor can sign in and only be caught during onboarding (race condition vs. enrollment).
 
 **Risk: High** — acquisition funnel works for self-serve B2C but unusable for DACH school procurement (no SSO, no invites, no contract/quote flow).
@@ -347,7 +347,7 @@ Stripe · Resend · Mux (+ Cloudflare Stream/Vimeo/YouTube fallbacks) · UploadT
 - Google OAuth account linking via `@auth/prisma-adapter`.
 
 **Gaps:**
-- **`AuditLog` is an orphaned model.** Schema exists; no service or action writes to it anywhere. Effectively zero audit trail for admin actions — unacceptable for EU enterprise sales.
+- **`AuditLog` is partially populated — not orphaned.** `src/lib/audit.ts` exports a defensive `audit()` helper already called from `admin.actions.ts` (role change, user deactivate, course delete / create / update / status-change / badge create), `account.actions.ts` (3 sites), `review.actions.ts` (2 sites), and `coupon.actions.ts` (2 sites). Remaining gap: `course-content.actions.ts` (module / lesson CRUD), `quiz-admin.actions.ts`, and tutor-management actions — and there is no `/admin/audit` read view. Earlier revisions of this doc claimed the model was orphaned; that was incorrect.
 - **`Permission` + `RolePermission` tables are declared but never queried** — RBAC is hardcoded role-string checks only. Admin role changes cannot be fine-grained per feature.
 - **No bulk CSV import** for institutional B2B onboarding (primary DACH EdTech use case).
 - No admin-initiated password reset / impersonation / magic-link for support.
@@ -389,8 +389,8 @@ Stripe · Resend · Mux (+ Cloudflare Stream/Vimeo/YouTube fallbacks) · UploadT
 
 **Authentication / Authorization:**
 - NextAuth v5 JWT, bcryptjs cost 12, Credentials + Google OAuth, rate-limited (login 5/60s, register 3/60s, forgot 3/300s).
-- Guards inline via `requireAdmin()`; **no `middleware.ts`** — each API/action must remember to call `auth()` + role check. High drift risk.
-- Login schema accepts 6+ char passwords vs. 8+ elsewhere.
+- Guards inline via `requireAdmin()`; `src/proxy.ts` (Next.js 16's renamed middleware entry) runs `next-intl` but has **no auth gate** — each API/action must remember to call `auth()` + role check. High drift risk. Adding an auth gate to `proxy.ts` requires splitting auth config into an Edge-safe variant (bcryptjs import in `lib/auth.ts` is currently Edge-incompatible).
+- Login schema intentionally accepts any non-empty password for legacy accounts; register/reset require 8+.
 - Email verification not enforced on protected actions.
 - CSRF: relies on NextAuth's SameSite + httpOnly cookies — no explicit token; state-changing actions on custom routes could be CSRF-exposed.
 - No CSP / HSTS / `X-Frame-Options` configured in `next.config.ts`.
@@ -478,27 +478,27 @@ Legend: ✅ Complete · ⚠️ Partial · ❌ Missing
    - Files: root `src/app/[locale]/layout.tsx` + new `src/components/compliance/cookie-banner.tsx`.
    - Fix: gate analytics + marketing scripts on `ConsentRecord{type: COOKIES_ANALYTICS | COOKIES_MARKETING}`. Banner must be pre-deny, with granular toggles, GDPR-compliant dismiss behavior.
 
-8. **`AuditLog` model is orphaned.**
-   - Files: `src/lib/audit.ts` (exists — confirm writes), every admin action (`admin.actions.ts`, `quiz-admin.actions.ts`, `course-content.actions.ts`, user-actions in `/admin`).
-   - Fix: wrap all admin-side mutations in an `audit.write({ actorId, action, resource, metadata, ip, ua })` call. Add a `/admin/audit` read view.
+8. **`AuditLog` coverage is incomplete.**
+   - Files: `src/lib/audit.ts` (helper exists), admin mutations in `src/actions/admin.actions.ts` (wired for user role/activate, course CRUD + status-change, badge-create), `account.actions.ts`, `review.actions.ts`, `coupon.actions.ts`. Remaining gap: `course-content.actions.ts` (modules/lessons), `quiz-admin.actions.ts`, tutor/booking admin actions.
+   - Fix: wrap every remaining admin-side mutation in `audit({ actorId, action, resource, resourceId, metadata })`. Add a read-only `/admin/audit` view with filter-by-resource / by-actor. RBAC tables (`Permission`, `RolePermission`) remain unused and should either be wired into `auth-helpers.ts` or dropped from schema.
 
-9. **No `middleware.ts` — every admin/authenticated route depends on inline guards.**
-   - File: create `src/middleware.ts`.
-   - Fix: matcher on `/[locale]/(authenticated)` and `/[locale]/(admin)`, redirect unauthenticated / non-admin users early. Keep existing `requireAdmin()` as defense-in-depth.
+9. **No auth gate in `src/proxy.ts` — every admin/authenticated route depends on inline guards.**
+   - File: `src/proxy.ts` (Next.js 16 renamed `middleware.ts` → `proxy.ts`; this file currently only runs `next-intl/middleware`).
+   - Fix: split NextAuth config into an Edge-safe `auth.config.ts` (no bcryptjs, no headers()) imported by both `lib/auth.ts` and `proxy.ts`. In `proxy.ts`, wrap the existing `createMiddleware(routing)` so unauthenticated requests under `/[locale]/(authenticated)` or `/[locale]/(admin)` are redirected to `/login` before i18n routing runs. Keep existing `requireAdmin()` as defense-in-depth.
 
-10. **`AuditLog` + `Permission` + `RolePermission` tables are declared but unused.**
-    - Fix: either implement them (see #8 + introduce RBAC lookup in `auth-helpers.ts`) or delete them from schema to stop advertising capability the app does not have.
+10. **`Permission` + `RolePermission` tables are declared but unused.**
+    - Fix: either wire them into `auth-helpers.ts` (replace hardcoded role strings with a permission lookup) or delete them from schema to stop advertising capability the app does not have.
 
 ### High Priority (P1 — Launch-Blockers)
 
-1. **Login password min-length mismatch (6 vs 8).** Update `src/validators/auth.schema.ts` to require 8 uniformly, and force a reset for users hashed under the old rule.
-2. **Email verification not enforced.** Block `enrollInCourse`, `createCourseCheckoutSession`, `createReview` when `User.emailVerified` is null.
+1. **Login schema accepts any non-empty password for legacy accounts.** Add a `passwordNeedsReset` flag (or re-use `User.emailVerified` bump) and force a reset on next login for anyone with a hash shorter than the current 8-char rule. Then tighten `loginSchema`.
+2. **Email verification partially enforced.** `enrollInCourse()` now blocks unverified users (`src/actions/enrollment.actions.ts`); still need equivalent gates in `createCourseCheckoutSession`, `createReview`, and any message-send action.
 3. **Assignment submission missing despite being advertised.** Add `AssignmentSubmission{lessonId, userId, fileUrl, text, submittedAt, grade, feedback, gradedBy, gradedAt}`, UI in the lesson viewer, instructor review page.
 4. **Manual grading UI.** Gradebook at `/admin/courses/[slug]/grading` surfacing pending `SHORT_ANSWER` attempts + `AssignmentSubmission` records with override.
 5. **B2B onboarding + bulk CSV import.** New `/admin/organizations` + `/admin/users/import` with Zod-validated CSV parser, dry-run, rollback.
 6. **Notification preferences UI.** `/account/notifications` backed by a `NotificationPreference{userId, category, channel}` table; honored in every email/in-app send.
 7. **Drip triggers beyond framework.** Wire abandoned-cart (no `CoursePurchase` after `course_checkout_started`), inactive-learner (no `LessonProgress` in 14 days), trial-ending (3 days before).
-8. **Cloudflare Stream provider stub throws.** Either implement or drop from `VideoProvider` enum (`src/lib/video-provider.ts:167, :170`).
+8. **Cloudflare Stream provider is stubbed.** `getVideoProvider()` now falls back to `ExternalUrlProvider` with a startup warning if `VIDEO_PROVIDER=CLOUDFLARE_STREAM` is set, so a misconfigured env no longer crashes uploads on first use (`src/lib/video-provider.ts`). Follow-up: either implement the CF Stream client or drop it from the `VideoProvider` enum.
 9. **Instructor analytics dashboard** (enrollments, completion rate, average quiz score per course) and **admin platform KPIs** (MRR via Stripe API, DAU/WAU via `AnalyticsEvent`).
 10. **CSV export for reports** (enrollments, completions, revenue) — `papaparse` / native.
 11. **PostHog / GA4 SDK integration** — currently stubbed; install, gate on cookie consent.
@@ -528,22 +528,22 @@ Legend: ✅ Complete · ⚠️ Partial · ❌ Missing
 17. Pin Next.js 16 + NextAuth 5-beta upgrade plan; remove beta dependency before GA of commercial tier.
 18. CSP / HSTS / security headers in `next.config.ts`.
 19. Field-level encryption on PII columns (`User.name`, `Profile.bio`, DOB).
-20. Delete unused `B2B_PARTNER` role enum value if no plan to implement this cycle.
+20. `B2B_PARTNER` role is already wired into navigation, role matrix, and admin UI — no need to delete. Confirm the intended feature set for it in the B2B/institutional phase.
 
 ### Quick Wins (< 1 day each, high value)
 
 - **Add Impressum placeholder page** with legally-required fields pulled from env vars — unblocks any DE traffic while AGB is being drafted.
 - **Link existing `/privacy` + `/terms` + new `/impressum` in global footer** across all locales.
-- **Enforce email verification** in `enrollInCourse()` (one `if (!user.emailVerified)` check).
-- **Unify password min-length to 8** in `auth.schema.ts`.
-- **Populate `AuditLog`** from the existing `src/lib/audit.ts` helper inside `admin.actions.ts` (mass add of ~10 calls).
-- **Delete Cloudflare Stream provider throw-stubs** or wrap behind feature flag so they never execute in prod.
-- **Add `middleware.ts`** with two matchers — instant defense-in-depth upgrade.
+- ~~**Enforce email verification** in `enrollInCourse()`~~ — **done** (`src/actions/enrollment.actions.ts`).
+- **Unify password min-length to 8** — needs a forced-reset flag, not a pure schema tightening (legacy users).
+- ~~**Populate `AuditLog`** in remaining `admin.actions.ts` course/badge sites~~ — **done** for `createCourse`, `updateCourse`, `toggleCourseStatus`, `createBadge`. Outstanding: `course-content.actions.ts`, `quiz-admin.actions.ts`, tutor admin.
+- ~~**Harden Cloudflare Stream fallback**~~ — **done** (soft fallback + warning in `src/lib/video-provider.ts`).
+- **Add an auth gate in `src/proxy.ts`** — blocked on NextAuth v5 Edge-safe config split (separate PR).
 - **Pre-deny cookie banner** shown once, persisted via `ConsentRecord` — minimal design, unblock DE visibility.
 - **CSV export of enrollments** — one Prisma query → `papaparse` → download. Solves most urgent reporting ask.
 - **Admin refund button** — Stripe SDK call + mark `CoursePurchase.refundedAt`.
 - **Remove unused `B2B_PARTNER` enum** (or the whole `Permission`/`RolePermission` pair if not taken up) to stop suggesting features that are not there.
-- **Fix login password length schema** (`6 → 8`) and flag any legacy accounts for next-login reset.
+- **Fix login password length schema** (`6 → 8`) — requires adding a `passwordNeedsReset` flag before tightening.
 
 ### Recommended Roadmap
 
@@ -554,9 +554,9 @@ Legend: ✅ Complete · ⚠️ Partial · ❌ Missing
 - Cookie banner + cookie-consent capture before PostHog/GA4 enablement
 - GDPR export + delete endpoints at `/account/privacy`
 - §14 UStG-compliant invoice rendering with seller profile
-- Populate `AuditLog` across all admin mutations
-- `middleware.ts` route protection layer
-- Email verification enforcement + password-rule unification
+- Populate `AuditLog` across all remaining admin mutations (course-content, quiz-admin, tutor/booking) + `/admin/audit` read view
+- Auth gate in `src/proxy.ts` (Next.js 16's middleware entry) — requires NextAuth v5 Edge-safe config split
+- Email verification enforcement (started in `enrollInCourse`; extend to checkout, reviews, messaging) + password-rule unification with forced-reset flag
 - Transitive CVE remediation, security headers
 
 **Phase 2 — DACH + MENA Launch (weeks 5–10, P1 work):**

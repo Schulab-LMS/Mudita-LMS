@@ -180,7 +180,14 @@ export function getVideoProvider(): VideoProvider {
       cached = new MuxProvider();
       break;
     case "CLOUDFLARE_STREAM":
-      cached = new CloudflareStreamProvider();
+      // The CF Stream client is still stubbed (see CloudflareStreamProvider).
+      // Instantiating it would crash on first use — fall back to EXTERNAL and
+      // surface a single startup warning so ops notices the misconfiguration
+      // without taking down uploads site-wide.
+      console.warn(
+        "[video] VIDEO_PROVIDER=CLOUDFLARE_STREAM selected but provider is not implemented; falling back to EXTERNAL"
+      );
+      cached = new ExternalUrlProvider();
       break;
     default:
       cached = new ExternalUrlProvider();
@@ -188,6 +195,9 @@ export function getVideoProvider(): VideoProvider {
   }
   return cached;
 }
+
+// Exported so future tests / callers can still reach the stub class directly.
+export { CloudflareStreamProvider };
 
 // Expose for tests / callers that explicitly need to bypass env gating.
 export function resetVideoProviderCache(): void {
