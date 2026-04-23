@@ -4,6 +4,10 @@ import { isAdminRole } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { BadgeDisplay } from "@/components/gamification/badge-display";
 import { createBadge } from "@/actions/admin.actions";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/shared/empty-state";
+import { NoCoursesScene } from "@/components/illustrations/empty-scenes";
+import { Award, Sparkles, Plus } from "lucide-react";
 
 export const metadata = { title: "Manage Badges | Admin" };
 
@@ -12,32 +16,68 @@ export default async function AdminBadgesPage() {
   if (!session?.user) redirect("/login");
   if (!isAdminRole(session.user.role)) redirect("/dashboard");
 
-  const badges = await db.badge.findMany({ orderBy: { name: "asc" } }).catch(() => []);
+  const badges = await db.badge
+    .findMany({ orderBy: { name: "asc" } })
+    .catch(() => []);
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Badges</h1>
-        <p className="text-muted-foreground">{badges.length} badge{badges.length !== 1 ? "s" : ""} configured</p>
-      </div>
+      <PageHeader
+        title="Badges"
+        description={`${badges.length} badge${
+          badges.length === 1 ? "" : "s"
+        } configured across the platform`}
+        breadcrumbs={[
+          { label: "Admin", href: "/admin" },
+          { label: "Badges" },
+        ]}
+      />
 
-      {badges.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-          {badges.map((badge) => (
-            <BadgeDisplay
-              key={badge.id}
-              badge={badge}
-              earned={true}
-            />
-          ))}
+      {/* Badges gallery */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-foreground">
+            Badge gallery
+          </h2>
+          <span className="chip chip-primary">{badges.length}</span>
         </div>
-      )}
 
-      <div className="rounded-xl border bg-card p-6 max-w-lg">
-        <h2 className="mb-1 text-lg font-semibold">Create New Badge</h2>
-        <p className="mb-5 text-sm text-muted-foreground">
-          Define a new achievement badge for students.
-        </p>
+        {badges.length === 0 ? (
+          <EmptyState
+            illustration={<NoCoursesScene />}
+            title="No badges yet"
+            description="Create your first badge below — students will earn it as soon as they meet the criteria."
+            tone="first-use"
+            size="md"
+          />
+        ) : (
+          <div className="card-premium p-5">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+              {badges.map((badge) => (
+                <BadgeDisplay key={badge.id} badge={badge} earned={true} />
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Create new badge form */}
+      <section className="card-premium max-w-2xl p-6">
+        <div className="mb-5 flex items-start gap-3">
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+            <Sparkles className="h-5 w-5" aria-hidden />
+          </span>
+          <div>
+            <h2 className="text-base font-semibold text-foreground">
+              Create new badge
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Define a new achievement — students earn it automatically when
+              they hit the criteria.
+            </p>
+          </div>
+        </div>
+
         <form
           action={async (fd: FormData) => {
             "use server";
@@ -50,86 +90,136 @@ export default async function AdminBadgesPage() {
 
             const criteria: Record<string, unknown> = {};
             if (minPoints) criteria.minPoints = parseInt(minPoints);
-            if (minEnrollments) criteria.minEnrollments = parseInt(minEnrollments);
+            if (minEnrollments)
+              criteria.minEnrollments = parseInt(minEnrollments);
 
             await createBadge({ name, description, icon, criteria, points });
           }}
           className="space-y-4"
         >
-          <div>
-            <label className="mb-1.5 block text-sm font-medium">Name *</label>
-            <input
-              name="name"
-              required
-              placeholder="First Steps"
-              className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+            <div>
+              <label
+                htmlFor="badge-name"
+                className="mb-1.5 block text-sm font-medium text-foreground"
+              >
+                Name *
+              </label>
+              <input
+                id="badge-name"
+                name="name"
+                required
+                placeholder="First Steps"
+                className="input-pretty flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="badge-icon"
+                className="mb-1.5 block text-sm font-medium text-foreground"
+              >
+                Icon (emoji) *
+              </label>
+              <input
+                id="badge-icon"
+                name="icon"
+                required
+                placeholder="🏅"
+                maxLength={4}
+                className="input-pretty flex h-10 w-24 rounded-lg border border-input bg-background px-3 py-2 text-center text-lg placeholder:text-muted-foreground focus-visible:outline-none"
+              />
+            </div>
           </div>
+
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Description *</label>
+            <label
+              htmlFor="badge-desc"
+              className="mb-1.5 block text-sm font-medium text-foreground"
+            >
+              Description *
+            </label>
             <input
+              id="badge-desc"
               name="description"
               required
               placeholder="Complete your first course"
-              className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="input-pretty flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
             />
           </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium">Icon (emoji) *</label>
-            <input
-              name="icon"
-              required
-              placeholder="🏅"
-              className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="mb-1.5 block text-sm font-medium">
-                Min Points (criteria)
+              <label
+                htmlFor="badge-minpts"
+                className="mb-1.5 block text-sm font-medium text-foreground"
+              >
+                Min points
               </label>
               <input
+                id="badge-minpts"
                 name="minPoints"
                 type="number"
                 min="0"
                 placeholder="100"
-                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="input-pretty flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
               />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Criteria threshold
+              </p>
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium">
-                Min Enrollments (criteria)
+              <label
+                htmlFor="badge-minenr"
+                className="mb-1.5 block text-sm font-medium text-foreground"
+              >
+                Min enrollments
               </label>
               <input
+                id="badge-minenr"
                 name="minEnrollments"
                 type="number"
                 min="0"
                 placeholder="1"
-                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="input-pretty flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
               />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Criteria threshold
+              </p>
+            </div>
+            <div>
+              <label
+                htmlFor="badge-points"
+                className="mb-1.5 block text-sm font-medium text-foreground"
+              >
+                Points awarded
+              </label>
+              <input
+                id="badge-points"
+                name="points"
+                type="number"
+                min="0"
+                placeholder="50"
+                defaultValue="0"
+                className="input-pretty flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                On earning this badge
+              </p>
             </div>
           </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium">
-              Points Awarded
-            </label>
-            <input
-              name="points"
-              type="number"
-              min="0"
-              placeholder="50"
-              defaultValue="0"
-              className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
+
+          <div className="flex items-center justify-end pt-1">
+            <button
+              type="submit"
+              className="inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg bg-launch-gradient px-5 text-sm font-semibold text-white shadow-sm transition-transform hover:-translate-y-0.5"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              Create badge
+              <Award className="h-4 w-4" aria-hidden />
+            </button>
           </div>
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary/90"
-          >
-            Create Badge
-          </button>
         </form>
-      </div>
+      </section>
     </div>
   );
 }
