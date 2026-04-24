@@ -5,6 +5,19 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createModule, deleteModule } from "@/actions/course-content.actions";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+  Video,
+  FileText,
+  ClipboardList,
+  Cpu,
+  ClipboardCheck,
+  Pencil,
+  Trash2,
+  Plus,
+  Layers,
+  CheckCircle2,
+  type LucideIcon,
+} from "lucide-react";
 
 interface Lesson {
   id: string;
@@ -29,15 +42,23 @@ interface Props {
   modules: Module[];
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  VIDEO: "🎥",
-  TEXT: "📄",
-  QUIZ: "📝",
-  INTERACTIVE: "🧪",
-  ASSIGNMENT: "📋",
+const TYPE_ICON: Record<string, LucideIcon> = {
+  VIDEO: Video,
+  TEXT: FileText,
+  QUIZ: ClipboardList,
+  INTERACTIVE: Cpu,
+  ASSIGNMENT: ClipboardCheck,
 };
 
-const KNOWN_LESSON_TYPES = new Set(Object.keys(TYPE_ICONS));
+const TYPE_TONE: Record<string, string> = {
+  VIDEO: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  TEXT: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  QUIZ: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  INTERACTIVE: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+  ASSIGNMENT: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+};
+
+const KNOWN_LESSON_TYPES = new Set(Object.keys(TYPE_ICON));
 
 export function ModuleList({ courseId, modules }: Props) {
   const t = useTranslations("admin.modules");
@@ -85,21 +106,33 @@ export function ModuleList({ courseId, modules }: Props) {
     return t("durationMinutes", { m: mins });
   }
 
+  const totalLessons = modules.reduce((s, m) => s + m.lessons.length, 0);
+
   return (
     <div className="space-y-4">
+      {/* Section header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t("heading")}</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="font-display text-lg font-semibold text-foreground">
+            {t("heading")}
+          </h2>
+          <span className="chip chip-neutral">
+            {modules.length} {modules.length === 1 ? "module" : "modules"} ·{" "}
+            {totalLessons} lesson{totalLessons === 1 ? "" : "s"}
+          </span>
+        </div>
         <button
           onClick={() => setShowAddModule(true)}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+          className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-launch-gradient px-3 text-xs font-semibold text-white shadow-sm transition-transform hover:-translate-y-0.5"
         >
-          + {t("addModule")}
+          <Plus className="h-3.5 w-3.5" aria-hidden />
+          {t("addModule")}
         </button>
       </div>
 
-      {/* Add module form */}
+      {/* Add-module form (inline) */}
       {showAddModule && (
-        <div className="flex items-center gap-3 rounded-lg border bg-white p-4">
+        <div className="card-premium flex flex-col gap-2 p-4 sm:flex-row sm:items-center">
           <input
             type="text"
             placeholder={t("moduleTitlePlaceholder")}
@@ -107,131 +140,200 @@ export function ModuleList({ courseId, modules }: Props) {
             onChange={(e) => setNewModuleTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddModule()}
             autoFocus
-            className="flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="input-pretty h-10 flex-1 rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-none"
           />
-          <button
-            onClick={handleAddModule}
-            disabled={pending || !newModuleTitle.trim()}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
-          >
-            {pending ? t("addingButton") : t("addButton")}
-          </button>
-          <button
-            onClick={() => { setShowAddModule(false); setNewModuleTitle(""); }}
-            className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
-          >
-            {t("cancelButton")}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleAddModule}
+              disabled={pending || !newModuleTitle.trim()}
+              className="inline-flex h-10 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+            >
+              {pending ? t("addingButton") : t("addButton")}
+            </button>
+            <button
+              onClick={() => {
+                setShowAddModule(false);
+                setNewModuleTitle("");
+              }}
+              className="inline-flex h-10 items-center rounded-lg border border-input bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              {t("cancelButton")}
+            </button>
+          </div>
         </div>
       )}
 
       {/* Module list */}
       {modules.length === 0 && !showAddModule ? (
-        <div className="rounded-lg border bg-white p-8 text-center text-muted-foreground">
-          {t("emptyMessage")}
+        <div className="card-premium flex flex-col items-center justify-center py-12 text-center">
+          <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Layers className="h-6 w-6" aria-hidden />
+          </div>
+          <p className="font-semibold text-foreground">No modules yet</p>
+          <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+            {t("emptyMessage")}
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowAddModule(true)}
+            className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-lg bg-launch-gradient px-4 text-xs font-semibold text-white shadow-sm transition-transform hover:-translate-y-0.5"
+          >
+            <Plus className="h-3.5 w-3.5" aria-hidden />
+            {t("addModule")}
+          </button>
         </div>
       ) : (
-        modules.map((mod) => (
-          <div key={mod.id} className="rounded-lg border bg-white">
-            {/* Module header */}
-            <div className="flex items-center justify-between border-b px-4 py-3">
-              <div className="flex items-center gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                  {mod.order + 1}
-                </span>
-                <h3 className="font-semibold">{mod.title}</h3>
-                <span className="text-xs text-muted-foreground">
-                  {t("lessonCount", { count: mod.lessons.length })}
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Link
-                  href={`/admin/courses/${courseId}/modules/${mod.id}/edit`}
-                  className="rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
-                >
-                  {tCommon("edit")}
-                </Link>
-                <Link
-                  href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/new`}
-                  className="rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
-                >
-                  + {t("addLesson")}
-                </Link>
-                <button
-                  onClick={() => setConfirmModuleId(mod.id)}
-                  disabled={pending && deletingId === mod.id}
-                  className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-                >
-                  {deletingId === mod.id ? "..." : tCommon("delete")}
-                </button>
-              </div>
-            </div>
-
-            {/* Lesson list */}
-            {mod.lessons.length === 0 ? (
-              <div className="px-4 py-4 text-center text-sm text-muted-foreground">
-                {t("noLessonsPrefix")}{" "}
-                <Link
-                  href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/new`}
-                  className="text-primary hover:underline"
-                >
-                  {t("addLessonLink")}
-                </Link>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {mod.lessons.map((lesson) => (
-                  <div
-                    key={lesson.id}
-                    className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/30"
+        <div className="space-y-3">
+          {modules.map((mod) => (
+            <div key={mod.id} className="card-premium overflow-hidden">
+              {/* Module header */}
+              <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/20 px-5 py-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                    {mod.order + 1}
+                  </span>
+                  <h3 className="truncate font-display font-semibold text-foreground">
+                    {mod.title}
+                  </h3>
+                  <span className="chip chip-neutral">
+                    {t("lessonCount", { count: mod.lessons.length })}
+                  </span>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Link
+                    href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/new`}
+                    className="inline-flex h-8 items-center gap-1 rounded-md bg-primary/10 px-2.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/15"
                   >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="text-base"
-                        title={KNOWN_LESSON_TYPES.has(lesson.type) ? tTypes(lesson.type) : lesson.type}
-                      >
-                        {TYPE_ICONS[lesson.type] ?? "📄"}
-                      </span>
-                      <div>
-                        <span className="text-sm font-medium">{lesson.title}</span>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>
-                            {KNOWN_LESSON_TYPES.has(lesson.type) ? tTypes(lesson.type) : lesson.type}
-                          </span>
-                          {lesson.duration && <span>&middot; {formatDuration(lesson.duration)}</span>}
-                          {lesson.isFree && (
-                            <span className="rounded bg-green-100 px-1.5 py-0.5 text-green-800">
-                              {tCommon("free")}
-                            </span>
-                          )}
-                          {lesson.videoUrl && <span>&middot; {t("hasVideo")}</span>}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Link
-                        href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/quiz`}
-                        className={`rounded px-2 py-1 text-xs font-medium ${
-                          lesson.quiz
-                            ? "text-orange-700 hover:bg-orange-50"
-                            : "text-muted-foreground hover:bg-muted"
-                        }`}
-                      >
-                        {lesson.quiz ? t("quizAttached") : `+ ${t("addQuiz")}`}
-                      </Link>
-                      <Link
-                        href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/edit`}
-                        className="rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
-                      >
-                        {tCommon("edit")}
-                      </Link>
-                    </div>
-                  </div>
-                ))}
+                    <Plus className="h-3 w-3" aria-hidden />
+                    {t("addLesson")}
+                  </Link>
+                  <Link
+                    href={`/admin/courses/${courseId}/modules/${mod.id}/edit`}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    title={tCommon("edit")}
+                    aria-label={tCommon("edit")}
+                  >
+                    <Pencil className="h-3.5 w-3.5" aria-hidden />
+                  </Link>
+                  <button
+                    onClick={() => setConfirmModuleId(mod.id)}
+                    disabled={pending && deletingId === mod.id}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                    title={tCommon("delete")}
+                    aria-label={tCommon("delete")}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-        ))
+
+              {/* Lesson list */}
+              {mod.lessons.length === 0 ? (
+                <div className="px-5 py-6 text-center text-sm text-muted-foreground">
+                  {t("noLessonsPrefix")}{" "}
+                  <Link
+                    href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/new`}
+                    className="font-semibold text-primary hover:underline"
+                  >
+                    {t("addLessonLink")}
+                  </Link>
+                </div>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {mod.lessons.map((lesson) => {
+                    const Icon = TYPE_ICON[lesson.type] ?? FileText;
+                    const tone =
+                      TYPE_TONE[lesson.type] ?? "bg-muted text-muted-foreground";
+                    return (
+                      <li
+                        key={lesson.id}
+                        className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-muted/30"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span
+                            className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tone}`}
+                            title={
+                              KNOWN_LESSON_TYPES.has(lesson.type)
+                                ? tTypes(lesson.type)
+                                : lesson.type
+                            }
+                          >
+                            <Icon className="h-4 w-4" aria-hidden />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-foreground">
+                              {lesson.title}
+                            </p>
+                            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                              <span>
+                                {KNOWN_LESSON_TYPES.has(lesson.type)
+                                  ? tTypes(lesson.type)
+                                  : lesson.type}
+                              </span>
+                              {lesson.duration && (
+                                <>
+                                  <span>·</span>
+                                  <span>{formatDuration(lesson.duration)}</span>
+                                </>
+                              )}
+                              {lesson.isFree && (
+                                <span className="chip chip-success">
+                                  {tCommon("free")}
+                                </span>
+                              )}
+                              {lesson.videoUrl && (
+                                <span className="inline-flex items-center gap-0.5">
+                                  <CheckCircle2
+                                    className="h-3 w-3 text-emerald-500"
+                                    aria-hidden
+                                  />
+                                  {t("hasVideo")}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <Link
+                            href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/quiz`}
+                            className={`inline-flex h-8 items-center gap-1 rounded-md px-2.5 text-xs font-semibold transition-colors ${
+                              lesson.quiz
+                                ? "bg-amber-500/10 text-amber-700 hover:bg-amber-500/15 dark:text-amber-400"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            }`}
+                          >
+                            {lesson.quiz ? (
+                              <>
+                                <CheckCircle2
+                                  className="h-3 w-3"
+                                  aria-hidden
+                                />
+                                {t("quizAttached")}
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="h-3 w-3" aria-hidden />
+                                {t("addQuiz")}
+                              </>
+                            )}
+                          </Link>
+                          <Link
+                            href={`/admin/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/edit`}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            title={tCommon("edit")}
+                            aria-label={tCommon("edit")}
+                          >
+                            <Pencil className="h-3.5 w-3.5" aria-hidden />
+                          </Link>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
       )}
 
       <ConfirmDialog

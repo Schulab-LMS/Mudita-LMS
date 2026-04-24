@@ -5,6 +5,17 @@ import { db } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
 import { ModuleList } from "./module-list";
 import { EnrollmentList } from "./enrollment-list";
+import { PageHeader } from "@/components/ui/page-header";
+import { CategoryIcon } from "@/components/illustrations/category-icons";
+import {
+  Pencil,
+  Users,
+  GraduationCap,
+  BookOpen,
+  Tag,
+  DollarSign,
+  ExternalLink,
+} from "lucide-react";
 
 export const metadata = { title: "Course Content | Admin" };
 
@@ -19,121 +30,206 @@ export default async function CourseDetailPage({
 
   const { courseId } = await params;
 
-  const course = await db.course.findUnique({
-    where: { id: courseId },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      status: true,
-      ageGroup: true,
-      level: true,
-      category: true,
-      isFree: true,
-      price: true,
-      _count: { select: { enrollments: true } },
-      enrollments: {
-        orderBy: { enrolledAt: "desc" as const },
-        select: {
-          id: true,
-          userId: true,
-          status: true,
-          progress: true,
-          enrolledAt: true,
-          user: { select: { name: true, email: true } },
+  const course = await db.course
+    .findUnique({
+      where: { id: courseId },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        status: true,
+        ageGroup: true,
+        level: true,
+        category: true,
+        isFree: true,
+        price: true,
+        currency: true,
+        _count: { select: { enrollments: true } },
+        enrollments: {
+          orderBy: { enrolledAt: "desc" as const },
+          select: {
+            id: true,
+            userId: true,
+            status: true,
+            progress: true,
+            enrolledAt: true,
+            user: { select: { name: true, email: true } },
+          },
         },
-      },
-      modules: {
-        orderBy: { order: "asc" },
-        select: {
-          id: true,
-          title: true,
-          order: true,
-          lessons: {
-            orderBy: { order: "asc" },
-            select: {
-              id: true,
-              title: true,
-              type: true,
-              order: true,
-              isFree: true,
-              duration: true,
-              videoUrl: true,
-              quiz: { select: { id: true } },
+        modules: {
+          orderBy: { order: "asc" },
+          select: {
+            id: true,
+            title: true,
+            order: true,
+            lessons: {
+              orderBy: { order: "asc" },
+              select: {
+                id: true,
+                title: true,
+                type: true,
+                order: true,
+                isFree: true,
+                duration: true,
+                videoUrl: true,
+                quiz: { select: { id: true } },
+              },
             },
           },
         },
       },
-    },
-  }).catch(() => null);
+    })
+    .catch(() => null);
 
   if (!course) notFound();
 
-  const totalLessons = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
+  const totalLessons = course.modules.reduce(
+    (sum, m) => sum + m.lessons.length,
+    0
+  );
+  const totalDuration = course.modules.reduce(
+    (sum, m) => sum + m.lessons.reduce((s, l) => s + (l.duration ?? 0), 0),
+    0
+  );
+  const totalMinutes = Math.round(totalDuration / 60);
 
-  const statusColors: Record<string, string> = {
-    PUBLISHED: "bg-green-100 text-green-800",
-    DRAFT: "bg-yellow-100 text-yellow-800",
-    ARCHIVED: "bg-gray-100 text-gray-600",
+  const statusChip: Record<string, string> = {
+    PUBLISHED: "chip chip-success",
+    DRAFT: "chip chip-accent",
+    ARCHIVED: "chip chip-neutral",
   };
+
+  const ageLabel = course.ageGroup.replace("AGES_", "").replace("_", "–");
+  const levelLabel =
+    course.level.charAt(0) + course.level.slice(1).toLowerCase();
+  const priceLabel = course.isFree
+    ? "Free"
+    : `${course.currency || "USD"} ${Number(course.price).toFixed(2)}`;
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/admin/courses" className="hover:text-foreground">Courses</Link>
-        <span>/</span>
-        <span className="text-foreground font-medium">{course.title}</span>
-      </div>
-
-      {/* Course header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{course.title}</h1>
-            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[course.status] ?? "bg-gray-100"}`}>
-              {course.status}
+      <PageHeader
+        title={course.title}
+        description={`${course.modules.length} module${
+          course.modules.length === 1 ? "" : "s"
+        } · ${totalLessons} lesson${totalLessons === 1 ? "" : "s"} · ${
+          course._count.enrollments
+        } enrollment${course._count.enrollments === 1 ? "" : "s"}${
+          totalMinutes > 0 ? ` · ${totalMinutes} min total` : ""
+        }`}
+        breadcrumbs={[
+          { label: "Admin", href: "/admin" },
+          { label: "Courses", href: "/admin/courses" },
+          { label: course.title },
+        ]}
+        icon={<CategoryIcon category={course.category} size={32} />}
+        actions={
+          <>
+            <span className={statusChip[course.status] ?? "chip chip-neutral"}>
+              {course.status.charAt(0) +
+                course.status.slice(1).toLowerCase()}
             </span>
-          </div>
-          <p className="mt-1 text-muted-foreground">
-            {course.modules.length} modules &middot; {totalLessons} lessons &middot; {course._count.enrollments} enrollments
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href={`/admin/courses/${course.id}/edit`}
-            className="inline-flex items-center rounded-lg border border-input px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-          >
-            Edit Course
-          </Link>
-        </div>
-      </div>
+            {course.status === "PUBLISHED" && (
+              <Link
+                href={`/courses/${course.slug}`}
+                target="_blank"
+                className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-input bg-background px-3 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
+              >
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                View live
+              </Link>
+            )}
+            <Link
+              href={`/admin/courses/${course.id}/edit`}
+              className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden />
+              Edit course
+            </Link>
+          </>
+        }
+      />
 
-      {/* Course quick info */}
+      {/* Course quick info — premium tiles with icons + tones */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-lg border bg-white p-3">
-          <div className="text-xs text-muted-foreground">Age Group</div>
-          <div className="font-medium">{course.ageGroup.replace("AGES_", "").replace("_", "-")}</div>
-        </div>
-        <div className="rounded-lg border bg-white p-3">
-          <div className="text-xs text-muted-foreground">Level</div>
-          <div className="font-medium">{course.level.charAt(0) + course.level.slice(1).toLowerCase()}</div>
-        </div>
-        <div className="rounded-lg border bg-white p-3">
-          <div className="text-xs text-muted-foreground">Category</div>
-          <div className="font-medium">{course.category}</div>
-        </div>
-        <div className="rounded-lg border bg-white p-3">
-          <div className="text-xs text-muted-foreground">Price</div>
-          <div className="font-medium">{course.isFree ? "Free" : `$${Number(course.price).toFixed(2)}`}</div>
-        </div>
+        <InfoTile
+          icon={<Users className="h-4 w-4" />}
+          label="Age group"
+          value={ageLabel}
+          tone="primary"
+        />
+        <InfoTile
+          icon={<GraduationCap className="h-4 w-4" />}
+          label="Level"
+          value={levelLabel}
+          tone="secondary"
+        />
+        <InfoTile
+          icon={<Tag className="h-4 w-4" />}
+          label="Category"
+          value={course.category}
+          tone="accent"
+        />
+        <InfoTile
+          icon={
+            course.isFree ? (
+              <BookOpen className="h-4 w-4" />
+            ) : (
+              <DollarSign className="h-4 w-4" />
+            )
+          }
+          label="Price"
+          value={priceLabel}
+          tone={course.isFree ? "success" : "primary"}
+        />
       </div>
 
       {/* Enrollments */}
-      <EnrollmentList courseId={course.id} enrollments={course.enrollments} />
+      <EnrollmentList
+        courseId={course.id}
+        enrollments={course.enrollments}
+      />
 
-      {/* Module + Lesson management */}
+      {/* Module + lesson management */}
       <ModuleList courseId={course.id} modules={course.modules} />
+    </div>
+  );
+}
+
+function InfoTile({
+  icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  tone: "primary" | "secondary" | "accent" | "success";
+}) {
+  const toneClasses: Record<typeof tone, string> = {
+    primary: "bg-primary/10 text-primary",
+    secondary: "bg-secondary/10 text-secondary",
+    accent: "bg-accent/10 text-accent",
+    success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  };
+  return (
+    <div className="card-premium p-4">
+      <div className="flex items-center gap-2">
+        <span
+          className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${toneClasses[tone]}`}
+        >
+          {icon}
+        </span>
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {label}
+          </p>
+          <p className="truncate font-display text-sm font-bold leading-tight text-foreground">
+            {value}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
