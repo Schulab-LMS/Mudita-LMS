@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import {
+  LegalLayout,
+  type LegalSection,
+} from "@/components/shared/legal-layout";
 
 export const metadata: Metadata = {
   title: "Impressum | Schulab",
@@ -10,95 +14,96 @@ export const metadata: Metadata = {
 // Fallbacks are placeholder strings — they must be replaced with real
 // values before the German-market launch and signed off by counsel.
 const company = {
-  legalName: process.env.COMPANY_LEGAL_NAME ?? "Mudita IT Solutions UG (haftungsbeschränkt)",
-  addressLine1: process.env.COMPANY_ADDRESS_LINE1 ?? "[Straße und Hausnummer]",
+  legalName:
+    process.env.COMPANY_LEGAL_NAME ??
+    "Mudita IT Solutions UG (haftungsbeschränkt)",
+  addressLine1:
+    process.env.COMPANY_ADDRESS_LINE1 ?? "[Straße und Hausnummer]",
   addressLine2: process.env.COMPANY_ADDRESS_LINE2 ?? "[PLZ Ort]",
   country: process.env.COMPANY_COUNTRY ?? "Deutschland",
   email: process.env.COMPANY_EMAIL ?? "hello@schulab.com",
   phone: process.env.COMPANY_PHONE ?? "[Telefonnummer folgt]",
   registerCourt: process.env.COMPANY_REGISTER_COURT ?? "[Amtsgericht]",
   registerNumber: process.env.COMPANY_REGISTER_NUMBER ?? "[HRB-Nummer]",
-  managingDirector: process.env.COMPANY_MANAGING_DIRECTOR ?? "[Geschäftsführung]",
+  managingDirector:
+    process.env.COMPANY_MANAGING_DIRECTOR ?? "[Geschäftsführung]",
   vatId: process.env.COMPANY_VAT_ID ?? "[USt-IdNr. gemäß § 27 a UStG]",
   responsibleEditor:
     process.env.COMPANY_RESPONSIBLE_EDITOR ?? "[Verantwortlich für den Inhalt]",
 };
 
+const sections: LegalSection[] = [
+  { id: "anbieter", label: "Anbieter" },
+  { id: "kontakt", label: "Kontakt" },
+  { id: "vertretung", label: "Vertretungsberechtigt" },
+  { id: "register", label: "Registereintrag" },
+  { id: "ust", label: "Umsatzsteuer-ID" },
+  { id: "verantwortlich", label: "Verantwortlich für den Inhalt" },
+  { id: "eu-os", label: "EU-Streitschlichtung" },
+  { id: "vsbg", label: "Verbraucherstreitbeilegung" },
+];
+
 export default function ImpressumPage() {
   return (
-    <div className="py-16">
-      <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          Impressum
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Angaben gemäß § 5 TMG
-        </p>
-
-        <h2 className="mt-8 mb-3 text-xl font-semibold">Anbieter</h2>
-        <p className="mb-1 leading-relaxed text-muted-foreground">
-          {company.legalName}
-        </p>
-        <p className="mb-1 leading-relaxed text-muted-foreground">
+    <LegalLayout
+      title="Impressum"
+      description="Angaben gemäß § 5 TMG für den Betrieb dieser Website."
+      sections={sections}
+    >
+      <section id="anbieter">
+        <h2>Anbieter</h2>
+        <p>
+          <strong>{company.legalName}</strong>
+          <br />
           {company.addressLine1}
-        </p>
-        <p className="mb-1 leading-relaxed text-muted-foreground">
+          <br />
           {company.addressLine2}
-        </p>
-        <p className="mb-4 leading-relaxed text-muted-foreground">
+          <br />
           {company.country}
         </p>
+      </section>
 
-        <h2 className="mt-8 mb-3 text-xl font-semibold">Kontakt</h2>
-        <p className="mb-1 leading-relaxed text-muted-foreground">
+      <section id="kontakt">
+        <h2>Kontakt</h2>
+        <p>
           E-Mail:{" "}
-          <a
-            href={`mailto:${company.email}`}
-            className="text-primary underline underline-offset-4 hover:text-primary/80"
-          >
-            {company.email}
-          </a>
-        </p>
-        <p className="mb-4 leading-relaxed text-muted-foreground">
+          <a href={`mailto:${company.email}`}>{company.email}</a>
+          <br />
           Telefon: {company.phone}
         </p>
+      </section>
 
-        <h2 className="mt-8 mb-3 text-xl font-semibold">Vertretungsberechtigt</h2>
-        <p className="mb-4 leading-relaxed text-muted-foreground">
-          {company.managingDirector}
-        </p>
+      <section id="vertretung">
+        <h2>Vertretungsberechtigt</h2>
+        <p>{company.managingDirector}</p>
+      </section>
 
-        <h2 className="mt-8 mb-3 text-xl font-semibold">Registereintrag</h2>
-        <p className="mb-1 leading-relaxed text-muted-foreground">
+      <section id="register">
+        <h2>Registereintrag</h2>
+        <p>
           Registergericht: {company.registerCourt}
-        </p>
-        <p className="mb-4 leading-relaxed text-muted-foreground">
+          <br />
           Registernummer: {company.registerNumber}
         </p>
+      </section>
 
-        <h2 className="mt-8 mb-3 text-xl font-semibold">
-          Umsatzsteuer-Identifikationsnummer
-        </h2>
-        <p className="mb-4 leading-relaxed text-muted-foreground">
-          {company.vatId}
-        </p>
+      <section id="ust">
+        <h2>Umsatzsteuer-Identifikationsnummer</h2>
+        <p>{company.vatId}</p>
+      </section>
 
-        <h2 className="mt-8 mb-3 text-xl font-semibold">
-          Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV
-        </h2>
-        <p className="mb-4 leading-relaxed text-muted-foreground">
-          {company.responsibleEditor}
-        </p>
+      <section id="verantwortlich">
+        <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+        <p>{company.responsibleEditor}</p>
+      </section>
 
-        <h2 className="mt-8 mb-3 text-xl font-semibold">
-          EU-Streitschlichtung
-        </h2>
-        <p className="mb-4 leading-relaxed text-muted-foreground">
+      <section id="eu-os">
+        <h2>EU-Streitschlichtung</h2>
+        <p>
           Die Europäische Kommission stellt eine Plattform zur
           Online-Streitbeilegung (OS) bereit:{" "}
           <a
             href="https://ec.europa.eu/consumers/odr/"
-            className="text-primary underline underline-offset-4 hover:text-primary/80"
             target="_blank"
             rel="noreferrer noopener"
           >
@@ -106,23 +111,25 @@ export default function ImpressumPage() {
           </a>
           . Unsere E-Mail-Adresse finden Sie oben im Impressum.
         </p>
+      </section>
 
-        <h2 className="mt-8 mb-3 text-xl font-semibold">
-          Verbraucherstreitbeilegung / Universalschlichtungsstelle
-        </h2>
-        <p className="mb-4 leading-relaxed text-muted-foreground">
-          Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren
-          vor einer Verbraucherschlichtungsstelle teilzunehmen.
+      <section id="vsbg">
+        <h2>Verbraucherstreitbeilegung / Universalschlichtungsstelle</h2>
+        <p>
+          Wir sind nicht bereit oder verpflichtet, an
+          Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
+          teilzunehmen.
         </p>
 
-        <p className="mt-8 rounded-md border border-dashed border-muted-foreground/30 p-4 text-xs text-muted-foreground">
-          Hinweis: Diese Seite ist ein Platzhalter für den Markteintritt in der
-          DACH-Region. Die tatsächlichen Unternehmensangaben werden über
-          Umgebungsvariablen konfiguriert (<code>COMPANY_*</code>) und der
-          finale Inhalt muss vor dem Produktivbetrieb von einer Anwältin bzw.
-          einem Anwalt freigegeben werden.
+        <p className="mt-8 rounded-md border border-dashed border-muted-foreground/30 p-4 text-xs">
+          <strong>Hinweis:</strong> Diese Seite ist ein Platzhalter für den
+          Markteintritt in der DACH-Region. Die tatsächlichen
+          Unternehmensangaben werden über Umgebungsvariablen konfiguriert
+          (<code>COMPANY_*</code>) und der finale Inhalt muss vor dem
+          Produktivbetrieb von einer Anwältin bzw. einem Anwalt freigegeben
+          werden.
         </p>
       </section>
-    </div>
+    </LegalLayout>
   );
 }
