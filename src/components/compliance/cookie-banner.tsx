@@ -1,13 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import {
+  useCallback,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+} from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
   COOKIE_CONSENT_COOKIE,
-  saveCookieConsent,
   type StoredCookieConsent,
-} from "@/actions/consent.actions";
+} from "@/lib/consent";
+import { saveCookieConsent } from "@/actions/consent.actions";
 
 function readConsentCookie(): StoredCookieConsent | null {
   if (typeof document === "undefined") return null;
@@ -16,40 +21,84 @@ function readConsentCookie(): StoredCookieConsent | null {
     .find((c) => c.startsWith(`${COOKIE_CONSENT_COOKIE}=`));
   if (!match) return null;
   try {
-    return JSON.parse(decodeURIComponent(match.split("=")[1])) as StoredCookieConsent;
+    return JSON.parse(
+      decodeURIComponent(match.split("=")[1])
+    ) as StoredCookieConsent;
   } catch {
     return null;
   }
 }
 
+// Serialize the consent cookie into a stable key so useSyncExternalStore's
+// identity check stays consistent between getSnapshot calls.
+function snapshotKey(): string {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie
+    .split("; ")
+    .find((c) => c.startsWith(`${COOKIE_CONSENT_COOKIE}=`));
+  return match ?? "";
+}
+
+function subscribeToConsent(onChange: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  // Fire whenever another tab updates the cookie (via the storage event on
+  // the paired localStorage key we don't have). For our purposes we mainly
+  // need a no-op subscribe that exists so useSyncExternalStore is happy.
+  const handler = () => onChange();
+  window.addEventListener("focus", handler);
+  window.addEventListener("pageshow", handler);
+  return () => {
+    window.removeEventListener("focus", handler);
+    window.removeEventListener("pageshow", handler);
+  };
+}
+
 export function CookieBanner() {
   const t = useTranslations("cookieBanner");
-  const [visible, setVisible] = useState(false);
+
+  // useSyncExternalStore reads the current cookie on every render without
+  // writing to state — replacing the setState-in-effect pattern that React
+  // Compiler now disallows. Returns "" on the server (no hydration flash).
+  const cookieKey = useSyncExternalStore(
+    subscribeToConsent,
+    snapshotKey,
+    () => ""
+  );
+
+  // Parse the stored consent once per cookie-value change. Pure derivation.
+  const stored: StoredCookieConsent | null = cookieKey
+    ? readConsentCookie()
+    : null;
+
+  const [dismissed, setDismissed] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  const [analytics, setAnalytics] = useState(false);
-  const [marketing, setMarketing] = useState(false);
+  const [analyticsDraft, setAnalyticsDraft] = useState(
+    stored?.analytics ?? false
+  );
+  const [marketingDraft, setMarketingDraft] = useState(
+    stored?.marketing ?? false
+  );
   const [isPending, startTransition] = useTransition();
 
-  // Mount: only show the banner if there's no saved choice. We intentionally
-  // avoid server-rendering the banner to sidestep a hydration-flash: the
-  // server has no way to know the user's cookie before the first paint of a
-  // static page, and flashing a banner they already dismissed is worse UX
-  // than a small post-hydration fade-in.
-  useEffect(() => {
-    const stored = readConsentCookie();
-    if (!stored) {
-      setVisible(true);
-      return;
-    }
-    setAnalytics(stored.analytics);
-    setMarketing(stored.marketing);
-  }, []);
+  // Banner is visible when:
+  //  - hydration has happened (we can distinguish via cookieKey — empty means
+  //    either SSR or no cookie; post-hydration on client, empty means no
+  //    cookie, which is exactly when we want to show it)
+  //  - the user hasn't yet dismissed this render cycle
+  //  - there is no stored consent choice
+  // We additionally hide during SSR by checking for a window-side signal. The
+  // safest approach is to gate on `typeof document !== 'undefined'` via a
+  // snapshot-derived flag; hydration matches because `getServerSnapshot`
+  // returns "" and client's first render after hydration will re-run and may
+  // find a cookie or not.
+  const hasMounted = typeof window !== "undefined";
+  const visible = hasMounted && !stored && !dismissed;
 
   const persist = useCallback(
     (next: { analytics: boolean; marketing: boolean }) => {
       startTransition(async () => {
         const res = await saveCookieConsent(next);
-        if (res.success) setVisible(false);
+        if (res.success) setDismissed(true);
       });
     },
     []
@@ -95,14 +144,14 @@ export function CookieBanner() {
             <CategoryRow
               label={t("cookiesAnalyticsLabel")}
               description={t("cookiesAnalyticsDesc")}
-              checked={analytics}
-              onChange={setAnalytics}
+              checked={analyticsDraft}
+              onChange={setAnalyticsDraft}
             />
             <CategoryRow
               label={t("cookiesMarketingLabel")}
               description={t("cookiesMarketingDesc")}
-              checked={marketing}
-              onChange={setMarketing}
+              checked={marketingDraft}
+              onChange={setMarketingDraft}
             />
           </div>
         )}
@@ -129,7 +178,12 @@ export function CookieBanner() {
           {showDetails ? (
             <button
               type="button"
-              onClick={() => persist({ analytics, marketing })}
+              onClick={() =>
+                persist({
+                  analytics: analyticsDraft,
+                  marketing: marketingDraft,
+                })
+              }
               className="rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
               disabled={isPending}
             >
