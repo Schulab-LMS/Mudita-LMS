@@ -114,8 +114,13 @@ export default async function CourseDetailPage({
   const firstLessonId = allLessons[0]?.id;
   const rating = Number(course.averageRating ?? 0);
   const reviewCount = course.reviewCount ?? 0;
-  const isPaid = !(course.isFree || !course.price || Number(course.price) === 0);
-  const priceDisplay = isPaid ? `${course.currency} ${Number(course.price).toFixed(2)}` : t("free");
+  const isSubGated = !!course.requiredPlan;
+  const isPaid = !(course.isFree || !course.price || Number(course.price) === 0) && !isSubGated;
+  const priceDisplay = isSubGated
+    ? t("includedWithPlan", { plan: course.requiredPlan ?? "" })
+    : isPaid
+      ? `${course.currency} ${Number(course.price).toFixed(2)}`
+      : t("free");
   const isBestseller = course.enrollmentCount >= 50 && rating >= 4.5;
   // Server component — Date is evaluated once per request, which is the
   // semantics we want for "published in the last 30 days".

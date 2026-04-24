@@ -1,11 +1,15 @@
 import { db } from "@/lib/db";
+import { hasActivePlanAtLeast } from "@/lib/subscription-access";
 
 // Centralised access check for lesson content. Enforced by both the video
-// playback endpoint and the SSR lesson page. Rules:
+// playback endpoint and the SSR lesson page. Rules (first match wins):
 // 1. Lessons flagged isFree (free-preview) are always viewable.
 // 2. Admins and super-admins always have access.
 // 3. Course authors can preview their own unpublished content.
-// 4. Otherwise the user must have an active Enrollment for the course.
+// 4. Users with an ACTIVE Enrollment for the course are in.
+// 5. Users with an active subscription whose tier satisfies the course's
+//    requiredPlan are in (even if they have not yet been auto-enrolled).
+// 6. Otherwise: not_enrolled.
 
 export type LessonAccess = {
   allowed: boolean;
@@ -14,6 +18,7 @@ export type LessonAccess = {
     | "admin"
     | "author"
     | "enrolled"
+    | "subscription"
     | "not_authenticated"
     | "not_enrolled"
     | "lesson_not_found";
@@ -31,7 +36,9 @@ export async function checkLessonAccess(params: {
       isFree: true,
       module: {
         select: {
-          course: { select: { id: true, createdById: true } },
+          course: {
+            select: { id: true, createdById: true, requiredPlan: true },
+          },
         },
       },
     },
@@ -57,6 +64,12 @@ export async function checkLessonAccess(params: {
   });
   if (enrollment && enrollment.status === "ACTIVE") {
     return { allowed: true, reason: "enrolled" };
+  }
+
+  const requiredPlan = lesson.module.course.requiredPlan;
+  if (requiredPlan) {
+    const ok = await hasActivePlanAtLeast(params.userId, requiredPlan);
+    if (ok) return { allowed: true, reason: "subscription" };
   }
 
   return { allowed: false, reason: "not_enrolled" };

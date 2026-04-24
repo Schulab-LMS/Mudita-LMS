@@ -17,6 +17,7 @@ import { revalidatePath } from "next/cache";
 import { sendEnrollmentConfirmation } from "@/lib/email";
 import { db } from "@/lib/db";
 import { assertMinorConsent } from "@/lib/compliance";
+import { hasActivePlanAtLeast } from "@/lib/subscription-access";
 
 export async function enrollInCourse(courseId: string) {
   try {
@@ -31,19 +32,46 @@ export async function enrollInCourse(courseId: string) {
     const emailCheck = await assertEmailVerified(session.user.id);
     if (!emailCheck.ok) return { success: false, error: emailCheck.error };
 
-    // Only allow self-enrolment in published free courses. Paid courses must
-    // go through Stripe checkout — granting access here would bypass payment.
-    // Drafts and archived courses can still be administered via `adminEnrollUser`.
+    // Access model for self-enrolment (admin enrolment bypasses all of this
+    // via adminEnrollUser):
+    //   1. Course must be PUBLISHED.
+    //   2. Free courses (isFree) are open to any verified user.
+    //   3. Subscription-gated courses (requiredPlan != null) are open to
+    //      any user with an active subscription at or above that tier.
+    //   4. One-time-purchase courses must go through Stripe checkout —
+    //      enrolling here would bypass payment.
     const course = await db.course.findUnique({
       where: { id: parsed.data.courseId },
-      select: { title: true, slug: true, status: true, isFree: true, price: true },
+      select: {
+        title: true,
+        slug: true,
+        status: true,
+        isFree: true,
+        price: true,
+        requiredPlan: true,
+      },
     });
     if (!course) return { success: false, error: "Course not found" };
     if (course.status !== "PUBLISHED") {
       return { success: false, error: "This course is not available for enrolment" };
     }
-    if (!course.isFree && Number(course.price) > 0) {
-      return { success: false, error: "This course requires payment — please purchase it first" };
+
+    const isFree = course.isFree || Number(course.price) === 0;
+    if (!isFree) {
+      if (course.requiredPlan) {
+        const ok = await hasActivePlanAtLeast(session.user.id, course.requiredPlan);
+        if (!ok) {
+          return {
+            success: false,
+            error: "This course is included with a subscription — please subscribe first",
+          };
+        }
+      } else {
+        return {
+          success: false,
+          error: "This course requires payment — please purchase it first",
+        };
+      }
     }
 
     const consent = await assertMinorConsent(session.user.id);

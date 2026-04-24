@@ -186,7 +186,7 @@ Stripe · Resend · Mux (+ Cloudflare Stream/Vimeo/YouTube fallbacks) · UploadT
 - Paid enrollment: Stripe checkout via `billing.service.ts` `createCourseCheckoutSession()` → webhook (`api/billing/webhook`) handles `checkout.session.completed` to create `CoursePurchase` + `Enrollment`.
 
 **Gaps:**
-- **Subscription-gated courses are not implemented.** `Plan`/`Subscription` models exist, but enrollment never checks for an active subscription — subscribers gain no course access.
+- **Subscription-gated courses are now wired.** New `Course.requiredPlan` (nullable `PlanTier`): when set, the course is accessible to any user holding an `ACTIVE` or `TRIALING` subscription whose plan tier is ≥ the required tier (LIFETIME > PRO > LEARNER > FREE). Logic lives in `src/lib/subscription-access.ts` (`hasActivePlanAtLeast`, `getActiveSubscriptionTier`); both the enrolment action (`src/actions/enrollment.actions.ts`) and the lesson-access guard (`src/services/access.service.ts`) consult it before falling through to "one-time-purchase required" / "not_enrolled". Course-detail page shows "Included with {plan}" in place of the free/price chip. Follow-up: admin UI to set `requiredPlan` when editing a course; auto-enrolment cron that bulk-creates `Enrollment` rows when a subscription activates (so progress tracking picks up faster than first-playback).
 - No capacity / seat limit per course (unlimited enrollment).
 - No waitlist model or flow.
 - No invite-only enrollment (despite narrative for B2B partners sharing a course with a cohort).
