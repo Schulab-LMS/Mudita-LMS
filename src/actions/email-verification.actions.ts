@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { sendEmailVerification } from "@/lib/email";
+import { sendEmailVerification, sendWelcomeEmail } from "@/lib/email";
 import {
   rateLimit,
   EMAIL_VERIFY_SEND_RATE_LIMIT,
@@ -104,17 +104,59 @@ export async function verifyEmail(token: string) {
 
       const email = verificationToken.identifier.slice(VERIFY_PREFIX.length);
 
-      await tx.user.update({
+      // If the account was already verified (e.g. an email-scanner pre-fetched
+      // the link or the user double-clicked) keep the result idempotent —
+      // delete the token and return success instead of an "invalid link"
+      // error. Only send the welcome email on a real state change.
+      const existing = await tx.user.findUnique({
         where: { email },
-        data: { emailVerified: new Date() },
+        select: { name: true, role: true, emailVerified: true },
       });
+
+      if (!existing) {
+        return { ok: false as const, error: "Invalid verification link" };
+      }
+
+      const wasAlreadyVerified = existing.emailVerified !== null;
+
+      if (!wasAlreadyVerified) {
+        await tx.user.update({
+          where: { email },
+          data: { emailVerified: new Date() },
+        });
+      }
 
       await tx.verificationToken.delete({ where: { token: tokenHash } });
 
-      return { ok: true as const };
+      return {
+        ok: true as const,
+        email,
+        name: existing.name,
+        role: existing.role,
+        firstTime: !wasAlreadyVerified,
+      };
     });
 
     if (!result.ok) return { success: false, error: result.error };
+
+    // Welcome email only on the first successful verification — awaited so
+    // the send actually completes before the action returns (see the same
+    // fix in registerUser).
+    if (result.firstTime) {
+      try {
+        const welcome = await sendWelcomeEmail(
+          result.email,
+          result.name,
+          result.role as "STUDENT" | "PARENT" | "TUTOR"
+        );
+        if (welcome && "success" in welcome && !welcome.success) {
+          console.error("verifyEmail: welcome email failed", welcome.error);
+        }
+      } catch (err) {
+        console.error("verifyEmail: welcome email threw", err);
+      }
+    }
+
     return { success: true };
   } catch (error) {
     console.error("verifyEmail error:", error);

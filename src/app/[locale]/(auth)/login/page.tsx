@@ -28,6 +28,7 @@ export default function LoginPage() {
   const t = useTranslations("auth");
   const router = useRouter();
   const [error, setError] = useState("");
+  const [lastEmail, setLastEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -50,7 +51,12 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
+      // NextAuth collapses every authorize() failure into a single generic
+      // error code, so we can't tell "wrong password" from "email not
+      // verified" here. Remember the email so the banner below can offer a
+      // resend-verification link as a safety net.
       setError(t("invalidCredentials"));
+      setLastEmail(data.email);
       setLoading(false);
       return;
     }
@@ -77,7 +83,20 @@ export default function LoginPage() {
           className="mb-5 flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-sm text-destructive animate-slide-down"
         >
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-          <p>{error}</p>
+          <div className="space-y-1">
+            <p>{error}</p>
+            {lastEmail && (
+              <p className="text-xs text-destructive/80">
+                Haven&apos;t verified your email yet?{" "}
+                <Link
+                  href={`/verify-email?email=${encodeURIComponent(lastEmail)}`}
+                  className="font-semibold underline underline-offset-2"
+                >
+                  Resend verification
+                </Link>
+              </p>
+            )}
+          </div>
         </div>
       )}
 

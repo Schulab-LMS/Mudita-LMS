@@ -14,6 +14,7 @@ import {
   XCircle,
   Loader2,
   Mail,
+  MailCheck,
   ArrowRight,
   ArrowLeft,
   RotateCw,
@@ -35,26 +36,31 @@ export default function VerifyEmailClient() {
   const email = searchParams.get("email");
   const t = useTranslations("auth");
 
+  // Start in `confirm` when a token is present — we used to call
+  // verifyEmail() in a useEffect on mount, which let Gmail/Outlook link
+  // scanners (that pre-fetch URLs in emails) consume the token before the
+  // real user ever clicked. Now the user explicitly clicks "Verify my
+  // email" and the token is only spent on that action.
   const [status, setStatus] = useState<
-    "loading" | "success" | "error" | "no-token"
-  >(token ? "loading" : "no-token");
+    "confirm" | "loading" | "success" | "error" | "no-token"
+  >(token ? "confirm" : "no-token");
   const [errorMsg, setErrorMsg] = useState("");
   const [resending, setResending] = useState(false);
   const [resendIn, setResendIn] = useState(0);
   const [resendError, setResendError] = useState("");
   const [resendOk, setResendOk] = useState(false);
 
-  useEffect(() => {
+  async function handleConfirm() {
     if (!token) return;
-    verifyEmail(token).then((result) => {
-      if (result.success) {
-        setStatus("success");
-      } else {
-        setStatus("error");
-        setErrorMsg(result.error || t("verifyFailed"));
-      }
-    });
-  }, [token, t]);
+    setStatus("loading");
+    const result = await verifyEmail(token);
+    if (result.success) {
+      setStatus("success");
+    } else {
+      setStatus("error");
+      setErrorMsg(result.error || t("verifyFailed"));
+    }
+  }
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -75,6 +81,36 @@ export default function VerifyEmailClient() {
     } else {
       setResendError(result?.error || t("verifyFailed"));
     }
+  }
+
+  // ── Confirm state (token present, waiting for user click) ────────
+  if (status === "confirm") {
+    return (
+      <div className="w-full animate-scale-in">
+        <div className="text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+            <MailCheck className="h-8 w-8 text-primary" aria-hidden />
+          </div>
+          <h2 className="mt-5 font-display text-2xl font-extrabold">
+            Verify your email
+          </h2>
+          <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+            Click the button below to confirm your email address and finish
+            setting up your account.
+          </p>
+        </div>
+
+        <Button
+          variant="launch"
+          size="lg"
+          className="mt-6 w-full"
+          onClick={handleConfirm}
+        >
+          Verify my email
+          <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
+        </Button>
+      </div>
+    );
   }
 
   // ── Loading state ────────────────────────────────────────────────

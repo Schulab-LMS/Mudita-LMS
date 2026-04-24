@@ -126,13 +126,9 @@ export default function RegisterPage() {
       return;
     }
 
-    // Auto sign in after registration
-    await signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      redirect: false,
-    });
-
+    // Don't auto-sign-in: credentials login is blocked until the user
+    // verifies their email, so a silent signIn here would just confuse
+    // them with a failed session. Send them straight to the verify page.
     router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
   }
 

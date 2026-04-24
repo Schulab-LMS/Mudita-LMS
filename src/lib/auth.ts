@@ -39,6 +39,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!isValid) return null;
 
+        // Block password login until the user has verified their email.
+        // The login page shows a "didn't get the email?" link on any auth
+        // failure so unverified users have a path to recover.
+        if (!user.emailVerified) return null;
+
         return {
           id: user.id,
           email: user.email,

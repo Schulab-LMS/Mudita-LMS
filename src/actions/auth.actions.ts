@@ -5,7 +5,6 @@ import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { registerSchema, type RegisterInput } from "@/validators/auth.schema";
 import { rateLimit, REGISTER_RATE_LIMIT } from "@/lib/rate-limit";
-import { sendWelcomeEmail } from "@/lib/email";
 import { sendVerificationEmail } from "@/actions/email-verification.actions";
 import {
   PRIVACY_VERSION,
@@ -142,22 +141,17 @@ export async function registerUser(data: RegisterInput) {
     );
   }
 
-  // Send verification and welcome emails. Awaited (not fire-and-forget):
-  // a floating promise in a server action can be cut short when the
-  // response is flushed, which caused new users to never receive their
-  // verification email. Promise.allSettled so a welcome-email failure
-  // doesn't swallow the verification send.
-  const [verifyResult, welcomeResult] = await Promise.allSettled([
-    sendVerificationEmail(email),
-    sendWelcomeEmail(email, name),
-  ]);
-  if (verifyResult.status === "rejected") {
-    console.error("registerUser: verification email failed", verifyResult.reason);
-  } else if (verifyResult.value && "success" in verifyResult.value && !verifyResult.value.success) {
-    console.error("registerUser: verification email failed", verifyResult.value.error);
-  }
-  if (welcomeResult.status === "rejected") {
-    console.error("registerUser: welcome email failed", welcomeResult.reason);
+  // Only the verification email goes out at registration. The welcome
+  // email is sent after the user actually verifies — see verifyEmail().
+  // Awaited (not fire-and-forget) so Next.js doesn't abort the in-flight
+  // Resend fetch when the server action flushes its response.
+  try {
+    const result = await sendVerificationEmail(email);
+    if (result && "success" in result && !result.success) {
+      console.error("registerUser: verification email failed", result.error);
+    }
+  } catch (err) {
+    console.error("registerUser: verification email threw", err);
   }
 
   track({

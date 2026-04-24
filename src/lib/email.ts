@@ -137,27 +137,79 @@ export async function sendEmailVerification(email: string, token: string) {
   });
 }
 
-export async function sendWelcomeEmail(email: string, name: string) {
-  const dashboardUrl = `${APP_URL}/en/student`;
+export async function sendWelcomeEmail(
+  email: string,
+  name: string,
+  role: "STUDENT" | "PARENT" | "TUTOR" = "STUDENT"
+) {
   const safeName = escapeHtml(name);
+
+  // Per-role copy: each audience lands on their own dashboard with a
+  // checklist that matches what they'll actually do next.
+  const variants = {
+    STUDENT: {
+      subject: `Welcome to Schulab, ${name}!`,
+      heading: `Welcome, ${safeName}! 🎉`,
+      intro:
+        "Your learner account is all set up. Start exploring STEM courses designed for ages 3–18.",
+      ctaLabel: "Go to My Dashboard",
+      ctaUrl: `${APP_URL}/en/student`,
+      nextListLabel: "Here's what you can do:",
+      nextList: [
+        "Browse and enrol in interactive courses",
+        "Track your learning progress and streaks",
+        "Earn badges and certificates",
+        "Book 1:1 sessions with expert tutors",
+      ],
+    },
+    PARENT: {
+      subject: `Welcome to Schulab, ${name}!`,
+      heading: `Welcome, ${safeName}! 👋`,
+      intro:
+        "Your parent account is ready. You can now add your children, monitor their progress, and manage subscriptions from one place.",
+      ctaLabel: "Go to Parent Dashboard",
+      ctaUrl: `${APP_URL}/en/parent`,
+      nextListLabel: "Next steps:",
+      nextList: [
+        "Add your child(ren) and link their learner accounts",
+        "Review safety, privacy and consent settings",
+        "Follow progress, streaks and certificates",
+        "Manage your subscription and payment method",
+      ],
+    },
+    TUTOR: {
+      subject: `Welcome to Schulab, ${name}!`,
+      heading: `Welcome aboard, ${safeName}! 🚀`,
+      intro:
+        "Your tutor account is created. Complete your profile so our team can review your application — once approved you'll be able to accept student bookings.",
+      ctaLabel: "Complete Tutor Profile",
+      ctaUrl: `${APP_URL}/en/tutor/profile`,
+      nextListLabel: "To get approved:",
+      nextList: [
+        "Fill in your bio, subjects and qualifications",
+        "Upload a government ID for verification",
+        "Set your hourly rate and weekly availability",
+        "Submit for review — we usually respond within 2 business days",
+      ],
+    },
+  } as const;
+
+  const v = variants[role] ?? variants.STUDENT;
 
   return sendEmail({
     to: email,
-    subject: `Welcome to Schulab, ${name}!`,
+    subject: v.subject,
     html: layout(`
-      <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">Welcome, ${safeName}! 🎉</h2>
+      <h2 style="margin:0 0 12px;font-size:22px;color:#1f2937;">${v.heading}</h2>
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
-        Your account is all set up. Start exploring our STEM courses designed for young learners ages 3–18.
+        ${v.intro}
       </p>
-      ${button("Go to Dashboard", dashboardUrl)}
+      ${button(v.ctaLabel, v.ctaUrl)}
       <p style="color:#6b7280;font-size:14px;line-height:1.6;">
-        Here's what you can do:
+        ${v.nextListLabel}
       </p>
       <ul style="color:#6b7280;font-size:14px;line-height:1.8;padding-left:20px;">
-        <li>Browse and enroll in courses</li>
-        <li>Track your learning progress</li>
-        <li>Earn badges and certificates</li>
-        <li>Book sessions with tutors</li>
+        ${v.nextList.map((item) => `<li>${item}</li>`).join("")}
       </ul>
     `),
   });
