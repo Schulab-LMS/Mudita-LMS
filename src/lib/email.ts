@@ -192,7 +192,8 @@ export async function sendCertificateEmail(
   courseTitle: string,
   certCode: string
 ) {
-  const certUrl = `${APP_URL}/en/verify/${encodeURIComponent(certCode)}`;
+  const verifyUrl = `${APP_URL}/en/verify/${encodeURIComponent(certCode)}`;
+  const downloadUrl = `${APP_URL}/api/certificates/${encodeURIComponent(certCode)}/download`;
   const safeName = escapeHtml(name);
   const safeCourseTitle = escapeHtml(courseTitle);
   const safeCertCode = escapeHtml(certCode);
@@ -209,7 +210,10 @@ export async function sendCertificateEmail(
         <p style="margin:0 0 4px;font-size:12px;color:#6b7280;">Verification Code</p>
         <p style="margin:0;font-family:monospace;font-size:16px;font-weight:700;color:#15803d;letter-spacing:1px;">${safeCertCode}</p>
       </div>
-      ${button("View Certificate", certUrl)}
+      ${button("Download Certificate (PDF)", downloadUrl)}
+      <p style="color:#9ca3af;font-size:12px;line-height:1.6;text-align:center;margin-top:8px;">
+        Or <a href="${verifyUrl}" style="color:#6b7280;">verify online</a>.
+      </p>
     `),
   });
 }
