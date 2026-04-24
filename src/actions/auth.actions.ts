@@ -142,9 +142,23 @@ export async function registerUser(data: RegisterInput) {
     );
   }
 
-  // Send verification and welcome emails (non-blocking)
-  sendVerificationEmail(email).catch(() => null);
-  sendWelcomeEmail(email, name).catch(() => null);
+  // Send verification and welcome emails. Awaited (not fire-and-forget):
+  // a floating promise in a server action can be cut short when the
+  // response is flushed, which caused new users to never receive their
+  // verification email. Promise.allSettled so a welcome-email failure
+  // doesn't swallow the verification send.
+  const [verifyResult, welcomeResult] = await Promise.allSettled([
+    sendVerificationEmail(email),
+    sendWelcomeEmail(email, name),
+  ]);
+  if (verifyResult.status === "rejected") {
+    console.error("registerUser: verification email failed", verifyResult.reason);
+  } else if (verifyResult.value && "success" in verifyResult.value && !verifyResult.value.success) {
+    console.error("registerUser: verification email failed", verifyResult.value.error);
+  }
+  if (welcomeResult.status === "rejected") {
+    console.error("registerUser: welcome email failed", welcomeResult.reason);
+  }
 
   track({
     name: EVENTS.USER_SIGNED_UP,

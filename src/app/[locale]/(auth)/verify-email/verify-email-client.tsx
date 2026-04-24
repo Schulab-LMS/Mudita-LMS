@@ -41,6 +41,8 @@ export default function VerifyEmailClient() {
   const [errorMsg, setErrorMsg] = useState("");
   const [resending, setResending] = useState(false);
   const [resendIn, setResendIn] = useState(0);
+  const [resendError, setResendError] = useState("");
+  const [resendOk, setResendOk] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -63,9 +65,16 @@ export default function VerifyEmailClient() {
   async function handleResend() {
     if (!email || resendIn > 0) return;
     setResending(true);
-    await sendVerificationEmail(email);
+    setResendError("");
+    setResendOk(false);
+    const result = await sendVerificationEmail(email);
     setResending(false);
-    setResendIn(60);
+    if (result?.success) {
+      setResendOk(true);
+      setResendIn(60);
+    } else {
+      setResendError(result?.error || t("verifyFailed"));
+    }
   }
 
   // ── Loading state ────────────────────────────────────────────────
@@ -216,9 +225,14 @@ export default function VerifyEmailClient() {
         </Link>
       </div>
 
-      {resendIn > 0 && (
+      {resendOk && resendIn > 0 && (
         <p className="mt-3 text-center text-xs text-emerald-600 dark:text-emerald-400">
           {t("verificationResent")}
+        </p>
+      )}
+      {resendError && (
+        <p className="mt-3 text-center text-xs text-destructive">
+          {resendError}
         </p>
       )}
     </div>
