@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { getArticleById } from "@/services/help.service";
 import { HelpArticleForm } from "../../help-article-form";
+import { PageHeader } from "@/components/ui/page-header";
+import { Pencil } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ articleId: string }>;
@@ -12,7 +14,9 @@ export async function generateMetadata({ params }: PageProps) {
   const { articleId } = await params;
   const article = await getArticleById(articleId);
   return {
-    title: article ? `Edit: ${article.title} | Admin | Schulab` : "Edit Article",
+    title: article
+      ? `Edit: ${article.title} | Admin | Schulab`
+      : "Edit Article",
   };
 }
 
@@ -26,11 +30,17 @@ export default async function EditHelpArticlePage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold">Edit Help Article</h1>
-        <p className="text-muted-foreground">Update content for &quot;{article.title}&quot;.</p>
-      </div>
-      <div className="rounded-2xl border bg-card p-6">
+      <PageHeader
+        title="Edit help article"
+        description={`Update content for "${article.title}".`}
+        breadcrumbs={[
+          { label: "Admin", href: "/admin" },
+          { label: "Help Articles", href: "/admin/help" },
+          { label: article.title },
+        ]}
+        icon={<Pencil className="h-5 w-5" />}
+      />
+      <div className="card-premium p-6">
         <HelpArticleForm
           mode="edit"
           initialData={{

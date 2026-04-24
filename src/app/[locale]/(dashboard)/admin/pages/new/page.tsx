@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { PageForm } from "../page-form";
+import { PageHeader } from "@/components/ui/page-header";
+import { FileText } from "lucide-react";
 
 export const metadata = { title: "New Page | Admin | Schulab" };
 
@@ -11,8 +13,19 @@ export default async function NewPagePage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <h1 className="font-display text-2xl font-bold">Create New Page</h1>
-      <PageForm mode="create" />
+      <PageHeader
+        title="Create new page"
+        description="Author a new CMS page that will render at /pages/[slug] once published."
+        breadcrumbs={[
+          { label: "Admin", href: "/admin" },
+          { label: "Pages", href: "/admin/pages" },
+          { label: "New" },
+        ]}
+        icon={<FileText className="h-5 w-5" />}
+      />
+      <div className="card-premium p-6">
+        <PageForm mode="create" />
+      </div>
     </div>
   );
 }

@@ -16,6 +16,21 @@ interface TopbarProps {
   breadcrumbs?: BreadcrumbItem[];
 }
 
+// Segments that look like a database ID rather than a meaningful route
+// name. We drop these from the auto-derived topbar breadcrumb so users
+// don't see raw cuids like "cmnhcll510090abp4jqywbqua" — the PageHeader
+// below already carries the readable title.
+const ID_LIKE = [
+  /^c[a-z0-9]{20,}$/i, // cuid
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, // uuid
+  /^[0-9a-f]{24}$/i, // mongo-style objectid
+  /^\d{6,}$/, // long numeric ids
+];
+
+function isIdLike(seg: string): boolean {
+  return ID_LIKE.some((r) => r.test(seg));
+}
+
 function pathToBreadcrumbs(pathname: string): BreadcrumbItem[] {
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length === 0) return [];
@@ -23,6 +38,7 @@ function pathToBreadcrumbs(pathname: string): BreadcrumbItem[] {
   let acc = "";
   for (const seg of segments) {
     acc += `/${seg}`;
+    if (isIdLike(seg)) continue; // skip raw IDs in the trail
     const label = seg
       .replace(/-/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase());

@@ -4,6 +4,16 @@ import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
+import { PageHeader } from "@/components/ui/page-header";
+import {
+  ClipboardList,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
+  Lock,
+} from "lucide-react";
+import { getInitials } from "@/lib/utils";
 
 // Append-only reader view for AuditLog entries. Admins often need to answer
 // "who last touched this record and when?" — this page gives a paginated,
@@ -72,26 +82,47 @@ export default async function AdminAuditLogPage({
   });
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const activeFilters = [sp.resource, sp.actor, sp.action].filter(
+    Boolean
+  ).length;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Audit Log</h1>
-        <p className="text-muted-foreground">
-          Append-only record of admin and sensitive user actions. {total.toLocaleString(locale)} total entries.
-        </p>
-      </div>
+      <PageHeader
+        title="Audit Log"
+        description={`Append-only record of admin and sensitive user actions · ${total.toLocaleString(
+          locale
+        )} total entries`}
+        breadcrumbs={[
+          { label: "Admin", href: "/admin" },
+          { label: "Audit Log" },
+        ]}
+        icon={<ClipboardList className="h-5 w-5" />}
+        actions={
+          <span className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-input bg-muted/40 px-3 text-xs font-semibold text-muted-foreground">
+            <Lock className="h-3.5 w-3.5" aria-hidden />
+            Read-only
+          </span>
+        }
+      />
 
-      <form className="flex flex-wrap items-end gap-3 rounded-lg border bg-card p-4" action="/admin/audit">
+      {/* Filters */}
+      <form
+        className="card-premium flex flex-wrap items-end gap-3 p-4"
+        action="/admin/audit"
+      >
         <div className="flex flex-col gap-1">
-          <label htmlFor="resource" className="text-xs font-medium text-muted-foreground">
+          <label
+            htmlFor="resource"
+            className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+          >
             Resource
           </label>
           <select
             id="resource"
             name="resource"
             defaultValue={sp.resource ?? ""}
-            className="h-9 rounded-md border bg-background px-2 text-sm"
+            className="input-pretty h-10 rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-none"
           >
             <option value="">All</option>
             {distinctResources.map((r) => (
@@ -102,7 +133,10 @@ export default async function AdminAuditLogPage({
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="action" className="text-xs font-medium text-muted-foreground">
+          <label
+            htmlFor="action"
+            className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+          >
             Action contains
           </label>
           <input
@@ -110,11 +144,14 @@ export default async function AdminAuditLogPage({
             name="action"
             defaultValue={sp.action ?? ""}
             placeholder="e.g. course.update"
-            className="h-9 rounded-md border bg-background px-2 text-sm"
+            className="input-pretty h-10 rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-none"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="actor" className="text-xs font-medium text-muted-foreground">
+          <label
+            htmlFor="actor"
+            className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+          >
             Actor user id
           </label>
           <input
@@ -122,107 +159,162 @@ export default async function AdminAuditLogPage({
             name="actor"
             defaultValue={sp.actor ?? ""}
             placeholder="cuid…"
-            className="h-9 w-64 rounded-md border bg-background px-2 text-sm font-mono"
+            className="input-pretty h-10 w-64 rounded-lg border border-input bg-background px-3 font-mono text-xs focus-visible:outline-none"
           />
         </div>
         <button
           type="submit"
-          className="h-9 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          className="inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
+          <Filter className="h-3.5 w-3.5" aria-hidden />
           Filter
         </button>
-        {(sp.resource || sp.actor || sp.action) && (
+        {activeFilters > 0 && (
           <Link
             href="/admin/audit"
-            className="h-9 rounded-md border px-3 text-sm font-medium leading-9 hover:bg-muted"
+            className="inline-flex h-10 items-center rounded-lg border border-input bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
             Reset
           </Link>
         )}
       </form>
 
-      <div className="overflow-x-auto rounded-xl border bg-card">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/40">
-              <th className="px-4 py-3 text-start font-medium text-muted-foreground">When</th>
-              <th className="px-4 py-3 text-start font-medium text-muted-foreground">Actor</th>
-              <th className="px-4 py-3 text-start font-medium text-muted-foreground">Action</th>
-              <th className="px-4 py-3 text-start font-medium text-muted-foreground">Resource</th>
-              <th className="px-4 py-3 text-start font-medium text-muted-foreground">Metadata</th>
-              <th className="px-4 py-3 text-start font-medium text-muted-foreground">IP</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                  No audit entries match these filters.
-                </td>
+      {/* Table */}
+      <div className="card-premium overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/40">
+                <th className="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  When
+                </th>
+                <th className="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Actor
+                </th>
+                <th className="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Action
+                </th>
+                <th className="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Resource
+                </th>
+                <th className="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Metadata
+                </th>
+                <th className="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  IP
+                </th>
               </tr>
-            ) : (
-              entries.map((e) => (
-                <tr key={e.id} className="border-b last:border-0 align-top hover:bg-muted/30">
-                  <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
-                    {dateFormatter.format(new Date(e.createdAt))}
-                  </td>
-                  <td className="px-4 py-3">
-                    {e.actor ? (
-                      <>
-                        <div className="font-medium">{e.actor.name ?? "—"}</div>
-                        <div className="text-xs text-muted-foreground">{e.actor.email}</div>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground">system</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs">{e.action}</td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{e.resource}</div>
-                    {e.resourceId && (
-                      <code className="text-[11px] text-muted-foreground">
-                        {e.resourceId.slice(0, 12)}…
-                      </code>
-                    )}
-                  </td>
-                  <td className="max-w-sm px-4 py-3">
-                    {e.metadata ? (
-                      <pre className="overflow-hidden whitespace-pre-wrap break-words text-[11px] text-muted-foreground">
-                        {JSON.stringify(e.metadata, null, 0)}
-                      </pre>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
-                    {e.ipAddress ?? "—"}
+            </thead>
+            <tbody className="divide-y divide-border">
+              {entries.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-5 py-10 text-center text-sm text-muted-foreground"
+                  >
+                    <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                      <ClipboardList className="h-6 w-6" aria-hidden />
+                    </div>
+                    <p className="mt-3 font-semibold text-foreground">
+                      No audit entries
+                    </p>
+                    <p className="mt-1 text-xs">
+                      {activeFilters > 0
+                        ? "Try clearing filters."
+                        : "Admin actions will appear here."}
+                    </p>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">
-            Page {page} of {totalPages}
-          </span>
-          <div className="flex gap-2">
-            {page > 1 && (
-              <PageLink
-                sp={sp}
-                page={page - 1}
-                label="← Previous"
-              />
-            )}
-            {page < totalPages && (
-              <PageLink sp={sp} page={page + 1} label="Next →" />
-            )}
-          </div>
+              ) : (
+                entries.map((e) => (
+                  <tr
+                    key={e.id}
+                    className="align-top transition-colors hover:bg-muted/30"
+                  >
+                    <td className="whitespace-nowrap px-5 py-3 text-xs text-muted-foreground">
+                      {dateFormatter.format(new Date(e.createdAt))}
+                    </td>
+                    <td className="px-5 py-3">
+                      {e.actor ? (
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 text-[10px] font-semibold text-foreground">
+                            {getInitials(e.actor.name ?? "?")}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="truncate font-medium text-foreground">
+                              {e.actor.name ?? "—"}
+                            </div>
+                            <div className="truncate text-xs text-muted-foreground">
+                              {e.actor.email}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                          <Shield className="h-3 w-3" aria-hidden />
+                          system
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3">
+                      <code className="rounded-md bg-muted px-2 py-1 font-mono text-[11px] text-foreground">
+                        {e.action}
+                      </code>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="font-medium text-foreground">
+                        {e.resource}
+                      </div>
+                      {e.resourceId && (
+                        <code className="text-[11px] text-muted-foreground">
+                          {e.resourceId.slice(0, 12)}…
+                        </code>
+                      )}
+                    </td>
+                    <td className="max-w-sm px-5 py-3">
+                      {e.metadata ? (
+                        <pre className="overflow-hidden whitespace-pre-wrap break-words rounded-md bg-muted/50 px-2 py-1 text-[11px] text-muted-foreground">
+                          {JSON.stringify(e.metadata, null, 0)}
+                        </pre>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 font-mono text-[11px] text-muted-foreground">
+                      {e.ipAddress ?? "—"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-border bg-muted/20 px-5 py-3">
+            <span className="text-xs text-muted-foreground">
+              Page <span className="font-semibold text-foreground">{page}</span>{" "}
+              of{" "}
+              <span className="font-semibold text-foreground">{totalPages}</span>{" "}
+              · {total.toLocaleString(locale)} total
+            </span>
+            <div className="flex gap-1">
+              {page > 1 && (
+                <PageLink sp={sp} page={page - 1}>
+                  <ChevronLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden />
+                  Previous
+                </PageLink>
+              )}
+              {page < totalPages && (
+                <PageLink sp={sp} page={page + 1}>
+                  Next
+                  <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden />
+                </PageLink>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -230,11 +322,11 @@ export default async function AdminAuditLogPage({
 function PageLink({
   sp,
   page,
-  label,
+  children,
 }: {
   sp: SearchParams;
   page: number;
-  label: string;
+  children: React.ReactNode;
 }) {
   const params = new URLSearchParams();
   if (sp.resource) params.set("resource", sp.resource);
@@ -244,9 +336,9 @@ function PageLink({
   return (
     <Link
       href={`/admin/audit?${params.toString()}`}
-      className="rounded-md border px-3 py-1.5 font-medium hover:bg-muted"
+      className="inline-flex h-8 items-center gap-1 rounded-md border border-input bg-background px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
     >
-      {label}
+      {children}
     </Link>
   );
 }
