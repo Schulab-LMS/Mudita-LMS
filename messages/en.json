@@ -678,6 +678,7 @@
     "studentsCount": "{count, plural, =0 {no students} =1 {1 student} other {# students}}",
     "certificateIncluded": "Certificate included",
     "free": "Free",
+    "includedWithPlan": "Included with {plan}",
     "createAccountToEnroll": "Create Free Account to Enroll",
     "lifetimeAccess": "Full lifetime access",
     "whatYoullLearn": "What You'll Learn",
