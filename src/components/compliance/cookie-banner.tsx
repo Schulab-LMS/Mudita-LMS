@@ -2,7 +2,6 @@
 
 import {
   useCallback,
-  useEffect,
   useState,
   useSyncExternalStore,
   useTransition,
@@ -14,6 +13,8 @@ import {
   type StoredCookieConsent,
 } from "@/lib/consent";
 import { saveCookieConsent } from "@/actions/consent.actions";
+
+const noopSubscribe = () => () => {};
 
 function readConsentCookie(): StoredCookieConsent | null {
   if (typeof document === "undefined") return null;
@@ -81,14 +82,14 @@ export function CookieBanner() {
   );
   const [isPending, startTransition] = useTransition();
 
-  // Gate visibility on a post-hydration mount flag so the first client render
-  // matches the server (which rendered null). Without this, `typeof window`
-  // is true on the client's first render and false on the server, producing
-  // a hydration mismatch.
-  const [hasMounted, setHasMounted] = useState(false);
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
+  // Server snapshot returns false; client snapshot returns true. Matches the
+  // server render exactly, then flips on the client without a setState-in-
+  // effect (which the React Compiler lint rule disallows).
+  const hasMounted = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false
+  );
   const visible = hasMounted && !stored && !dismissed;
 
   const persist = useCallback(
