@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  IMAGE: ghcr.io/markwahba-git/mudita-lms
+  IMAGE: ghcr.io/schulab-lms/mudita-lms
 
 jobs:
   verify:
@@ -170,7 +170,7 @@ jobs:
                   retries: 5
 
               web:
-                image: ghcr.io/markwahba-git/mudita-lms:${IMAGE_TAG:-latest}
+                image: ghcr.io/schulab-lms/mudita-lms:${IMAGE_TAG:-latest}
                 restart: unless-stopped
                 ports:
                   - "127.0.0.1:3020:3000"
