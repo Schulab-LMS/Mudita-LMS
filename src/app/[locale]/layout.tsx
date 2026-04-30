@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Script from "next/script";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { SessionProvider } from "next-auth/react";
@@ -65,10 +66,12 @@ export default async function LocaleLayout({
       className={`h-full antialiased ${inter.variable} ${spaceGrotesk.variable} ${nunito.variable}`}
       suppressHydrationWarning
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
       <body className="min-h-full flex flex-col font-sans">
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: themeScript }}
+        />
         <SessionProvider>
           <NextIntlClientProvider messages={messages}>
             <ThemeProvider>

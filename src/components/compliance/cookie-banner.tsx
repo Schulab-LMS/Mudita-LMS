@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useEffect,
   useState,
   useSyncExternalStore,
   useTransition,
@@ -80,18 +81,14 @@ export function CookieBanner() {
   );
   const [isPending, startTransition] = useTransition();
 
-  // Banner is visible when:
-  //  - hydration has happened (we can distinguish via cookieKey — empty means
-  //    either SSR or no cookie; post-hydration on client, empty means no
-  //    cookie, which is exactly when we want to show it)
-  //  - the user hasn't yet dismissed this render cycle
-  //  - there is no stored consent choice
-  // We additionally hide during SSR by checking for a window-side signal. The
-  // safest approach is to gate on `typeof document !== 'undefined'` via a
-  // snapshot-derived flag; hydration matches because `getServerSnapshot`
-  // returns "" and client's first render after hydration will re-run and may
-  // find a cookie or not.
-  const hasMounted = typeof window !== "undefined";
+  // Gate visibility on a post-hydration mount flag so the first client render
+  // matches the server (which rendered null). Without this, `typeof window`
+  // is true on the client's first render and false on the server, producing
+  // a hydration mismatch.
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   const visible = hasMounted && !stored && !dismissed;
 
   const persist = useCallback(
