@@ -148,6 +148,14 @@ enum CourseStatus {
   ARCHIVED
 }
 
+// Lifecycle marker for Git-synced curriculum entities. Removal from the
+// source repo flips this to REMOVED (soft-archive) instead of deleting the
+// row, so dependent LessonProgress / QuizAttempt records are never lost.
+enum SyncStatus {
+  ACTIVE
+  REMOVED
+}
+
 enum AgeGroup {
   AGES_3_5
   AGES_6_8
@@ -188,6 +196,15 @@ model Course {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
+  // Git-managed curriculum provenance. `managedByGit` flags a course whose
+  // content is owned by the STEM-Curricula repo (read-only in the admin UI).
+  // `sourcePath` is the course folder in the repo; `sourceCommitSha` is the
+  // commit last synced. See src/services/curriculum-sync.service.ts.
+  managedByGit    Boolean    @default(false)
+  sourcePath      String?
+  sourceCommitSha String?
+  syncStatus      SyncStatus @default(ACTIVE)
+
   modules     Module[]
   enrollments Enrollment[]
   reviews     CourseReview[]
@@ -197,18 +214,24 @@ model Course {
   @@index([ageGroup])
   @@index([status])
   @@index([requiredPlan])
+  @@index([managedByGit])
 }
 
 model Module {
-  id       String   @id @default(cuid())
-  courseId String
-  title    String
-  titleAr  String?
-  titleDe  String?
-  order    Int
-  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessons  Lesson[]
+  id         String     @id @default(cuid())
+  courseId   String
+  title      String
+  titleAr    String?
+  titleDe    String?
+  order      Int
+  sourcePath String?
+  syncStatus SyncStatus @default(ACTIVE)
+  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons    Lesson[]
 
+  // Stable upsert key for Git-synced modules (NULL for admin-created ones;
+  // Postgres treats NULLs as distinct, so non-managed rows are unaffected).
+  @@unique([courseId, sourcePath])
   @@index([courseId])
 }
 
@@ -229,6 +252,15 @@ model Lesson {
   content      String?          @db.Text
   contentAr    String?          @db.Text
   contentDe    String?          @db.Text
+  // Hands-on take-home activity (synced from activity.md). Student-visible.
+  activity     String?          @db.Text
+  activityAr   String?          @db.Text
+  activityDe   String?          @db.Text
+  // Tutor-only guidance (module overview + TUTOR_ONLY fences). NEVER served
+  // to students — student-facing queries omit these columns by construction.
+  tutorNotes   String?          @db.Text
+  tutorNotesAr String?          @db.Text
+  tutorNotesDe String?          @db.Text
   videoUrl     String?
   videoAssetId String?
   thumbnail    String?
@@ -236,10 +268,14 @@ model Lesson {
   type         LessonType       @default(VIDEO)
   order        Int
   isFree       Boolean          @default(false)
+  sourcePath   String?
+  syncStatus   SyncStatus       @default(ACTIVE)
   module       Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   quiz         Quiz?
   progress     LessonProgress[]
 
+  // Stable upsert key for Git-synced lessons (NULL for admin-created ones).
+  @@unique([moduleId, sourcePath])
   @@index([moduleId])
   @@index([videoAssetId])
 }
@@ -358,6 +394,38 @@ model Certificate {
 
   @@index([userId])
   @@index([code])
+}
+
+// ========== CURRICULUM SYNC (Git) ==========
+
+enum SyncRunStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+enum SyncTrigger {
+  WEBHOOK
+  MANUAL
+  CRON
+}
+
+// One row per curriculum sync attempt. Observability + admin "last synced"
+// display. Written by src/services/curriculum-sync.service.ts.
+model CurriculumSyncRun {
+  id               String        @id @default(cuid())
+  commitSha        String?
+  status           SyncRunStatus @default(RUNNING)
+  trigger          SyncTrigger
+  coursesUpserted  Int           @default(0)
+  lessonsUpserted  Int           @default(0)
+  coursesArchived  Int           @default(0)
+  error            String?       @db.Text
+  startedAt        DateTime      @default(now())
+  finishedAt       DateTime?
+
+  @@index([startedAt])
 }
 
 // ========== TUTORING ==========

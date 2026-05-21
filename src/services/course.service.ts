@@ -114,6 +114,9 @@ export async function getCourseBySlug(slug: string) {
           include: {
             lessons: {
               orderBy: { order: "asc" },
+              // Tutor-only fields must never reach student/public pages — omit
+              // them by construction so they're not serialized to the client.
+              omit: { tutorNotes: true, tutorNotesAr: true, tutorNotesDe: true },
               include: {
                 quiz: {
                   select: {

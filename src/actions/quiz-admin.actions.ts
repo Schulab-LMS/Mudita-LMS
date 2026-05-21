@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { assertCourseEditable } from "@/lib/curriculum-guard";
 import { audit } from "@/lib/audit";
 import {
   createQuizSchema,
@@ -24,6 +25,9 @@ export async function createQuiz(data: {
     const session = await requireAdmin();
     const parsed = createQuizSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const editable = await assertCourseEditable({ lessonId: parsed.data.lessonId });
+    if (!editable.ok) return { success: false, error: editable.error };
 
     const existing = await db.quiz.findUnique({ where: { lessonId: parsed.data.lessonId } });
     if (existing) return { success: false, error: "This lesson already has a quiz" };
@@ -65,6 +69,9 @@ export async function updateQuiz(data: {
     const parsed = updateQuizSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const editable = await assertCourseEditable({ quizId: parsed.data.quizId });
+    if (!editable.ok) return { success: false, error: editable.error };
+
     await db.quiz.update({
       where: { id: parsed.data.quizId },
       data: {
@@ -93,6 +100,9 @@ export async function deleteQuiz(quizId: string) {
     const session = await requireAdmin();
     const parsed = deleteQuizSchema.safeParse({ quizId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const editable = await assertCourseEditable({ quizId: parsed.data.quizId });
+    if (!editable.ok) return { success: false, error: editable.error };
 
     await db.quiz.delete({ where: { id: parsed.data.quizId } });
     await audit({
@@ -125,6 +135,9 @@ export async function createQuestion(data: {
     const session = await requireAdmin();
     const parsed = createQuestionSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const editable = await assertCourseEditable({ quizId: parsed.data.quizId });
+    if (!editable.ok) return { success: false, error: editable.error };
 
     const question = await db.question.create({
       data: {
@@ -183,6 +196,9 @@ export async function updateQuestion(data: {
     const parsed = updateQuestionSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const editable = await assertCourseEditable({ questionId: parsed.data.questionId });
+    if (!editable.ok) return { success: false, error: editable.error };
+
     await db.$transaction(async (tx) => {
       // Update the question
       await tx.question.update({
@@ -231,6 +247,9 @@ export async function deleteQuestion(questionId: string) {
     const session = await requireAdmin();
     const parsed = deleteQuestionSchema.safeParse({ questionId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const editable = await assertCourseEditable({ questionId: parsed.data.questionId });
+    if (!editable.ok) return { success: false, error: editable.error };
 
     await db.question.delete({ where: { id: parsed.data.questionId } });
     await audit({

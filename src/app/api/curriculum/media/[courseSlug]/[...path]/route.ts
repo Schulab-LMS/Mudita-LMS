@@ -1,0 +1,71 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { getRawFile, curriculaBranch } from "@/lib/github-curricula";
+
+// Authenticated proxy for curriculum media (images). Keeps assets inside the
+// platform: only signed-in users enrolled in the course (or a free course) can
+// fetch them, and bytes are streamed from the private repo — never a public
+// URL. This is the gate referenced by the rewritten <img src> in synced HTML.
+export const runtime = "nodejs";
+
+export async function GET(
+  _request: Request,
+  ctx: { params: Promise<{ courseSlug: string; path: string[] }> }
+) {
+  const { courseSlug, path } = await ctx.params;
+
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const course = await db.course.findUnique({
+    where: { slug: courseSlug },
+    select: { id: true, isFree: true, sourcePath: true, sourceCommitSha: true },
+  });
+  if (!course || !course.sourcePath) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // Enrollment gate (free courses are open to any signed-in user).
+  if (!course.isFree) {
+    const enrollment = await db.enrollment.findUnique({
+      where: { userId_courseId: { userId: session.user.id, courseId: course.id } },
+      select: { id: true },
+    });
+    if (!enrollment) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
+  // Reject path traversal — only files within the course folder are reachable.
+  if (path.some((seg) => seg === ".." || seg === "." || seg === "")) {
+    return NextResponse.json({ error: "Bad path" }, { status: 400 });
+  }
+
+  // Only the `_media` tree is servable. This is where all curriculum images
+  // live; it stops the proxy from streaming raw markdown (e.g. overview.md,
+  // which carries tutor-only pedagogy) to enrolled students.
+  if (path[0] !== "_media") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const repoPath = `${course.sourcePath}/${path.join("/")}`;
+  const ref = course.sourceCommitSha || curriculaBranch();
+
+  try {
+    const { bytes, contentType } = await getRawFile(repoPath, ref);
+    return new Response(bytes, {
+      headers: {
+        "Content-Type": contentType,
+        "Content-Disposition": "inline",
+        // Private + immutable: pinned to a commit SHA, gated per-user.
+        "Cache-Control": "private, max-age=3600",
+      },
+    });
+  } catch (e) {
+    console.error(`[curricula/media] failed to fetch ${repoPath}:`, e);
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+}

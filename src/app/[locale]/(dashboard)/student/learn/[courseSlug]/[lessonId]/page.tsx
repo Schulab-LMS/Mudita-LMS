@@ -1,11 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
-import { getCourseBySlug } from "@/services/course.service";
+import { getCourseBySlug, getLocalizedField } from "@/services/course.service";
 import { getLessonProgress } from "@/services/progress.service";
 import { LessonSidebar } from "@/components/course/lesson-sidebar";
 import { VideoPlayer } from "@/components/course/video-player";
 import { MarkCompleteButton } from "@/components/course/mark-complete-button";
+import { ProtectedContent } from "@/components/shared/protected-content";
 import { sanitize } from "@/lib/sanitize";
 import { db } from "@/lib/db";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -25,7 +26,7 @@ interface LessonPageProps {
 }
 
 export default async function LessonPage({ params }: LessonPageProps) {
-  const { courseSlug, lessonId } = await params;
+  const { courseSlug, lessonId, locale } = await params;
   const session = await auth();
   if (!session?.user) redirect("/login");
 
@@ -68,6 +69,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const durationMin = lesson.duration
     ? Math.round(lesson.duration / 60)
     : null;
+
+  const lessonContent = getLocalizedField(lesson, "content", locale);
+  const lessonActivity = getLocalizedField(lesson, "activity", locale);
 
   const t = await getTranslations("lesson");
 
@@ -155,13 +159,15 @@ export default async function LessonPage({ params }: LessonPageProps) {
             </div>
 
             <div className="p-6">
-              {lesson.content ? (
-                <div
-                  className="prose prose-sm max-w-none dark:prose-invert"
-                  dangerouslySetInnerHTML={{
-                    __html: sanitize(lesson.content),
-                  }}
-                />
+              {lessonContent ? (
+                <ProtectedContent>
+                  <div
+                    className="prose prose-sm max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{
+                      __html: sanitize(lessonContent),
+                    }}
+                  />
+                </ProtectedContent>
               ) : (
                 <p className="text-sm text-muted-foreground">
                   No written notes for this lesson. Watch the video above or
@@ -170,6 +176,26 @@ export default async function LessonPage({ params }: LessonPageProps) {
               )}
             </div>
           </div>
+
+          {/* Hands-on activity (synced from the curriculum's activity.md) */}
+          {lessonActivity && (
+            <div className="card-premium overflow-hidden">
+              <div className="flex items-center gap-2 border-b border-border px-6 py-3">
+                <NotebookPen className="h-4 w-4 text-primary" aria-hidden />
+                <h2 className="text-sm font-semibold text-foreground">
+                  Hands-on activity
+                </h2>
+              </div>
+              <div className="p-6">
+                <ProtectedContent>
+                  <div
+                    className="prose prose-sm max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{ __html: sanitize(lessonActivity) }}
+                  />
+                </ProtectedContent>
+              </div>
+            </div>
+          )}
 
           {/* Completion + next-lesson footer */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -218,7 +244,13 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
         {/* Sidebar */}
         <LessonSidebar
-          lessons={allLessons}
+          lessons={allLessons.map((l) => ({
+            id: l.id,
+            title: l.title,
+            duration: l.duration,
+            order: l.order,
+            type: l.type,
+          }))}
           currentLessonId={lessonId}
           completedLessonIds={completedLessonIds}
           courseSlug={courseSlug}

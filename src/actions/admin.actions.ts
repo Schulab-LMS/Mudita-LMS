@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { assertCourseEditable } from "@/lib/curriculum-guard";
 import { audit } from "@/lib/audit";
 import {
   updateUserRoleSchema,
@@ -132,6 +133,9 @@ export async function updateCourse(
     const parsed = updateCourseSchema.safeParse({ courseId, data });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const editable = await assertCourseEditable({ courseId: parsed.data.courseId });
+    if (!editable.ok) return { success: false, error: editable.error };
+
     await db.course.update({ where: { id: parsed.data.courseId }, data: parsed.data.data as never });
     await audit({
       actorId: session.user!.id,
@@ -153,6 +157,9 @@ export async function deleteCourse(courseId: string) {
     const session = await requireAdmin();
     const parsed = deleteCourseSchema.safeParse({ courseId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const editable = await assertCourseEditable({ courseId: parsed.data.courseId });
+    if (!editable.ok) return { success: false, error: editable.error };
 
     const course = await db.course.findUnique({
       where: { id: parsed.data.courseId },
@@ -183,6 +190,9 @@ export async function toggleCourseStatus(courseId: string, status: string) {
     if (!["DRAFT", "PUBLISHED", "ARCHIVED"].includes(status)) {
       return { success: false, error: "Invalid status" };
     }
+
+    const editable = await assertCourseEditable({ courseId: parsed.data.courseId });
+    if (!editable.ok) return { success: false, error: editable.error };
 
     const prev = await db.course.findUnique({
       where: { id: parsed.data.courseId },

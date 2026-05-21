@@ -27,6 +27,7 @@ import {
   HelpCircle,
   Bell,
   ClipboardList,
+  GitBranch,
 } from "lucide-react";
 import { SchulabLogo } from "@/components/brand/schulab-logo";
 
@@ -50,6 +51,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   HelpCircle,
   Bell,
   ClipboardList,
+  GitBranch,
 };
 
 interface SidebarProps {

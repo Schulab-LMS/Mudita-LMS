@@ -15,6 +15,7 @@ import {
   Tag,
   DollarSign,
   ExternalLink,
+  GitBranch,
 } from "lucide-react";
 
 export const metadata = { title: "Course Content | Admin" };
@@ -44,6 +45,8 @@ export default async function CourseDetailPage({
         isFree: true,
         price: true,
         currency: true,
+        managedByGit: true,
+        sourcePath: true,
         _count: { select: { enrollments: true } },
         enrollments: {
           orderBy: { enrolledAt: "desc" as const },
@@ -149,6 +152,29 @@ export default async function CourseDetailPage({
           </>
         }
       />
+
+      {course.managedByGit && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+          <GitBranch className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <div>
+            <p className="font-semibold">Managed in Git — read-only.</p>
+            <p className="mt-1">
+              This course is synced from the STEM-Curricula repository
+              {course.sourcePath ? (
+                <>
+                  {" "}
+                  (<code className="font-mono">{course.sourcePath}</code>)
+                </>
+              ) : null}
+              . Edits made here are blocked and would be overwritten on the next
+              sync — change the content in Git instead.{" "}
+              <Link href="/admin/curriculum" className="font-semibold underline">
+                Curriculum sync
+              </Link>
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Course quick info — premium tiles with icons + tones */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

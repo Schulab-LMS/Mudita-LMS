@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { assertCourseEditable } from "@/lib/curriculum-guard";
 import { audit } from "@/lib/audit";
 import {
   createModuleSchema,
@@ -28,6 +29,9 @@ export async function createModule(data: {
     const session = await requireAdmin();
     const parsed = createModuleSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const editable = await assertCourseEditable({ courseId: parsed.data.courseId });
+    if (!editable.ok) return { success: false, error: editable.error };
 
     const mod = await db.module.create({
       data: {
@@ -66,6 +70,9 @@ export async function updateModule(data: {
     const parsed = updateModuleSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const editable = await assertCourseEditable({ moduleId: parsed.data.moduleId });
+    if (!editable.ok) return { success: false, error: editable.error };
+
     const mod = await db.module.update({
       where: { id: parsed.data.moduleId },
       data: {
@@ -98,6 +105,9 @@ export async function deleteModule(moduleId: string) {
     const parsed = deleteModuleSchema.safeParse({ moduleId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const editable = await assertCourseEditable({ moduleId: parsed.data.moduleId });
+    if (!editable.ok) return { success: false, error: editable.error };
+
     const mod = await db.module.delete({
       where: { id: parsed.data.moduleId },
       select: { courseId: true },
@@ -123,6 +133,9 @@ export async function reorderModules(courseId: string, moduleIds: string[]) {
     await requireAdmin();
     const parsed = reorderModulesSchema.safeParse({ courseId, moduleIds });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const editable = await assertCourseEditable({ courseId: parsed.data.courseId });
+    if (!editable.ok) return { success: false, error: editable.error };
 
     await db.$transaction(
       parsed.data.moduleIds.map((id, index) =>
@@ -159,6 +172,9 @@ export async function createLesson(data: {
     const session = await requireAdmin();
     const parsed = createLessonSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const editable = await assertCourseEditable({ moduleId: parsed.data.moduleId });
+    if (!editable.ok) return { success: false, error: editable.error };
 
     const lesson = await db.lesson.create({
       data: {
@@ -218,6 +234,9 @@ export async function updateLesson(data: {
     const parsed = updateLessonSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const editable = await assertCourseEditable({ lessonId: parsed.data.lessonId });
+    if (!editable.ok) return { success: false, error: editable.error };
+
     const lesson = await db.lesson.update({
       where: { id: parsed.data.lessonId },
       data: {
@@ -258,6 +277,9 @@ export async function deleteLesson(lessonId: string) {
     const parsed = deleteLessonSchema.safeParse({ lessonId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    const editable = await assertCourseEditable({ lessonId: parsed.data.lessonId });
+    if (!editable.ok) return { success: false, error: editable.error };
+
     const lesson = await db.lesson.delete({
       where: { id: parsed.data.lessonId },
       include: { module: { select: { courseId: true } } },
@@ -283,6 +305,9 @@ export async function reorderLessons(moduleId: string, lessonIds: string[]) {
     await requireAdmin();
     const parsed = reorderLessonsSchema.safeParse({ moduleId, lessonIds });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const editable = await assertCourseEditable({ moduleId: parsed.data.moduleId });
+    if (!editable.ok) return { success: false, error: editable.error };
 
     const mod = await db.module.findUnique({
       where: { id: parsed.data.moduleId },
