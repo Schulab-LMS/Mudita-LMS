@@ -714,3 +714,41 @@ export async function sendContactFormEmail(
     }),
   });
 }
+
+export async function sendCurriculumSyncAlert(details: {
+  status: string;
+  error: string | null;
+  commitSha: string | null;
+  trigger: string;
+}) {
+  const adminEmail = process.env.CONTACT_EMAIL || "admin@schulab.com";
+  const safeStatus = escapeHtml(details.status);
+  const safeError = escapeHtml(details.error ?? "—");
+  const safeCommit = escapeHtml(details.commitSha ?? "—");
+  const safeTrigger = escapeHtml(details.trigger);
+
+  return sendEmail({
+    to: adminEmail,
+    subject: `[Schulab] Curriculum sync ${details.status}`,
+    html: layout({
+      preview: `A curriculum sync finished with status ${details.status}.`,
+      content: `
+        ${heading("Curriculum sync needs attention")}
+        ${paragraph(
+          `A sync of the STEM-Curricula repository finished with status <strong>${safeStatus}</strong>. Review the error and re-run from the admin panel once resolved.`,
+          "muted"
+        )}
+        ${card(
+          `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr><td width="80" style="padding:4px 8px 4px 0;font-size:12px;font-weight:700;color:${BRAND.muted};text-transform:uppercase;letter-spacing:0.06em;">Status</td><td style="padding:4px 0;font-size:14px;color:${BRAND.ink};">${safeStatus}</td></tr>
+            <tr><td width="80" style="padding:4px 8px 4px 0;font-size:12px;font-weight:700;color:${BRAND.muted};text-transform:uppercase;letter-spacing:0.06em;">Trigger</td><td style="padding:4px 0;font-size:14px;color:${BRAND.ink};">${safeTrigger}</td></tr>
+            <tr><td width="80" style="padding:4px 8px 4px 0;font-size:12px;font-weight:700;color:${BRAND.muted};text-transform:uppercase;letter-spacing:0.06em;">Commit</td><td style="padding:4px 0;font-size:14px;color:${BRAND.ink};">${safeCommit}</td></tr>
+          </table>`
+        )}
+        <div style="margin-top:8px;font-family:${FONT_STACK};font-size:11px;font-weight:700;letter-spacing:0.14em;color:${BRAND.muted};text-transform:uppercase;">Error</div>
+        <div style="margin:8px 0 0;padding:18px 20px;background:#FAFAFF;border:1px solid ${BRAND.border};border-radius:12px;font-family:${FONT_STACK};font-size:14px;line-height:1.6;color:${BRAND.ink};white-space:pre-wrap;">${safeError}</div>
+        ${button("Open curriculum admin", `${APP_URL}/en/admin/curriculum`)}
+      `,
+    }),
+  });
+}

@@ -76,6 +76,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   const lessonContent = getLocalizedField(lesson, "content", locale);
   const lessonActivity = getLocalizedField(lesson, "activity", locale);
+  const watermark = session.user.email ?? session.user.name ?? undefined;
   const submission = lessonActivity
     ? await getActivitySubmission(lesson.id, session.user.id)
     : null;
@@ -167,7 +168,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
             <div className="p-6">
               {lessonContent ? (
-                <ProtectedContent>
+                <ProtectedContent watermark={watermark}>
                   <div
                     className="prose prose-sm max-w-none dark:prose-invert"
                     dangerouslySetInnerHTML={{
@@ -194,7 +195,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
                 </h2>
               </div>
               <div className="p-6">
-                <ProtectedContent>
+                <ProtectedContent watermark={watermark}>
                   <div
                     className="prose prose-sm max-w-none dark:prose-invert"
                     dangerouslySetInnerHTML={{ __html: sanitize(lessonActivity) }}

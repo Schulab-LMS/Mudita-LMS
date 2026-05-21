@@ -16,6 +16,7 @@ import {
 } from "@/lib/github-curricula";
 import { renderCurriculumMarkdown, splitTutorContent } from "@/lib/markdown";
 import { parseQuizMarkdown, type ParsedQuiz } from "@/lib/curriculum-quiz-parser";
+import { sendCurriculumSyncAlert } from "@/lib/email";
 import {
   type CourseMeta,
   escapeRegExp,
@@ -552,6 +553,7 @@ export async function runCurriculumSync(opts: {
     counts.coursesArchived = archived.count;
 
     const status = hadError ? "PARTIAL" : "SUCCESS";
+    const partialError = "One or more courses failed to sync — see server logs";
     await db.curriculumSyncRun.update({
       where: { id: run.id },
       data: {
@@ -561,9 +563,19 @@ export async function runCurriculumSync(opts: {
         lessonsUpserted: counts.lessonsUpserted,
         coursesArchived: counts.coursesArchived,
         finishedAt: new Date(),
-        error: hadError ? "One or more courses failed to sync — see server logs" : null,
+        error: hadError ? partialError : null,
       },
     });
+
+    // Alert admins on a partial sync (best-effort; never blocks the result).
+    if (hadError) {
+      sendCurriculumSyncAlert({
+        status,
+        error: partialError,
+        commitSha,
+        trigger: opts.trigger,
+      }).catch(() => null);
+    }
 
     return {
       runId: run.id,
@@ -579,6 +591,12 @@ export async function runCurriculumSync(opts: {
       where: { id: run.id },
       data: { status: "FAILED", error, finishedAt: new Date() },
     });
+    sendCurriculumSyncAlert({
+      status: "FAILED",
+      error,
+      commitSha: null,
+      trigger: opts.trigger,
+    }).catch(() => null);
     return {
       runId: run.id,
       status: "FAILED",

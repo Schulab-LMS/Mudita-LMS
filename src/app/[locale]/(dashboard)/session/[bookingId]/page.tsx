@@ -44,6 +44,7 @@ export default async function SessionPage({
 
   const { booking, role, tutorNotes, submission } = view;
   const isTutor = role === "TUTOR";
+  const watermark = session.user.email ?? session.user.name ?? undefined;
 
   const courses = isTutor ? await getAssignableLessons() : [];
 
@@ -123,7 +124,7 @@ export default async function SessionPage({
                 </div>
                 <div className="p-6">
                   {content ? (
-                    <ProtectedContent>
+                    <ProtectedContent watermark={watermark}>
                       <div
                         className="prose prose-sm max-w-none dark:prose-invert"
                         dangerouslySetInnerHTML={{ __html: sanitize(content) }}
@@ -144,7 +145,7 @@ export default async function SessionPage({
                     <h2 className="text-sm font-semibold text-foreground">Hands-on activity</h2>
                   </div>
                   <div className="p-6">
-                    <ProtectedContent>
+                    <ProtectedContent watermark={watermark}>
                       <div
                         className="prose prose-sm max-w-none dark:prose-invert"
                         dangerouslySetInnerHTML={{ __html: sanitize(activity) }}
