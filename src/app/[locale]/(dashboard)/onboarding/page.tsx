@@ -16,10 +16,12 @@ import {
   ArrowRight,
   ArrowLeft,
   Rocket,
+  CalendarClock,
 } from "lucide-react";
 import {
   finishOnboarding,
   saveOnboardingStep,
+  saveOnboardingAvailability,
 } from "@/actions/onboarding.actions";
 import { CategoryIcon } from "@/components/illustrations/category-icons";
 
@@ -54,6 +56,8 @@ const SUBJECT_ICONS: Record<string, string> = {
 };
 
 const EXPERIENCE_KEYS = ["beginner", "some", "advanced"] as const;
+
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
 function Pill({
   active,
@@ -145,6 +149,12 @@ export default function OnboardingWizardPage() {
   const [subjects, setSubjects] = useState<string[]>([]);
   const [experience, setExperience] = useState<string>("");
   const [availableHours, setAvailableHours] = useState<string>("");
+  const [availDays, setAvailDays] = useState<number[]>([]);
+  const [availStart, setAvailStart] = useState<string>("16:00");
+  const [availEnd, setAvailEnd] = useState<string>("18:00");
+  const [timezone] = useState<string>(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+  );
 
   const steps = [
     {
@@ -168,6 +178,13 @@ export default function OnboardingWizardPage() {
       accent: "text-accent",
       accentBg: "bg-accent/10",
     },
+    {
+      title: t("steps.availabilityTitle"),
+      description: t("steps.availabilityDescription"),
+      icon: CalendarClock,
+      accent: "text-primary",
+      accentBg: "bg-primary/10",
+    },
   ];
 
   const StepIcon = steps[step].icon;
@@ -177,7 +194,7 @@ export default function OnboardingWizardPage() {
     if (loading) return false;
     if (step === 0) return goals.length > 0;
     if (step === 1) return subjects.length > 0;
-    return true; // experience step is optional
+    return true; // experience + availability steps are optional
   })();
 
   async function advance() {
@@ -192,13 +209,26 @@ export default function OnboardingWizardPage() {
           preferredSubjects: subjects,
         });
         if (!res.success) throw new Error(res.error);
-      } else {
+      } else if (step === 2) {
         const hours = availableHours ? Number(availableHours) : undefined;
         const res = await saveOnboardingStep({
           experience: experience || undefined,
           availableHours: Number.isFinite(hours) ? hours : undefined,
         });
         if (!res.success) throw new Error(res.error);
+      } else {
+        // Final step: persist availability slots, then complete onboarding.
+        const slots =
+          availEnd > availStart
+            ? availDays.map((dayOfWeek) => ({
+                dayOfWeek,
+                startTime: availStart,
+                endTime: availEnd,
+                timezone,
+              }))
+            : [];
+        const saved = await saveOnboardingAvailability({ slots });
+        if (!saved.success) throw new Error(saved.error);
         const done = await finishOnboarding();
         if (!done.success) throw new Error(done.error);
         router.push("/student");
@@ -378,6 +408,53 @@ export default function OnboardingWizardPage() {
                   </dl>
                 </div>
               </>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Days you&apos;re free</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {DAY_LABELS.map((label, idx) => (
+                      <Pill
+                        key={idx}
+                        active={availDays.includes(idx)}
+                        onClick={() => setAvailDays((prev) => toggle(prev, idx))}
+                      >
+                        {label}
+                      </Pill>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="availStart" className="text-sm font-semibold">
+                      From
+                    </Label>
+                    <Input
+                      id="availStart"
+                      type="time"
+                      value={availStart}
+                      onChange={(e) => setAvailStart(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="availEnd" className="text-sm font-semibold">
+                      Until
+                    </Label>
+                    <Input
+                      id="availEnd"
+                      type="time"
+                      value={availEnd}
+                      onChange={(e) => setAvailEnd(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Times are in your timezone ({timezone}). You can skip this and set
+                  it later — but adding it lets us match you with tutors right away.
+                </p>
+              </div>
             )}
 
             {error && (

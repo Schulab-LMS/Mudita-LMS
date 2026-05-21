@@ -730,7 +730,9 @@
       "subjectsTitle": "ما المواد التي تثير فضولك؟",
       "subjectsDescription": "سنوصي بدورات من هذه المواد.",
       "experienceTitle": "من أين تبدأ؟",
-      "experienceDescription": "لا توجد إجابات خاطئة."
+      "experienceDescription": "لا توجد إجابات خاطئة.",
+      "availabilityTitle": "متى تكون متاحًا للتعلم؟",
+      "availabilityDescription": "سنطابقك مع معلمين تتوافق جداولهم مع جدولك."
     },
     "goals": {
       "getAhead": "التقدم في الدراسة",

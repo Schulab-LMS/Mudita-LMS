@@ -730,7 +730,9 @@
       "subjectsTitle": "What subjects are you curious about?",
       "subjectsDescription": "We'll recommend courses from these.",
       "experienceTitle": "Where are you starting from?",
-      "experienceDescription": "No wrong answers."
+      "experienceDescription": "No wrong answers.",
+      "availabilityTitle": "When are you free to learn?",
+      "availabilityDescription": "We'll match you with tutors whose schedule overlaps yours."
     },
     "goals": {
       "getAhead": "Get ahead at school",

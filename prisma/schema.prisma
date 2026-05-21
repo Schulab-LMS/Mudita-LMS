@@ -65,6 +65,7 @@ model User {
   onboardingProfile OnboardingProfile?
   dripStates        DripState[]
   activitySubmissions ActivitySubmission[] @relation("StudentSubmissions")
+  studentAvailability StudentAvailability[]
 
   accounts Account[]
   sessions Session[]
@@ -489,6 +490,21 @@ model TutorAvailability {
   tutor     TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
 
   @@index([tutorId])
+}
+
+// Recurring weekly availability a student declares at onboarding. Mirrors
+// TutorAvailability so overlap can be computed directly (see
+// src/services/tutor-matching.service.ts).
+model StudentAvailability {
+  id        String @id @default(cuid())
+  userId    String
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  timezone  String @default("UTC")
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum BookingStatus {

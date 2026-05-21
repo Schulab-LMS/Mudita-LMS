@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
 import { getTutors } from "@/services/tutor.service";
+import { getRecommendedTutors } from "@/services/tutor-matching.service";
+import { auth } from "@/lib/auth";
 import { TutorCard } from "@/components/booking/tutor-card";
 import { Link } from "@/i18n/navigation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NoResultsScene } from "@/components/illustrations/empty-scenes";
-import { Users, BadgeCheck, Globe, Sparkles, Search } from "lucide-react";
+import {
+  Users,
+  BadgeCheck,
+  Globe,
+  Sparkles,
+  Search,
+  CalendarClock,
+} from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Find a Tutor | Schulab",
@@ -22,6 +31,12 @@ export default async function TutorsPage({ searchParams }: TutorsPageProps) {
   const language = params.language || undefined;
 
   const tutors = await getTutors({ subject, language });
+
+  // Schedule-matched recommendations for a signed-in student with availability.
+  const session = await auth();
+  const recommended = session?.user?.id
+    ? await getRecommendedTutors(session.user.id)
+    : [];
 
   // Collect unique subjects and languages for filters
   const allTutors = await getTutors();
@@ -123,6 +138,35 @@ export default async function TutorsPage({ searchParams }: TutorsPageProps) {
             Filter
           </button>
         </form>
+
+        {/* Schedule-matched recommendations */}
+        {recommended.length > 0 && activeFilters === 0 && (
+          <section className="mb-8">
+            <div className="mb-4 flex items-center gap-2">
+              <CalendarClock className="h-4 w-4 text-primary" aria-hidden />
+              <h2 className="font-display text-lg font-bold text-foreground">
+                Recommended for your schedule
+              </h2>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {recommended.map((m) => (
+                <TutorCard
+                  key={m.tutorId}
+                  tutor={{
+                    id: m.tutorId,
+                    bio: m.headline,
+                    subjects: m.subjects,
+                    languages: [],
+                    hourlyRate: m.hourlyRate,
+                    rating: m.rating,
+                    isVerified: true,
+                    user: { name: m.name, avatar: m.avatar },
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Results summary */}
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

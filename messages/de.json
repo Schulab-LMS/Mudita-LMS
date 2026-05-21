@@ -730,7 +730,9 @@
       "subjectsTitle": "Welche Fächer interessieren dich?",
       "subjectsDescription": "Wir empfehlen passende Kurse.",
       "experienceTitle": "Wo startest du?",
-      "experienceDescription": "Es gibt keine falschen Antworten."
+      "experienceDescription": "Es gibt keine falschen Antworten.",
+      "availabilityTitle": "Wann hast du Zeit zum Lernen?",
+      "availabilityDescription": "Wir finden Tutoren, deren Zeitplan zu deinem passt."
     },
     "goals": {
       "getAhead": "In der Schule vorankommen",

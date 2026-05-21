@@ -54,3 +54,24 @@ export async function completeOnboarding(userId: string) {
 export async function getOnboardingProfile(userId: string) {
   return db.onboardingProfile.findUnique({ where: { userId } });
 }
+
+export type AvailabilitySlot = {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  timezone: string;
+};
+
+// Replace the student's declared weekly availability. Mirrors
+// updateTutorAvailability so the two can be overlap-matched.
+export async function setStudentAvailability(
+  userId: string,
+  slots: AvailabilitySlot[]
+) {
+  await db.$transaction([
+    db.studentAvailability.deleteMany({ where: { userId } }),
+    ...(slots.length
+      ? [db.studentAvailability.createMany({ data: slots.map((s) => ({ ...s, userId })) })]
+      : []),
+  ]);
+}
