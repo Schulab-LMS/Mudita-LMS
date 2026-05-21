@@ -5,7 +5,10 @@ import { getLocalizedField } from "@/services/course.service";
 import { sanitize } from "@/lib/sanitize";
 import { ProtectedContent } from "@/components/shared/protected-content";
 import { PageHeader } from "@/components/ui/page-header";
+import { Link } from "@/i18n/navigation";
 import { TutorControls } from "./tutor-controls";
+import { ActivitySubmission } from "@/components/course/activity-submission";
+import { ActivityFeedback } from "@/components/course/activity-feedback";
 import {
   Video,
   NotebookPen,
@@ -13,6 +16,8 @@ import {
   Clock,
   BookOpen,
   ExternalLink,
+  ClipboardList,
+  PenLine,
 } from "lucide-react";
 
 export const metadata = { title: "Live Session | Schulab" };
@@ -37,7 +42,7 @@ export default async function SessionPage({
   const view = await getSessionView(bookingId, session.user.id);
   if (!view) notFound();
 
-  const { booking, role, tutorNotes } = view;
+  const { booking, role, tutorNotes, submission } = view;
   const isTutor = role === "TUTOR";
 
   const courses = isTutor ? await getAssignableLessons() : [];
@@ -145,6 +150,47 @@ export default async function SessionPage({
                         dangerouslySetInnerHTML={{ __html: sanitize(activity) }}
                       />
                     </ProtectedContent>
+                  </div>
+                </div>
+              )}
+
+              {/* Quiz */}
+              {lesson.quiz && lesson.quiz._count.questions > 0 && (
+                <div className="card-premium flex flex-wrap items-center justify-between gap-3 p-5">
+                  <div className="flex items-center gap-2">
+                    <ClipboardList className="h-4 w-4 text-primary" aria-hidden />
+                    <span className="text-sm font-semibold text-foreground">
+                      Quiz · {lesson.quiz._count.questions} questions
+                    </span>
+                  </div>
+                  <Link
+                    href={`/student/quizzes/${lesson.quiz.id}`}
+                    className="inline-flex h-9 items-center rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  >
+                    {isTutor ? "Preview quiz" : "Take quiz"}
+                  </Link>
+                </div>
+              )}
+
+              {/* Activity submission / feedback */}
+              {activity && (
+                <div className="card-premium overflow-hidden">
+                  <div className="flex items-center gap-2 border-b border-border px-5 py-3">
+                    <PenLine className="h-4 w-4 text-primary" aria-hidden />
+                    <h2 className="text-sm font-semibold text-foreground">
+                      {isTutor ? "Review student's work" : "Submit your work"}
+                    </h2>
+                  </div>
+                  <div className="p-5">
+                    {isTutor ? (
+                      <ActivityFeedback submission={submission} />
+                    ) : (
+                      <ActivitySubmission
+                        lessonId={lesson.id}
+                        bookingId={booking.id}
+                        existing={submission}
+                      />
+                    )}
                   </div>
                 </div>
               )}

@@ -103,7 +103,18 @@ export async function submitAttempt(
         where: { userId_courseId: { userId, courseId } },
         select: { status: true },
       });
-      if (!enrollment || enrollment.status !== "ACTIVE") {
+      const enrolled = enrollment?.status === "ACTIVE";
+      // Session participants — students with a booking for this lesson — may
+      // also attempt, even without a course enrolment.
+      let isSessionParticipant = false;
+      if (!enrolled) {
+        const booking = await db.booking.findFirst({
+          where: { studentId: userId, lessonId: quiz.lessonId },
+          select: { id: true },
+        });
+        isSessionParticipant = Boolean(booking);
+      }
+      if (!enrolled && !isSessionParticipant) {
         return { error: "not_enrolled" };
       }
     }

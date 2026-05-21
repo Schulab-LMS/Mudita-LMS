@@ -64,6 +64,7 @@ model User {
   auditLogs         AuditLog[]
   onboardingProfile OnboardingProfile?
   dripStates        DripState[]
+  activitySubmissions ActivitySubmission[] @relation("StudentSubmissions")
 
   accounts Account[]
   sessions Session[]
@@ -274,6 +275,7 @@ model Lesson {
   quiz         Quiz?
   progress     LessonProgress[]
   sessions     Booking[]
+  submissions  ActivitySubmission[]
 
   // Stable upsert key for Git-synced lessons (NULL for admin-created ones).
   @@unique([moduleId, sourcePath])
@@ -395,6 +397,34 @@ model Certificate {
 
   @@index([userId])
   @@index([code])
+}
+
+enum ActivitySubmissionStatus {
+  SUBMITTED
+  REVIEWED
+}
+
+// A student's response to a lesson's hands-on activity, plus the tutor's
+// feedback. One submission per (student, lesson); resubmitting updates it.
+model ActivitySubmission {
+  id           String                   @id @default(cuid())
+  lessonId     String
+  studentId    String
+  bookingId    String?
+  content      String                   @db.Text
+  status       ActivitySubmissionStatus @default(SUBMITTED)
+  feedback     String?                  @db.Text
+  feedbackById String?
+  feedbackAt   DateTime?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  lesson  Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  student User   @relation("StudentSubmissions", fields: [studentId], references: [id])
+
+  @@unique([studentId, lessonId])
+  @@index([lessonId])
+  @@index([bookingId])
 }
 
 // ========== CURRICULUM SYNC (Git) ==========

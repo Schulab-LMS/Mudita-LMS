@@ -7,6 +7,8 @@ import { LessonSidebar } from "@/components/course/lesson-sidebar";
 import { VideoPlayer } from "@/components/course/video-player";
 import { MarkCompleteButton } from "@/components/course/mark-complete-button";
 import { ProtectedContent } from "@/components/shared/protected-content";
+import { ActivitySubmission } from "@/components/course/activity-submission";
+import { getActivitySubmission } from "@/services/activity.service";
 import { sanitize } from "@/lib/sanitize";
 import { db } from "@/lib/db";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -18,6 +20,8 @@ import {
   FileText,
   NotebookPen,
   ChevronLeft,
+  ClipboardList,
+  PenLine,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
@@ -72,6 +76,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   const lessonContent = getLocalizedField(lesson, "content", locale);
   const lessonActivity = getLocalizedField(lesson, "activity", locale);
+  const submission = lessonActivity
+    ? await getActivitySubmission(lesson.id, session.user.id)
+    : null;
 
   const t = await getTranslations("lesson");
 
@@ -193,6 +200,37 @@ export default async function LessonPage({ params }: LessonPageProps) {
                     dangerouslySetInnerHTML={{ __html: sanitize(lessonActivity) }}
                   />
                 </ProtectedContent>
+              </div>
+            </div>
+          )}
+
+          {/* Quiz */}
+          {lesson.quiz && lesson.quiz._count.questions > 0 && (
+            <div className="card-premium flex flex-wrap items-center justify-between gap-3 p-5">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4 text-primary" aria-hidden />
+                <span className="text-sm font-semibold text-foreground">
+                  {lesson.quiz.title} · {lesson.quiz._count.questions} questions
+                </span>
+              </div>
+              <Link
+                href={`/student/quizzes/${lesson.quiz.id}`}
+                className="inline-flex h-9 items-center rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                Take quiz
+              </Link>
+            </div>
+          )}
+
+          {/* Activity submission */}
+          {lessonActivity && (
+            <div className="card-premium overflow-hidden">
+              <div className="flex items-center gap-2 border-b border-border px-6 py-3">
+                <PenLine className="h-4 w-4 text-primary" aria-hidden />
+                <h2 className="text-sm font-semibold text-foreground">Submit your work</h2>
+              </div>
+              <div className="p-6">
+                <ActivitySubmission lessonId={lesson.id} existing={submission} />
               </div>
             </div>
           )}

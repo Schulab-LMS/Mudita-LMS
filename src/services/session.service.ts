@@ -35,6 +35,7 @@ export async function getSessionView(bookingId: string, userId: string) {
           activity: true,
           activityAr: true,
           activityDe: true,
+          quiz: { select: { id: true, _count: { select: { questions: true } } } },
           module: {
             select: {
               id: true,
@@ -64,7 +65,26 @@ export async function getSessionView(bookingId: string, userId: string) {
     });
   }
 
-  return { booking, role, tutorNotes };
+  // The student's activity submission for this lesson (their own if STUDENT,
+  // the booking's student's if TUTOR — so the tutor can review + give feedback).
+  let submission = null;
+  if (booking.lessonId) {
+    submission = await db.activitySubmission.findUnique({
+      where: {
+        studentId_lessonId: { studentId: booking.studentId, lessonId: booking.lessonId },
+      },
+      select: {
+        id: true,
+        content: true,
+        status: true,
+        feedback: true,
+        feedbackAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  return { booking, role, tutorNotes, submission };
 }
 
 // Courses/modules/lessons a tutor can assign to a session. Includes
