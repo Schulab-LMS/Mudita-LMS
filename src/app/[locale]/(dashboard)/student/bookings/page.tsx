@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Users,
   CalendarPlus,
+  Video,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
@@ -169,19 +170,30 @@ function Section({
                 </div>
               </div>
             </div>
-            {booking.meetingUrl &&
-              (booking.status === "CONFIRMED" ||
-                booking.status === "PENDING") && (
-                <a
-                  href={booking.meetingUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-9 items-center gap-1.5 self-start rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90 sm:self-auto"
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto sm:shrink-0">
+              {booking.status !== "CANCELLED" && (
+                <Link
+                  href={`/session/${booking.id}`}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-input bg-background px-3 text-xs font-semibold text-foreground hover:bg-muted"
                 >
-                  Join
-                  <ExternalLink className="h-3 w-3" aria-hidden />
-                </a>
+                  <Video className="h-3.5 w-3.5" aria-hidden />
+                  Open session
+                </Link>
               )}
+              {booking.meetingUrl &&
+                (booking.status === "CONFIRMED" ||
+                  booking.status === "PENDING") && (
+                  <a
+                    href={booking.meetingUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  >
+                    Join
+                    <ExternalLink className="h-3 w-3" aria-hidden />
+                  </a>
+                )}
+            </div>
           </div>
         ))}
       </div>

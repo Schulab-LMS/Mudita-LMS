@@ -6,7 +6,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NoNotificationsScene } from "@/components/illustrations/empty-scenes";
 import { cancelBooking } from "@/actions/booking.actions";
-import { Calendar, ExternalLink, Clock } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { Calendar, ExternalLink, Clock, Video } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
 export const metadata = { title: "Tutor Bookings | Schulab" };
@@ -188,6 +189,15 @@ function Section({
               </div>
 
               <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+                {booking.status !== "CANCELLED" && (
+                  <Link
+                    href={`/session/${booking.id}`}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-input bg-background px-3 text-xs font-semibold text-foreground hover:bg-muted"
+                  >
+                    <Video className="h-3.5 w-3.5" aria-hidden />
+                    Open session
+                  </Link>
+                )}
                 {booking.meetingUrl && (
                   <a
                     href={booking.meetingUrl}

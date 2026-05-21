@@ -273,6 +273,7 @@ model Lesson {
   module       Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   quiz         Quiz?
   progress     LessonProgress[]
+  sessions     Booking[]
 
   // Stable upsert key for Git-synced lessons (NULL for admin-created ones).
   @@unique([moduleId, sourcePath])
@@ -484,12 +485,17 @@ model Booking {
   price      Decimal       @db.Decimal(10, 2)
   currency   String        @default("USD")
   createdAt  DateTime      @default(now())
+  // The curriculum lesson taught in this session (set by the tutor). Drives
+  // the role-split live-session view. Null until the tutor assigns one.
+  lessonId   String?
   student    User          @relation("StudentBookings", fields: [studentId], references: [id])
   tutor      TutorProfile  @relation(fields: [tutorId], references: [id])
+  lesson     Lesson?       @relation(fields: [lessonId], references: [id])
 
   @@index([studentId])
   @@index([tutorId])
   @@index([startTime])
+  @@index([lessonId])
 }
 
 // ========== STEM KITS STORE ==========
