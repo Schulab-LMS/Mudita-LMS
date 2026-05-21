@@ -37,7 +37,14 @@ export async function submitActivity(data: {
       content,
       status: "SUBMITTED",
     },
-    update: { content, status: "SUBMITTED", bookingId: data.bookingId ?? null },
+    update: {
+      content,
+      status: "SUBMITTED",
+      bookingId: data.bookingId ?? null,
+      feedback: null,
+      feedbackById: null,
+      feedbackAt: null,
+    },
   });
 
   if (data.bookingId) revalidatePath(`/session/${data.bookingId}`);

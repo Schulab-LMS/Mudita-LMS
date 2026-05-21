@@ -28,14 +28,25 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // Enrollment gate (free courses are open to any signed-in user).
+  // Access gate (free courses are open to any signed-in user). Enrolled
+  // learners pass; so do session participants — students with a booking for a
+  // lesson in this course — mirroring the quiz-attempt gate.
   if (!course.isFree) {
     const enrollment = await db.enrollment.findUnique({
       where: { userId_courseId: { userId: session.user.id, courseId: course.id } },
       select: { id: true },
     });
     if (!enrollment) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      const booking = await db.booking.findFirst({
+        where: {
+          studentId: session.user.id,
+          lesson: { module: { courseId: course.id } },
+        },
+        select: { id: true },
+      });
+      if (!booking) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
   }
 
