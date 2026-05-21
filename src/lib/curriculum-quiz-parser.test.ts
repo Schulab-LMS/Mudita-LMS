@@ -74,4 +74,43 @@ describe("parseQuizMarkdown", () => {
   it("returns no questions when the file has none", () => {
     expect(parseQuizMarkdown("# Empty quiz\n\nNothing here.").questions).toHaveLength(0);
   });
+
+  it("captures a question whose marker has a suffix and ignores a trailing scoring table", () => {
+    const md = `# Quiz
+<!-- QUIZ_COMPONENT -->
+
+**Question 1**
+First question?
+
+- A) Yes
+- B) No
+
+**Answer: A**
+
+---
+
+**Question 2 (Challenge)**
+A harder question?
+
+- A) Alpha
+- B) Beta
+
+**Answer: B**
+*Explanation: because beta.*
+
+---
+
+**Scoring**
+| Score | Feedback |
+|-------|----------|
+| 2/2 | Great |
+`;
+    const parsed = parseQuizMarkdown(md);
+    expect(parsed.questions).toHaveLength(2);
+    const challenge = parsed.questions[1];
+    expect(challenge.text).toMatch(/harder question/i);
+    expect(challenge.options).toHaveLength(2);
+    expect(challenge.options.find((o) => o.isCorrect)?.label).toBe("B");
+    expect(challenge.explanation).toMatch(/because beta/i);
+  });
 });

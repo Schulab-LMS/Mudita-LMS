@@ -69,7 +69,12 @@ function parseBlock(block: string): ParsedQuestion | null {
 
   for (const raw of lines) {
     const line = raw.trim();
-    if (!line || line === "---") continue;
+    if (!line) continue;
+    // A horizontal rule ends this question's content (what follows is the next
+    // section, e.g. a "Scoring" table appended after the final question).
+    if (/^-{3,}$/.test(line)) break;
+    // Skip answer-writing blanks ("______") used by open-ended questions.
+    if (/^_{3,}$/.test(line)) continue;
 
     const answerMatch = line.match(ANSWER_RE);
     if (answerMatch && /answer/i.test(line)) {
@@ -115,8 +120,9 @@ export function parseQuizMarkdown(markdown: string): ParsedQuiz {
   const markerIdx = markdown.search(/<!--\s*QUIZ_COMPONENT\s*-->/i);
   const body = markerIdx >= 0 ? markdown.slice(markerIdx) : markdown;
 
-  // Split on the "**Question N**" markers. The first chunk is preamble.
-  const chunks = body.split(/\*\*\s*Question\s+\d+\s*\*\*/i).slice(1);
+  // Split on the "**Question N**" markers. Tolerate suffix text inside the
+  // bold marker, e.g. "**Question 7 (Challenge)**". The first chunk is preamble.
+  const chunks = body.split(/\*\*\s*Question\s+\d+[^*\n]*\*\*/i).slice(1);
 
   const questions: ParsedQuestion[] = [];
   for (const chunk of chunks) {
