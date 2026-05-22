@@ -141,8 +141,10 @@ describe("scoreCourse — popularity, rating, freshness", () => {
   it("recent courses get a small freshness bonus", () => {
     const recent = course({ createdAt: new Date(NOW.getTime() - 24 * 3600_000) });
     const old = course({ createdAt: OLD });
-    expect(scoreCourse(recent, {}).breakdown.freshness).toBeDefined();
-    expect(scoreCourse(old, {}).breakdown.freshness).toBeUndefined();
+    // Inject NOW so the freshness window is measured against a fixed clock,
+    // not the wall clock — otherwise the test decays as real time passes.
+    expect(scoreCourse(recent, {}, NOW.getTime()).breakdown.freshness).toBeDefined();
+    expect(scoreCourse(old, {}, NOW.getTime()).breakdown.freshness).toBeUndefined();
   });
 
   it("Decimal-style averageRating (toString) is honoured", () => {

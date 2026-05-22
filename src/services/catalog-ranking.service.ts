@@ -140,7 +140,8 @@ const W = {
 
 export function scoreCourse(
   course: RankableCourse,
-  signals: RankingSignals
+  signals: RankingSignals,
+  now: number = Date.now()
 ): { total: number; breakdown: Record<string, number> } {
   const b: Record<string, number> = {};
 
@@ -201,7 +202,7 @@ export function scoreCourse(
   const pop = course.enrollmentCount ?? 0;
   if (pop > 0) b.popularity = Math.log10(pop + 1) * W.popularityLog;
 
-  const ageDays = (Date.now() - course.createdAt.getTime()) / (24 * 3600 * 1000);
+  const ageDays = (now - course.createdAt.getTime()) / (24 * 3600 * 1000);
   if (ageDays <= 30) b.freshness = W.freshnessRecent;
 
   const total = Object.values(b).reduce((sum, v) => sum + v, 0);
@@ -212,10 +213,11 @@ export function scoreCourse(
 // order, so the popularity-desc default is preserved on ties.
 export function rankCourses<T extends RankableCourse>(
   courses: T[],
-  signals: RankingSignals
+  signals: RankingSignals,
+  now: number = Date.now()
 ): ScoredCourse<T>[] {
   const indexed = courses.map((c, i) => {
-    const s = scoreCourse(c, signals);
+    const s = scoreCourse(c, signals, now);
     return {
       ...c,
       score: s.total,
