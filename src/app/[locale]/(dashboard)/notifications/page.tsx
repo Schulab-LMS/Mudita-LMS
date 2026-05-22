@@ -3,7 +3,7 @@ import { getTranslations, getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { Link } from "@/i18n/navigation";
 import { getNotifications } from "@/services/notification.service";
-import { markAllNotificationsRead } from "@/actions/notification.actions";
+import { MarkAllReadButton } from "./mark-all-read-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NoNotificationsScene } from "@/components/illustrations/empty-scenes";
@@ -16,7 +16,6 @@ import {
   Trophy,
   Settings,
   ArrowRight,
-  CheckCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -140,24 +139,7 @@ export default async function NotificationsPage() {
                 notifications.length === 1 ? "" : "s"
               }`
         }
-        actions={
-          unreadCount > 0 ? (
-            <form
-              action={async () => {
-                "use server";
-                await markAllNotificationsRead();
-              }}
-            >
-              <button
-                type="submit"
-                className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-input bg-background px-3 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
-              >
-                <CheckCheck className="h-3.5 w-3.5" aria-hidden />
-                {t("markAllRead")}
-              </button>
-            </form>
-          ) : undefined
-        }
+        actions={unreadCount > 0 ? <MarkAllReadButton /> : undefined}
       />
 
       {notifications.length === 0 ? (

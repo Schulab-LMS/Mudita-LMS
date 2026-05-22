@@ -679,6 +679,47 @@ export async function sendNewTutorApplicationEmail(tutorName: string, tutorEmail
   });
 }
 
+/**
+ * Notify a recipient that they have a new direct message. Sent fire-and-
+ * forget from `sendMessageAction`, and throttled there so an active back-
+ * and-forth doesn't produce one email per reply — only the first unread
+ * message from a given sender triggers a mail.
+ */
+export async function sendNewMessageEmail(
+  email: string,
+  recipientName: string | null,
+  senderName: string,
+  messagePreview: string,
+  senderId: string
+) {
+  const threadUrl = `${APP_URL}/en/messages/${senderId}`;
+  const safeRecipient = escapeHtml(recipientName ?? "there");
+  const firstName = safeRecipient.split(" ")[0] || safeRecipient;
+  const safeSender = escapeHtml(senderName);
+  const safePreview = escapeHtml(messagePreview);
+
+  return sendEmail({
+    to: email,
+    subject: `New message from ${senderName}`,
+    html: layout({
+      preview: `${senderName} sent you a message on Schulab.`,
+      content: `
+        ${heading("You have a new message")}
+        ${paragraph(
+          `Hi ${firstName}, <strong style="color:${BRAND.ink};">${safeSender}</strong> just sent you a message on Schulab.`
+        )}
+        <div style="margin-top:8px;font-family:${FONT_STACK};font-size:11px;font-weight:700;letter-spacing:0.14em;color:${BRAND.muted};text-transform:uppercase;">Message</div>
+        <div style="margin:8px 0 0;padding:18px 20px;background:#FAFAFF;border:1px solid ${BRAND.border};border-radius:12px;font-family:${FONT_STACK};font-size:15px;line-height:1.65;color:${BRAND.ink};white-space:pre-wrap;">${safePreview}</div>
+        ${button("Open conversation", threadUrl)}
+        ${paragraph(
+          `Replies happen right inside Schulab — open the conversation to read the full message and respond.`,
+          "muted"
+        )}
+      `,
+    }),
+  });
+}
+
 export async function sendContactFormEmail(
   name: string,
   email: string,

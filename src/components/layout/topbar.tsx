@@ -10,6 +10,7 @@ import { UserMenu } from "@/components/layout/user-menu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Breadcrumbs, type BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { getUnreadNotificationCount } from "@/actions/notification.actions";
+import { NOTIFICATIONS_CHANGED_EVENT } from "@/lib/notification-events";
 
 // How often the bell re-checks for new notifications while the user stays
 // on a page. The dashboard layout is preserved across client navigations,
@@ -82,6 +83,9 @@ export function Topbar({ onMenuClick, unreadNotifications = 0, breadcrumbs }: To
     const interval = setInterval(refresh, NOTIFICATION_POLL_MS);
     const onFocus = () => refresh();
     window.addEventListener("focus", onFocus);
+    // Marking notifications read elsewhere in the app (e.g. the "Mark all
+    // read" button) dispatches this so the badge clears at once.
+    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, refresh);
 
     // Re-check on every navigation (e.g. landing on /notifications and
     // marking everything read should drop the badge promptly).
@@ -91,6 +95,7 @@ export function Topbar({ onMenuClick, unreadNotifications = 0, breadcrumbs }: To
       active = false;
       clearInterval(interval);
       window.removeEventListener("focus", onFocus);
+      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, refresh);
     };
   }, [pathname]);
 

@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { sendMessage, markThreadAsRead } from "@/services/message.service";
 import { sendMessageSchema, markThreadReadSchema } from "@/validators/action.schemas";
 import { createNotification } from "@/services/notification.service";
+import { sendNewMessageEmail } from "@/lib/email";
 import { db } from "@/lib/db";
 import { rateLimit, SEND_MESSAGE_RATE_LIMIT } from "@/lib/rate-limit";
 
@@ -40,9 +41,21 @@ export async function sendMessageAction(data: {
     // Verify receiver exists
     const receiver = await db.user.findUnique({
       where: { id: parsed.data.receiverId },
-      select: { id: true, name: true },
+      select: { id: true, name: true, email: true },
     });
     if (!receiver) return { success: false, error: "Recipient not found" };
+
+    // Throttle email notifications: only mail the recipient when this is the
+    // first message they haven't yet read from this sender. During an active
+    // back-and-forth they already have the thread open, so one email per
+    // reply would be noise. Counted before the insert below.
+    const priorUnread = await db.message.count({
+      where: {
+        senderId: session.user.id,
+        receiverId: parsed.data.receiverId,
+        isRead: false,
+      },
+    });
 
     await sendMessage(
       session.user.id,
@@ -53,14 +66,27 @@ export async function sendMessageAction(data: {
 
     // Send a notification to the receiver
     const senderName = session.user.name ?? "Someone";
+    const preview =
+      parsed.data.body.length > 80
+        ? parsed.data.body.slice(0, 80) + "…"
+        : parsed.data.body;
     await createNotification(parsed.data.receiverId, {
       title: `New message from ${senderName}`,
-      message: parsed.data.body.length > 80
-        ? parsed.data.body.slice(0, 80) + "…"
-        : parsed.data.body,
+      message: preview,
       type: "MESSAGE",
       link: `/messages/${session.user.id}`,
     });
+
+    // Email the recipient (non-blocking) on the first unread message only.
+    if (priorUnread === 0 && receiver.email) {
+      sendNewMessageEmail(
+        receiver.email,
+        receiver.name,
+        senderName,
+        preview,
+        session.user.id
+      ).catch(() => null);
+    }
 
     revalidatePath(`/messages/${parsed.data.receiverId}`);
     revalidatePath("/messages");
