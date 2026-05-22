@@ -3,6 +3,7 @@ import Image from "next/image";
 import { getTranslations, getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { getThread, markThreadAsRead } from "@/services/message.service";
+import { markMessageNotificationsRead } from "@/services/notification.service";
 import { db } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
 import { ChevronLeft } from "lucide-react";
@@ -61,7 +62,11 @@ export default async function ThreadPage({ params }: Props) {
   });
   if (!otherUser) notFound();
 
-  await markThreadAsRead(session.user.id, otherUserId);
+  // Opening the thread reads the messages and clears their bell badges.
+  await Promise.all([
+    markThreadAsRead(session.user.id, otherUserId),
+    markMessageNotificationsRead(session.user.id, otherUserId),
+  ]);
   const [t, tRoles, locale, messages] = await Promise.all([
     getTranslations("messages"),
     getTranslations("roles"),

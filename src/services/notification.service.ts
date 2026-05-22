@@ -70,3 +70,27 @@ export async function getUnreadCount(userId: string) {
     return 0;
   }
 }
+
+/**
+ * Mark the in-app MESSAGE notifications a user received from a specific
+ * sender as read. Called when the user opens that conversation thread so
+ * the bell badge clears in step with the messages themselves. The link
+ * column encodes the sender (`/messages/{senderId}`), set when the
+ * notification is created in `sendMessageAction`.
+ */
+export async function markMessageNotificationsRead(userId: string, senderId: string) {
+  try {
+    const result = await db.notification.updateMany({
+      where: {
+        userId,
+        type: "MESSAGE",
+        link: `/messages/${senderId}`,
+        isRead: false,
+      },
+      data: { isRead: true },
+    });
+    return result.count;
+  } catch {
+    return 0;
+  }
+}

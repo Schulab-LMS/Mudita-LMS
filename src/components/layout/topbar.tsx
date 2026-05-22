@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname, Link } from "@/i18n/navigation";
 import { locales, localeNames, type Locale } from "@/i18n/config";
@@ -9,6 +9,12 @@ import { HelpButton } from "@/components/help/help-button";
 import { UserMenu } from "@/components/layout/user-menu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Breadcrumbs, type BreadcrumbItem } from "@/components/ui/breadcrumbs";
+import { getUnreadNotificationCount } from "@/actions/notification.actions";
+
+// How often the bell re-checks for new notifications while the user stays
+// on a page. The dashboard layout is preserved across client navigations,
+// so its server-rendered count never refreshes on its own.
+const NOTIFICATION_POLL_MS = 30_000;
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -55,6 +61,38 @@ export function Topbar({ onMenuClick, unreadNotifications = 0, breadcrumbs }: To
   const router = useRouter();
   const pathname = usePathname();
   const [query, setQuery] = useState("");
+
+  // Seed with the server-rendered count to avoid a flash, then keep it
+  // fresh by polling and re-checking whenever the tab regains focus or the
+  // route changes — so a newly arrived message badges the bell without a
+  // manual reload.
+  const [unread, setUnread] = useState(unreadNotifications);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      try {
+        const count = await getUnreadNotificationCount();
+        if (active) setUnread(count);
+      } catch {
+        // transient failure — keep the last known count
+      }
+    };
+
+    const interval = setInterval(refresh, NOTIFICATION_POLL_MS);
+    const onFocus = () => refresh();
+    window.addEventListener("focus", onFocus);
+
+    // Re-check on every navigation (e.g. landing on /notifications and
+    // marking everything read should drop the badge promptly).
+    refresh();
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [pathname]);
 
   const crumbs = breadcrumbs ?? pathToBreadcrumbs(pathname);
 
@@ -118,12 +156,12 @@ export function Topbar({ onMenuClick, unreadNotifications = 0, breadcrumbs }: To
           aria-label={t("notifications")}
         >
           <Bell className="h-5 w-5" />
-          {unreadNotifications > 0 && (
+          {unread > 0 && (
             <span
-              aria-label={`${unreadNotifications} unread`}
+              aria-label={`${unread} unread`}
               className="absolute end-1 top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground shadow-sm"
             >
-              {unreadNotifications > 9 ? "9+" : unreadNotifications}
+              {unread > 9 ? "9+" : unread}
             </span>
           )}
         </Link>

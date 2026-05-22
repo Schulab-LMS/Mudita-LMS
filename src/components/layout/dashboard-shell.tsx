@@ -7,16 +7,24 @@ import { Topbar } from "@/components/layout/topbar";
 interface DashboardShellProps {
   children: React.ReactNode;
   helpPanel: React.ReactNode;
+  unreadNotifications?: number;
 }
 
-export function DashboardShell({ children, helpPanel }: DashboardShellProps) {
+export function DashboardShell({
+  children,
+  helpPanel,
+  unreadNotifications = 0,
+}: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="md:ms-64">
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <Topbar
+          onMenuClick={() => setSidebarOpen(true)}
+          unreadNotifications={unreadNotifications}
+        />
         <main className="min-h-[calc(100vh-4rem)] bg-muted/30 p-6">
           {children}
         </main>
