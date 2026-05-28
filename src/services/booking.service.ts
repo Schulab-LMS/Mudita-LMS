@@ -1,9 +1,11 @@
 import { db } from "@/lib/db";
+import { assertResourcesShareTenant } from "@/lib/tenant";
 
 export type CreateBookingError =
   | "invalid_range"
   | "conflict"
   | "tutor_not_found"
+  | "cross_tenant"
   | "server_error";
 
 export async function createBooking(data: {
@@ -30,9 +32,26 @@ export async function createBooking(data: {
   // for $0.01" exploit the old signature allowed.
   const tutor = await db.tutorProfile.findUnique({
     where: { id: data.tutorId },
-    select: { hourlyRate: true },
+    select: { hourlyRate: true, user: { select: { organizationId: true } } },
   });
   if (!tutor) return { error: "tutor_not_found" as const };
+
+  // Tenant gate. A student can only book a tutor in the same org (or a
+  // global tutor). Looking up the student row inline so the service stays
+  // self-contained — callers only pass ids.
+  const student = await db.user.findUnique({
+    where: { id: data.studentId },
+    select: { organizationId: true },
+  });
+  if (
+    student &&
+    assertResourcesShareTenant(
+      { organizationId: student.organizationId },
+      { organizationId: tutor.user.organizationId }
+    )
+  ) {
+    return { error: "cross_tenant" as const };
+  }
 
   const durationHours =
     (data.endTime.getTime() - data.startTime.getTime()) / (60 * 60 * 1000);
@@ -53,6 +72,10 @@ export async function createBooking(data: {
       });
       if (overlap) return { error: "conflict" as const };
 
+      // Inherit the booking's tenant from whichever side declares one. The
+      // cross-tenant gate above guarantees these are consistent.
+      const organizationId =
+        student?.organizationId ?? tutor.user.organizationId ?? null;
       const booking = await tx.booking.create({
         data: {
           studentId: data.studentId,
@@ -63,6 +86,7 @@ export async function createBooking(data: {
           notes: data.notes,
           price,
           status: "PENDING",
+          organizationId,
         },
       });
       return { booking };

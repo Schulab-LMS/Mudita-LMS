@@ -9,6 +9,9 @@ declare module "next-auth" {
       name: string;
       image?: string;
       role: string;
+      // Null when the user has no tenant — they see global content only.
+      // See src/lib/tenant.ts for the enforcement model.
+      organizationId: string | null;
     } & DefaultSession["user"];
   }
 

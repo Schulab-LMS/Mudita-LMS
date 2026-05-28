@@ -130,6 +130,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.id = dbUser.id;
           token.role = dbUser.role;
           token.name = dbUser.name;
+          token.organizationId = dbUser.organizationId;
         }
       }
       return token;
@@ -139,6 +140,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.name = token.name as string;
+        // null when the user has no tenant. Surfaced to every server
+        // component so tenant filters can be applied without a re-query.
+        session.user.organizationId =
+          (token.organizationId as string | null | undefined) ?? null;
       }
       return session;
     },

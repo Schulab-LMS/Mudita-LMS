@@ -4,6 +4,15 @@ import {
   rankCourses,
   type RankingSignals,
 } from "@/services/catalog-ranking.service";
+import {
+  isPlatformAdmin,
+  tenantScope,
+  type TenantPrincipal,
+} from "@/lib/tenant";
+
+function isViewerPlatformAdmin(v: TenantPrincipal | null | undefined): boolean {
+  return Boolean(v && isPlatformAdmin(v.role));
+}
 
 interface CourseFilters {
   ageGroup?: string;
@@ -14,6 +23,10 @@ interface CourseFilters {
   // popularity. Caller is responsible for hydrating signals from the user's
   // OnboardingProfile + dateOfBirth.
   signals?: RankingSignals;
+  // Tenant context. When supplied, the catalog is restricted to global
+  // courses (organizationId IS NULL) plus the viewer's own org. Anonymous /
+  // un-tenanted browsing sees global courses only. Platform admins see all.
+  viewer?: TenantPrincipal | null;
 }
 
 export function getLocalizedField<
@@ -43,12 +56,20 @@ export async function getCourses(filters: CourseFilters = {}) {
     if (filters.level) {
       where.level = filters.level;
     }
+    // Tenant scope + search both want OR clauses on the same row; AND them
+    // together so neither widens past what the other allows.
+    const andClauses: Array<Record<string, unknown>> = [];
+    const scope = tenantScope(filters.viewer);
+    if ("OR" in scope) andClauses.push(scope as Record<string, unknown>);
     if (filters.search) {
-      where.OR = [
-        { title: { contains: filters.search, mode: "insensitive" } },
-        { description: { contains: filters.search, mode: "insensitive" } },
-      ];
+      andClauses.push({
+        OR: [
+          { title: { contains: filters.search, mode: "insensitive" } },
+          { description: { contains: filters.search, mode: "insensitive" } },
+        ],
+      });
     }
+    if (andClauses.length > 0) where.AND = andClauses;
 
     const courses = await db.course.findMany({
       where,
@@ -104,7 +125,10 @@ export async function getCourses(filters: CourseFilters = {}) {
   }
 }
 
-export async function getCourseBySlug(slug: string) {
+export async function getCourseBySlug(
+  slug: string,
+  viewer?: TenantPrincipal | null
+) {
   try {
     const course = await db.course.findUnique({
       where: { slug },
@@ -139,6 +163,22 @@ export async function getCourseBySlug(slug: string) {
 
     if (!course) return null;
 
+    // Soft-fail with null for out-of-tenant courses so the route handler
+    // surfaces a 404 (rather than 403) — we don't want to leak the existence
+    // of another org's content via a different error code.
+    if (viewer !== undefined) {
+      const principalOrg =
+        viewer && !isViewerPlatformAdmin(viewer) ? viewer.organizationId ?? null : null;
+      if (
+        viewer &&
+        !isViewerPlatformAdmin(viewer) &&
+        course.organizationId !== null &&
+        course.organizationId !== principalOrg
+      ) {
+        return null;
+      }
+    }
+
     const lessonCount = course.modules.reduce(
       (sum, mod) => sum + mod.lessons.length,
       0
@@ -162,10 +202,13 @@ export async function getCourseBySlug(slug: string) {
   }
 }
 
-export async function getFeaturedCourses(limit: number = 6) {
+export async function getFeaturedCourses(
+  limit: number = 6,
+  viewer?: TenantPrincipal | null
+) {
   try {
     const courses = await db.course.findMany({
-      where: { status: "PUBLISHED" },
+      where: { status: "PUBLISHED", ...tenantScope(viewer) },
       include: {
         modules: {
           include: {

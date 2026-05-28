@@ -17,6 +17,10 @@ enum Role {
   ADMIN
   SUPER_ADMIN
   B2B_PARTNER
+  // Scoped admin for a single Organization (school / B2B partner). Can manage
+  // users + courses within their own org but never across orgs. ADMIN /
+  // SUPER_ADMIN remain the global-platform roles.
+  ORG_ADMIN
 }
 
 // Multi-tenant scaffolding (Phase 1: nullable everywhere, not enforced).

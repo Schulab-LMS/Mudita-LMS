@@ -41,36 +41,244 @@ async function main() {
   console.log("🌱 Seeding database...");
 
   const passwordHash = await bcrypt.hash("password123", 10);
+  // Credentials provider blocks login until emailVerified is set. Seeded
+  // accounts skip the verification email by setting this directly.
+  const seededVerifiedAt = new Date("2026-05-28T00:00:00Z");
+
+  // ── Organisations (P4 multi-tenant scaffolding) ──────────────────────────
+  // We seed two orgs to make tenant-isolation testing trivial: any cross-org
+  // action should fail; same-org and "global ↔ org" should succeed.
+  const muditaAcademy = await db.organization.upsert({
+    where: { slug: "mudita-academy" },
+    update: {},
+    create: {
+      name: "Mudita Academy",
+      slug: "mudita-academy",
+    },
+  });
+  const demoSchool = await db.organization.upsert({
+    where: { slug: "demo-school-berlin" },
+    update: {},
+    create: {
+      name: "Demo School Berlin",
+      slug: "demo-school-berlin",
+    },
+  });
 
   // ── Users ────────────────────────────────────────────────────────────────
+  // Existing test accounts — kept on no-org so they continue exercising the
+  // "global content" path. emailVerified is now set on update so password
+  // login works without manually flipping the column.
   const admin = await db.user.upsert({
     where: { email: "admin@schulab.com" },
-    update: {},
-    create: { name: "Admin User", email: "admin@schulab.com", passwordHash, role: "ADMIN", isActive: true },
+    update: { emailVerified: seededVerifiedAt },
+    create: {
+      name: "Admin User",
+      email: "admin@schulab.com",
+      passwordHash,
+      role: "ADMIN",
+      isActive: true,
+      emailVerified: seededVerifiedAt,
+    },
   });
 
   const student1 = await db.user.upsert({
     where: { email: "aisha@example.com" },
-    update: {},
-    create: { name: "Aisha Mohammed", email: "aisha@example.com", passwordHash, role: "STUDENT", isActive: true },
+    update: { emailVerified: seededVerifiedAt },
+    create: {
+      name: "Aisha Mohammed",
+      email: "aisha@example.com",
+      passwordHash,
+      role: "STUDENT",
+      isActive: true,
+      emailVerified: seededVerifiedAt,
+    },
   });
 
   const student2 = await db.user.upsert({
     where: { email: "liam@example.com" },
-    update: {},
-    create: { name: "Liam Chen", email: "liam@example.com", passwordHash, role: "STUDENT", isActive: true },
+    update: { emailVerified: seededVerifiedAt },
+    create: {
+      name: "Liam Chen",
+      email: "liam@example.com",
+      passwordHash,
+      role: "STUDENT",
+      isActive: true,
+      emailVerified: seededVerifiedAt,
+    },
   });
 
   const parent1 = await db.user.upsert({
     where: { email: "sara@example.com" },
-    update: {},
-    create: { name: "Sara Ahmed", email: "sara@example.com", passwordHash, role: "PARENT", isActive: true },
+    update: { emailVerified: seededVerifiedAt },
+    create: {
+      name: "Sara Ahmed",
+      email: "sara@example.com",
+      passwordHash,
+      role: "PARENT",
+      isActive: true,
+      emailVerified: seededVerifiedAt,
+    },
   });
 
   const tutorUser = await db.user.upsert({
     where: { email: "marcus@example.com" },
-    update: {},
-    create: { name: "Dr. Marcus Lee", email: "marcus@example.com", passwordHash, role: "TUTOR", isActive: true },
+    update: { emailVerified: seededVerifiedAt },
+    create: {
+      name: "Dr. Marcus Lee",
+      email: "marcus@example.com",
+      passwordHash,
+      role: "TUTOR",
+      isActive: true,
+      emailVerified: seededVerifiedAt,
+    },
+  });
+
+  // ── Phase 4 multi-tenant test fixtures ───────────────────────────────────
+  // One account per role on each org, plus a no-org SUPER_ADMIN. The
+  // helper handles tutor-profile + availability creation when the role is
+  // TUTOR so we don't repeat that boilerplate 4× below.
+  type SeedUser = {
+    name: string;
+    email: string;
+    role:
+      | "STUDENT"
+      | "PARENT"
+      | "TUTOR"
+      | "ADMIN"
+      | "SUPER_ADMIN"
+      | "ORG_ADMIN"
+      | "B2B_PARTNER";
+    organizationId: string | null;
+    tutorBio?: string;
+    tutorSubjects?: string[];
+    tutorLanguages?: string[];
+    tutorHourlyRate?: number;
+  };
+
+  async function seedUser(spec: SeedUser) {
+    const user = await db.user.upsert({
+      where: { email: spec.email },
+      update: {
+        emailVerified: seededVerifiedAt,
+        role: spec.role,
+        organizationId: spec.organizationId,
+      },
+      create: {
+        name: spec.name,
+        email: spec.email,
+        passwordHash,
+        role: spec.role,
+        isActive: true,
+        emailVerified: seededVerifiedAt,
+        organizationId: spec.organizationId,
+      },
+    });
+    if (spec.role === "TUTOR") {
+      const profile = await db.tutorProfile.upsert({
+        where: { userId: user.id },
+        update: {},
+        create: {
+          userId: user.id,
+          bio: spec.tutorBio ?? "Seeded test tutor.",
+          subjects: spec.tutorSubjects ?? ["Math"],
+          languages: spec.tutorLanguages ?? ["English"],
+          hourlyRate: spec.tutorHourlyRate ?? 40,
+          rating: 4.5,
+          isVerified: true,
+        },
+      });
+      const slots = await db.tutorAvailability.count({
+        where: { tutorId: profile.id },
+      });
+      if (slots === 0) {
+        for (let day = 1; day <= 5; day++) {
+          await db.tutorAvailability.create({
+            data: {
+              tutorId: profile.id,
+              dayOfWeek: day,
+              startTime: "09:00",
+              endTime: "17:00",
+              timezone: "UTC",
+            },
+          });
+        }
+      }
+    }
+    return user;
+  }
+
+  await seedUser({
+    name: "Super Admin",
+    email: "superadmin@mudita.test",
+    role: "SUPER_ADMIN",
+    organizationId: null,
+  });
+
+  // Mudita Academy: full role grid
+  await seedUser({
+    name: "Mudita Org Admin",
+    email: "orgadmin@mudita-academy.test",
+    role: "ORG_ADMIN",
+    organizationId: muditaAcademy.id,
+  });
+  await seedUser({
+    name: "Mudita Tutor",
+    email: "tutor@mudita-academy.test",
+    role: "TUTOR",
+    organizationId: muditaAcademy.id,
+    tutorBio: "Mudita Academy lead tutor — physics and astronomy.",
+    tutorSubjects: ["Physics", "Astronomy"],
+    tutorLanguages: ["English", "German"],
+    tutorHourlyRate: 50,
+  });
+  await seedUser({
+    name: "Mudita Student",
+    email: "student@mudita-academy.test",
+    role: "STUDENT",
+    organizationId: muditaAcademy.id,
+  });
+  await seedUser({
+    name: "Mudita Parent",
+    email: "parent@mudita-academy.test",
+    role: "PARENT",
+    organizationId: muditaAcademy.id,
+  });
+  await seedUser({
+    name: "Mudita B2B Partner",
+    email: "partner@mudita-academy.test",
+    role: "B2B_PARTNER",
+    organizationId: muditaAcademy.id,
+  });
+
+  // Demo School Berlin: full role grid (used for cross-org isolation checks)
+  await seedUser({
+    name: "Demo School Org Admin",
+    email: "orgadmin@demo-school.test",
+    role: "ORG_ADMIN",
+    organizationId: demoSchool.id,
+  });
+  await seedUser({
+    name: "Demo School Tutor",
+    email: "tutor@demo-school.test",
+    role: "TUTOR",
+    organizationId: demoSchool.id,
+    tutorBio: "Demo School Berlin tutor — coding and robotics.",
+    tutorSubjects: ["Coding", "Robotics"],
+    tutorLanguages: ["English", "German"],
+    tutorHourlyRate: 45,
+  });
+  await seedUser({
+    name: "Demo School Student",
+    email: "student@demo-school.test",
+    role: "STUDENT",
+    organizationId: demoSchool.id,
+  });
+  await seedUser({
+    name: "Demo School Parent",
+    email: "parent@demo-school.test",
+    role: "PARENT",
+    organizationId: demoSchool.id,
   });
 
   // Parent-child link

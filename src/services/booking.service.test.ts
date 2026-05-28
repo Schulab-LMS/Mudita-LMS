@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/lib/db", () => ({
   db: {
     tutorProfile: { findUnique: vi.fn() },
+    user: { findUnique: vi.fn() },
     booking: { findFirst: vi.fn(), create: vi.fn() },
     $transaction: vi.fn(),
   },
@@ -22,7 +23,13 @@ describe("createBooking", () => {
 
   beforeEach(() => {
     vi.mocked(db.tutorProfile.findUnique).mockReset();
+    vi.mocked(db.user.findUnique).mockReset();
     vi.mocked(db.$transaction).mockReset();
+    // Default tenant state: both parties are no-org, so the tenant gate
+    // short-circuits and the test focuses on its own concerns.
+    vi.mocked(db.user.findUnique).mockResolvedValue({
+      organizationId: null,
+    } as never);
   });
 
   it("rejects an inverted time range", async () => {
@@ -54,6 +61,7 @@ describe("createBooking", () => {
     // 45/hr × 1hr = 45, regardless of whatever the caller may have tried to pass.
     vi.mocked(db.tutorProfile.findUnique).mockResolvedValue({
       hourlyRate: 45,
+      user: { organizationId: null },
     } as never);
     vi.mocked(db.$transaction).mockImplementation(async (fn: unknown) => {
       const tx = {
@@ -75,6 +83,7 @@ describe("createBooking", () => {
   it("prices a 90-minute booking as 1.5 × hourlyRate", async () => {
     vi.mocked(db.tutorProfile.findUnique).mockResolvedValue({
       hourlyRate: 60,
+      user: { organizationId: null },
     } as never);
     vi.mocked(db.$transaction).mockImplementation(async (fn: unknown) => {
       const tx = {

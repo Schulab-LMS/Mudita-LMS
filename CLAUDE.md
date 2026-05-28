@@ -104,7 +104,7 @@ messages/
 All models use cuid() IDs. `src/lib/db.ts` exports `db` — a singleton PrismaClient using the PrismaPg adapter.
 
 **Users & Auth**
-- `User` — core user record; roles: `STUDENT | PARENT | TUTOR | ADMIN | SUPER_ADMIN | B2B_PARTNER`
+- `User` — core user record; roles: `STUDENT | PARENT | TUTOR | ADMIN | SUPER_ADMIN | B2B_PARTNER | ORG_ADMIN`
 - `Account`, `Session`, `VerificationToken` — NextAuth adapter models
 - `Profile` — extended student profile (bio, DOB, grade, school, interests)
 - `TutorProfile` — tutor-specific data (subjects, languages, hourly rate, verification)
@@ -152,8 +152,19 @@ All models use cuid() IDs. `src/lib/db.ts` exports `db` — a singleton PrismaCl
 - `src/lib/livekit.ts` — `isLiveKitConfigured()`, `issueLiveKitToken()`, `verifyLiveKitWebhook()`, `roomServiceClient()`, `setParticipantPublishPermission()`. Mirrors the Stripe lazy-init pattern; rest of the app boots fine without LIVEKIT_* env vars.
 - `src/components/session/live-classroom.tsx` — client wrapper around `<LiveKitRoom>` composing `TileGrid`, `MediaControls`, `RosterPanel`, `PollsPanel`, `ChatPanel`, and the Reveal.js deck in presenter / follower mode.
 
-**Multi-tenant (scaffolding only)**
-- `Organization` — schools / B2B partners. Nullable `organizationId` FKs live on `User`, `Course`, `Booking`. Not enforced anywhere yet — added so the live-classroom + tenant-scoping work in later phases doesn't need a painful retrofit. New queries should NOT filter on `organizationId` until the enforcement phase ships.
+**Multi-tenant (soft enforcement)**
+- `Organization` — schools / B2B partners. Nullable `organizationId` FKs on `User`, `Course`, `Booking`.
+- Enforcement is **soft at the service boundary**, not at the database level — FKs stay nullable so global content (e.g. the STEM-Curricula catalog) and direct learners (no home tenant) keep working.
+- `Role.ORG_ADMIN` — scoped admin for one org. Can pull no-org users into their org and push them back out; cannot move users between two other orgs (that's SUPER_ADMIN-only).
+- Null-org semantics:
+  - User with `organizationId = null` → sees global content only.
+  - Course / Booking with `organizationId = null` → global, reachable from any tenant.
+  - User with `organizationId = X` → sees global + own org's content.
+  - Platform admins (`ADMIN`, `SUPER_ADMIN`) bypass the filter entirely.
+- `src/lib/tenant.ts` — `tenantScope(principal)` returns a Prisma where-fragment; `assertSameTenant(principal, resource)` and `assertResourcesShareTenant(a, b)` are throw-style guards for write paths. Always use these helpers; do **not** hand-roll `organizationId` filters.
+- Already applied in: `getCourses` / `getFeaturedCourses` / `getCourseBySlug`, `enrollInCourse`, `createBooking`. Future reads/writes touching org-scoped models must add the filter or the guard.
+- `session.user.organizationId` is populated by the NextAuth JWT/session callbacks so server components can scope without a re-query.
+- `Organization` management: `src/actions/organization.actions.ts` (`createOrganization`, `assignUserToOrganization`). Full admin UI deferred to a later phase — current state is API + seed-driven.
 
 **Other**
 - `AuditLog` — admin action trail

@@ -30,6 +30,8 @@ export async function createBooking(data: {
         return { error: "That time slot is no longer available" };
       case "tutor_not_found":
         return { error: "Tutor is no longer available" };
+      case "cross_tenant":
+        return { error: "This tutor is not available to your organisation" };
       default:
         return { error: "Failed to create booking" };
     }

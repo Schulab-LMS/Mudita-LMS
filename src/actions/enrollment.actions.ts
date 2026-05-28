@@ -18,6 +18,7 @@ import { sendEnrollmentConfirmation } from "@/lib/email";
 import { db } from "@/lib/db";
 import { assertMinorConsent } from "@/lib/compliance";
 import { hasActivePlanAtLeast } from "@/lib/subscription-access";
+import { assertSameTenant } from "@/lib/tenant";
 
 export async function enrollInCourse(courseId: string) {
   try {
@@ -49,11 +50,28 @@ export async function enrollInCourse(courseId: string) {
         isFree: true,
         price: true,
         requiredPlan: true,
+        organizationId: true,
       },
     });
     if (!course) return { success: false, error: "Course not found" };
     if (course.status !== "PUBLISHED") {
       return { success: false, error: "This course is not available for enrolment" };
+    }
+
+    // Tenant gate. Look up the caller's org from the DB rather than trusting
+    // the session token alone — the token is JWT-cached and could be stale
+    // if their org assignment changed since sign-in.
+    const enroller = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true, organizationId: true },
+    });
+    if (enroller) {
+      const tenantError = assertSameTenant(enroller, course);
+      if (tenantError) {
+        // Mirror getCourseBySlug's "treat as not-found" stance so we don't
+        // leak the existence of another org's catalog via a 403.
+        return { success: false, error: "Course not found" };
+      }
     }
 
     const isFree = course.isFree || Number(course.price) === 0;
