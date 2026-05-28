@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useRouter } from "@/i18n/navigation";
 import { useForm } from "react-hook-form";
@@ -25,7 +26,20 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
+  Sparkles,
+  ShieldCheck,
 } from "lucide-react";
+
+// Marketing plan slug → pricing i18n key. Keep in sync with the hrefs in
+// pricing-tiers.tsx; "basic" and "solo" both map to the Solo plan because the
+// internal i18n key is still `pricing.basic`.
+const PLAN_PARAM_TO_KEY: Record<string, "basic" | "family" | "school"> = {
+  solo: "basic",
+  basic: "basic",
+  family: "family",
+  custom: "school",
+  school: "school",
+};
 
 const roles = [
   {
@@ -84,6 +98,11 @@ function passwordStrength(pw: string | undefined): { score: number; toneKey: (ty
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
+  const tPricing = useTranslations("pricing");
+  const searchParams = useSearchParams();
+  const planParam = (searchParams.get("plan") ?? "").toLowerCase();
+  const planKey = PLAN_PARAM_TO_KEY[planParam] ?? null;
+  const planName = planKey ? tPricing(`${planKey}.name`) : null;
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -142,6 +161,44 @@ export default function RegisterPage() {
           {t("registerSubtitle")}
         </p>
       </div>
+
+      {planKey && planName && (
+        <div className="mb-5 rounded-2xl border border-primary/20 bg-launch-gradient-soft p-4 text-sm shadow-sm animate-slide-down">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/80 text-[#4f3ff0]">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <div className="flex-1 space-y-1.5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#4f3ff0]">
+                {t("planBanner.label")}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-display text-base font-bold text-foreground">
+                  {t("planBanner.title", { plan: planName })}
+                </p>
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#34d399]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#047857]">
+                  <Sparkles className="h-3 w-3" />
+                  {t("planBanner.freeBadge")}
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                {t("planBanner.body", { plan: planName })}
+              </p>
+              <p className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
+                <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#4f3ff0]" />
+                <span>{t("planBanner.autoRenew", { plan: planName })}</span>
+              </p>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#4f3ff0] hover:underline"
+              >
+                {t("planBanner.changePlan")}
+                <ArrowRight className="h-3 w-3 rtl:rotate-180" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div

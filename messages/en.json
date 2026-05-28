@@ -260,62 +260,68 @@
   },
   "pricing": {
     "title": "Simple, Transparent Pricing",
-    "subtitle": "Pick a monthly plan, then add 1:1 tutoring whenever you need a boost.",
+    "subtitle": "Pick Solo, Family, or Custom — and start with your first tutor session on us.",
     "guarantee": "14-day money-back guarantee on all paid plans",
     "subscriptionsLabel": "Monthly plans",
     "subscriptionsTitle": "Subscriptions",
-    "subscriptionsSubtitle": "Unlimited self-paced learning paths, parent dashboard, and community — one simple price.",
+    "subscriptionsSubtitle": "Full access to every course and curriculum, plus 4 live tutor sessions every month. First session is free.",
     "tutoringLabel": "1:1 tutoring",
     "tutoringTitle": "Personalised tutoring, on demand",
     "tutoringSubtitle": "50-minute sessions with certified STEM tutors. Buy once, book anytime — credits never expire.",
-    "tutoringFootnote": "Basic and Family subscriptions include 2 free tutoring sessions to get you started.",
+    "tutoringFootnote": "Solo and Family include 4 live tutor sessions every month, renewed at the start of each billing cycle. Your first session is free — no charge until you decide to continue.",
     "bestValue": "Best value",
     "perSession": "{price}/session",
     "saveAmount": "Save {amount}",
+    "firstSessionFree": "1st session free",
+    "trialBadge": "Trial",
+    "autoRenewNote": "Auto-renews monthly until you cancel.",
     "basic": {
-      "name": "Basic",
-      "tagline": "For a single learner",
+      "name": "Solo",
+      "tagline": "For one focused learner",
       "period": "month",
       "headerPrice": "€49 / month",
       "features": [
-        "Full course catalogue + premium STEM content",
-        "Self-paced learning paths & projects",
+        "Full access to all courses and curricula",
+        "4 live tutor sessions per month (renewed monthly)",
+        "First tutor session free — try before you pay",
         "Parent dashboard with weekly progress",
-        "Community & email support",
-        "2 free tutoring sessions to get started"
+        "Certificates, badges & XP",
+        "Card securely stored, auto-renews monthly — cancel anytime"
       ],
-      "cta": "Start learning"
+      "cta": "Start with a free session"
     },
     "family": {
       "name": "Family",
-      "tagline": "For households with multiple kids",
+      "tagline": "For households with multiple learners",
       "period": "month",
       "headerPrice": "€88 / month",
       "secondaryLine": "or {price} / month for 3+ children",
       "features": [
-        "Everything in Basic, for up to 3+ children",
+        "Full access to all courses and curricula, for the whole household",
+        "4 live tutor sessions per month (renewed monthly)",
+        "First tutor session free for the household",
         "Shared parent dashboard across all learners",
-        "10% off for 2 children, 20% off for 3+",
-        "2 free tutoring sessions per child",
-        "Priority email support"
+        "Priority email support",
+        "Card securely stored, auto-renews monthly — cancel anytime"
       ],
-      "cta": "Start your family plan"
+      "cta": "Start with a free session"
     },
     "school": {
-      "name": "School",
-      "tagline": "For classrooms and districts",
+      "name": "Custom",
+      "tagline": "For schools, partners, and bespoke households",
       "price": "Custom",
-      "period": "per institution",
+      "period": "tailored quote",
       "features": [
+        "Tailored monthly tutor-session quota",
         "Unlimited student accounts",
         "Admin dashboard & reporting",
-        "Custom branding",
+        "Custom branding & SSO",
         "Bulk enrollment tools",
         "Dedicated account manager",
         "API access & integrations",
         "Teacher training resources"
       ],
-      "cta": "Get a Custom Quote"
+      "cta": "Talk to us"
     },
     "tutoring": {
       "single": {
@@ -351,20 +357,32 @@
     "faqTitle": "Pricing FAQ",
     "faq": [
       {
-        "q": "Can I cancel anytime?",
-        "a": "Yes. You can cancel your subscription at any time from your account settings. Your access continues until the end of the billing period."
+        "q": "Is the first tutor session really free?",
+        "a": "Yes. Every new account gets one free 50-minute 1:1 tutor session as a trial. You experience the platform with no charge — your subscription only starts billing if you decide to continue."
       },
       {
-        "q": "Do the 2 free tutoring sessions reset each month?",
-        "a": "They're a one-time welcome gift — 2 free sessions per learner when you first subscribe. After that, individual sessions are €25, or you can save with a 4- or 8-pack."
+        "q": "Why do you ask for a card during signup?",
+        "a": "When you pick Solo or Family, we securely store your card with our payment provider so your access continues seamlessly after the free session. We don't charge a cent for the trial session itself."
+      },
+      {
+        "q": "Do the 4 tutor sessions roll over each month?",
+        "a": "No. Sessions reset at the start of every billing cycle. Unused sessions don't roll over, so book them while they're fresh."
+      },
+      {
+        "q": "How does auto-renewal work?",
+        "a": "Solo and Family auto-renew at the start of every cycle so your learning never pauses. You acknowledge this when you sign up, and you can cancel any time from your account — access continues to the end of the paid period."
+      },
+      {
+        "q": "Can I cancel anytime?",
+        "a": "Yes. You can cancel your subscription at any time from your account settings. Your access continues until the end of the billing period, and you're never locked into a contract."
       },
       {
         "q": "Do tutoring credits expire?",
-        "a": "No. Pack credits stay on your account until you use them, even if you pause or cancel a subscription."
+        "a": "No. Standalone tutoring-pack credits stay on your account until you use them, even if you pause or cancel a subscription. (Subscription sessions do reset monthly.)"
       },
       {
         "q": "What payment methods do you accept?",
-        "a": "We accept all major credit cards, SEPA direct debit, and bank transfers for School plans."
+        "a": "We accept all major credit and debit cards, SEPA direct debit, and bank transfers for Custom plans."
       },
       {
         "q": "Can I switch plans?",
@@ -426,8 +444,9 @@
         "payPerKit": "Pay per kit",
         "off10": "10% off",
         "bulkPricing": "Bulk pricing",
-        "twoFree": "2 free, then €25/session",
-        "twoPerChild": "2 free/child, then €25",
+        "twoFree": "4 sessions / month",
+        "twoPerChild": "4 sessions / month",
+        "bespoke": "Bespoke quota",
         "included": "Included",
         "limited": "Limited",
         "full": "Full",
@@ -534,7 +553,15 @@
     "resendVerification": "Resend verification email",
     "verifyLinkSent": "We've sent a verification link to <strong>{email}</strong>. Click the link to activate your account.",
     "verifyLinkSentGeneric": "We've sent a verification link to your email. Click the link to activate your account.",
-    "verificationResent": "Verification email sent!"
+    "verificationResent": "Verification email sent!",
+    "planBanner": {
+      "label": "Your selected plan",
+      "title": "You're starting with the {plan} plan",
+      "freeBadge": "First tutor session free",
+      "body": "Your first 50-minute 1:1 tutor session is on us. After you verify your email, we'll securely store your payment method with our provider — and your {plan} subscription only starts billing once you decide to continue.",
+      "autoRenew": "By creating an account with a paid plan you acknowledge that {plan} auto-renews monthly until you cancel. You can cancel anytime from your account.",
+      "changePlan": "Change plan"
+    }
   },
   "dashboard": {
     "welcome": "Welcome back, {name}!",

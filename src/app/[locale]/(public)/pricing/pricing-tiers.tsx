@@ -42,7 +42,7 @@ const subPlans: SubPlan[] = [
   {
     key: "basic",
     featured: false,
-    href: "/register",
+    href: "/register?plan=solo",
     monthlyEur: 49,
     accent: "text-[#4f3ff0]",
     ringColor: "from-[#4f3ff0]/20 to-[#8b5cf6]/20",
@@ -61,7 +61,7 @@ const subPlans: SubPlan[] = [
   {
     key: "school",
     featured: false,
-    href: "/contact?subject=School%20Plan%20Inquiry",
+    href: "/contact?subject=Custom%20Plan%20Inquiry",
     monthlyEur: null,
     accent: "text-[#8b5cf6]",
     ringColor: "from-[#8b5cf6]/20 to-[#ec4899]/20",
@@ -247,6 +247,12 @@ export function PricingTiers() {
                           whether a secondary line / annual-savings line is
                           rendered. */}
                       <div className="mt-4 flex min-h-[8rem] flex-col items-center justify-start gap-1">
+                        {!isCustom && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#34d399]/15 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#047857]">
+                            <Sparkles className="h-3 w-3" />
+                            {t("firstSessionFree")}
+                          </span>
+                        )}
                         <div className="flex items-baseline justify-center gap-1 whitespace-nowrap">
                           <span
                             className={`font-display font-extrabold leading-none ${
@@ -261,6 +267,11 @@ export function PricingTiers() {
                         </div>
                         {secondaryLine}
                         {annualSavings}
+                        {!isCustom && (
+                          <p className="text-[11px] text-muted-foreground">
+                            {t("autoRenewNote")}
+                          </p>
+                        )}
                       </div>
                     </CardHeader>
 

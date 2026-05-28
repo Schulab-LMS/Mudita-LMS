@@ -260,62 +260,68 @@
   },
   "pricing": {
     "title": "Einfache, transparente Preise",
-    "subtitle": "Wähle einen Monatsplan und buche 1:1-Nachhilfe nach Bedarf dazu.",
+    "subtitle": "Wähle Solo, Familie oder Individuell — und starte mit deiner ersten Nachhilfestunde auf uns.",
     "guarantee": "14-Tage-Geld-zurück-Garantie auf alle bezahlten Pläne",
     "subscriptionsLabel": "Monatliche Pläne",
     "subscriptionsTitle": "Abonnements",
-    "subscriptionsSubtitle": "Unbegrenzte Lernpfade im eigenen Tempo, Eltern-Dashboard und Community — zu einem einfachen Preis.",
+    "subscriptionsSubtitle": "Voller Zugriff auf alle Kurse und Curricula plus 4 Live-Nachhilfestunden pro Monat. Erste Sitzung gratis.",
     "tutoringLabel": "1:1-Nachhilfe",
     "tutoringTitle": "Persönliche Nachhilfe auf Abruf",
     "tutoringSubtitle": "50-minütige Sitzungen mit zertifizierten STEM-Nachhilfelehrern. Einmal kaufen, jederzeit buchen — Guthaben verfällt nie.",
-    "tutoringFootnote": "Basis- und Familienabos enthalten 2 kostenlose Nachhilfestunden zum Start.",
+    "tutoringFootnote": "Solo und Familie enthalten 4 Live-Nachhilfestunden pro Monat, die zu Beginn jedes Abrechnungszyklus erneuert werden. Deine erste Sitzung ist gratis — keine Belastung, bevor du dich für die Fortsetzung entscheidest.",
     "bestValue": "Bestes Angebot",
     "perSession": "{price}/Sitzung",
     "saveAmount": "Spare {amount}",
+    "firstSessionFree": "1. Sitzung gratis",
+    "trialBadge": "Testphase",
+    "autoRenewNote": "Verlängert sich monatlich automatisch, bis du kündigst.",
     "basic": {
-      "name": "Basis",
-      "tagline": "Für einen einzelnen Lernenden",
+      "name": "Solo",
+      "tagline": "Für eine:n einzelne:n Lernende:n",
       "period": "Monat",
       "headerPrice": "49 € / Monat",
       "features": [
-        "Voller Kurskatalog + Premium-STEM-Inhalte",
-        "Lernpfade & Projekte im eigenen Tempo",
+        "Voller Zugriff auf alle Kurse und Curricula",
+        "4 Live-Nachhilfestunden pro Monat (monatlich erneuert)",
+        "Erste Nachhilfestunde gratis — testen, dann zahlen",
         "Eltern-Dashboard mit wöchentlichem Fortschritt",
-        "Community- & E-Mail-Support",
-        "2 kostenlose Nachhilfestunden zum Start"
+        "Zertifikate, Badges & XP",
+        "Karte sicher hinterlegt, monatliche automatische Verlängerung — jederzeit kündbar"
       ],
-      "cta": "Jetzt starten"
+      "cta": "Mit Gratis-Sitzung starten"
     },
     "family": {
       "name": "Familie",
-      "tagline": "Für Familien mit mehreren Kindern",
+      "tagline": "Für Haushalte mit mehreren Lernenden",
       "period": "Monat",
       "headerPrice": "88 € / Monat",
       "secondaryLine": "oder {price} / Monat für 3+ Kinder",
       "features": [
-        "Alles aus Basis, für bis zu 3+ Kinder",
+        "Voller Zugriff auf alle Kurse und Curricula für den ganzen Haushalt",
+        "4 Live-Nachhilfestunden pro Monat (monatlich erneuert)",
+        "Erste Nachhilfestunde für den Haushalt gratis",
         "Gemeinsames Eltern-Dashboard für alle Lernenden",
-        "10 % Rabatt für 2 Kinder, 20 % Rabatt für 3+",
-        "2 kostenlose Nachhilfestunden pro Kind",
-        "Vorrangiger E-Mail-Support"
+        "Vorrangiger E-Mail-Support",
+        "Karte sicher hinterlegt, monatliche automatische Verlängerung — jederzeit kündbar"
       ],
-      "cta": "Familienplan starten"
+      "cta": "Mit Gratis-Sitzung starten"
     },
     "school": {
-      "name": "Schule",
-      "tagline": "Für Klassen und Schulbezirke",
+      "name": "Individuell",
+      "tagline": "Für Schulen, Partner und maßgeschneiderte Haushalte",
       "price": "Individuell",
-      "period": "pro Institution",
+      "period": "maßgeschneidertes Angebot",
       "features": [
+        "Maßgeschneidertes monatliches Nachhilfe-Kontingent",
         "Unbegrenzte Schülerkonten",
         "Admin-Dashboard & Berichte",
-        "Eigenes Branding",
+        "Eigenes Branding & SSO",
         "Masseneinschreibungs-Tools",
         "Dedizierter Account Manager",
         "API-Zugang & Integrationen",
         "Lehrerfortbildungsressourcen"
       ],
-      "cta": "Individuelles Angebot anfordern"
+      "cta": "Kontakt aufnehmen"
     },
     "tutoring": {
       "single": {
@@ -351,24 +357,36 @@
     "faqTitle": "Preis-FAQ",
     "faq": [
       {
-        "q": "Kann ich jederzeit kündigen?",
-        "a": "Ja. Sie können Ihr Abonnement jederzeit kündigen. Ihr Zugang bleibt bis zum Ende des Abrechnungszeitraums bestehen."
+        "q": "Ist die erste Nachhilfestunde wirklich kostenlos?",
+        "a": "Ja. Jedes neue Konto erhält eine kostenlose 50-minütige 1:1-Nachhilfestunde als Testlauf. Du erlebst die Plattform ohne Gebühr — dein Abo wird nur dann belastet, wenn du dich für die Fortsetzung entscheidest."
       },
       {
-        "q": "Werden die 2 kostenlosen Nachhilfestunden jeden Monat erneuert?",
-        "a": "Nein — es sind 2 kostenlose Sitzungen pro Lernendem als einmaliges Willkommensgeschenk. Danach kostet eine Einzelstunde 25 €, oder Sie sparen mit einem 4er- oder 8er-Paket."
+        "q": "Warum braucht ihr meine Karte bei der Anmeldung?",
+        "a": "Wenn du Solo oder Familie wählst, hinterlegen wir deine Karte sicher bei unserem Zahlungsanbieter, damit dein Zugang nach der Gratis-Sitzung nahtlos weiterläuft. Für die Testsitzung selbst berechnen wir keinen Cent."
+      },
+      {
+        "q": "Werden die 4 monatlichen Nachhilfestunden übertragen?",
+        "a": "Nein. Die Sitzungen werden zu Beginn jedes Abrechnungszyklus zurückgesetzt. Nicht genutzte Sitzungen werden nicht übertragen — buche sie, solange sie frisch sind."
+      },
+      {
+        "q": "Wie funktioniert die automatische Verlängerung?",
+        "a": "Solo und Familie verlängern sich zu Beginn jedes Zyklus automatisch, damit dein Lernen nicht pausiert. Du bestätigst das bei der Anmeldung und kannst jederzeit über dein Konto kündigen — der Zugang bleibt bis zum Ende der bezahlten Periode bestehen."
+      },
+      {
+        "q": "Kann ich jederzeit kündigen?",
+        "a": "Ja. Du kannst dein Abonnement jederzeit in den Kontoeinstellungen kündigen. Dein Zugang bleibt bis zum Ende des Abrechnungszeitraums bestehen und du bist nie an einen Vertrag gebunden."
       },
       {
         "q": "Verfallen Paket-Guthaben?",
-        "a": "Nein. Guthaben aus Paketen bleibt auf deinem Konto, bis du es nutzt — auch wenn du ein Abo pausierst oder kündigst."
+        "a": "Nein. Guthaben aus eigenständigen Nachhilfepaketen bleibt auf deinem Konto, bis du es nutzt — auch wenn du ein Abo pausierst oder kündigst. (Abo-Sitzungen werden hingegen monatlich zurückgesetzt.)"
       },
       {
         "q": "Welche Zahlungsmethoden werden akzeptiert?",
-        "a": "Wir akzeptieren alle gängigen Kreditkarten, SEPA-Lastschrift und Banküberweisungen für Schulpläne."
+        "a": "Wir akzeptieren alle gängigen Kredit- und Debitkarten, SEPA-Lastschrift und Banküberweisungen für Individuell-Pläne."
       },
       {
         "q": "Kann ich den Plan wechseln?",
-        "a": "Absolut. Sie können jederzeit upgraden oder downgraden."
+        "a": "Absolut. Du kannst jederzeit upgraden oder downgraden. Bei einem Upgrade wird der anteilige Differenzbetrag berechnet."
       }
     ],
     "mostPopular": "Am beliebtesten",
@@ -426,8 +444,9 @@
         "payPerKit": "Pro Set zahlen",
         "off10": "10% Rabatt",
         "bulkPricing": "Mengenpreise",
-        "twoFree": "2 gratis, dann 25 €/Sitzung",
-        "twoPerChild": "2 gratis/Kind, dann 25 €",
+        "twoFree": "4 Sitzungen / Monat",
+        "twoPerChild": "4 Sitzungen / Monat",
+        "bespoke": "Maßgeschneiderte Quote",
         "included": "Enthalten",
         "limited": "Begrenzt",
         "full": "Vollständig",
@@ -534,7 +553,15 @@
     "resendVerification": "Verifizierungs-E-Mail erneut senden",
     "verifyLinkSent": "Wir haben einen Verifizierungslink an <strong>{email}</strong> gesendet. Klicke auf den Link, um dein Konto zu aktivieren.",
     "verifyLinkSentGeneric": "Wir haben einen Verifizierungslink an deine E-Mail gesendet. Klicke auf den Link, um dein Konto zu aktivieren.",
-    "verificationResent": "Verifizierungs-E-Mail gesendet!"
+    "verificationResent": "Verifizierungs-E-Mail gesendet!",
+    "planBanner": {
+      "label": "Dein gewählter Plan",
+      "title": "Du startest mit dem {plan}-Plan",
+      "freeBadge": "Erste Nachhilfestunde gratis",
+      "body": "Deine erste 50-minütige 1:1-Nachhilfestunde geht auf uns. Nach der E-Mail-Verifizierung hinterlegen wir deine Zahlungsmethode sicher bei unserem Anbieter — dein {plan}-Abo wird erst belastet, wenn du dich für die Fortsetzung entscheidest.",
+      "autoRenew": "Mit der Erstellung eines Kontos mit einem bezahlten Plan bestätigst du, dass {plan} sich monatlich automatisch verlängert, bis du kündigst. Du kannst jederzeit über dein Konto kündigen.",
+      "changePlan": "Plan ändern"
+    }
   },
   "dashboard": {
     "welcome": "Willkommen zurück, {name}!",

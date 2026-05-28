@@ -32,6 +32,7 @@ type ValueKey =
   | "bulkPricing"
   | "twoFree"
   | "twoPerChild"
+  | "bespoke"
   | "included"
   | "limited"
   | "full"
@@ -62,7 +63,7 @@ const comparisonMatrix: Group[] = [
       { labelKey: "freeCourses", basic: true, family: true, school: true },
       { labelKey: "premiumCourses", basic: true, family: true, school: true },
       { labelKey: "stemKits", basic: "off10", family: "off10", school: "bulkPricing" },
-      { labelKey: "liveTutoring", basic: "twoFree", family: "twoPerChild", school: "included" },
+      { labelKey: "liveTutoring", basic: "twoFree", family: "twoPerChild", school: "bespoke" },
       { labelKey: "catalogAccess", basic: "full", family: "full", school: "full" },
     ],
   },

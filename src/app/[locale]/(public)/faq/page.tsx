@@ -68,7 +68,7 @@ const faqs: Faq[] = [
   },
   {
     q: "How much does Schulab cost?",
-    a: "Schulab offers a Basic plan at €49/month per learner, a Family plan at €88/month for up to 3 children, and custom School plans for institutions. Save 20% by paying annually. Visit our Pricing page for details.",
+    a: "Schulab offers a Solo plan at €49/month per learner, a Family plan at €88/month for up to 3 children, and a Custom plan for schools, partners, and bespoke households. Each plan includes 4 live tutor sessions per month — and your very first session is free. Save 20% by paying annually. Visit our Pricing page for details.",
     category: "pricing",
   },
   {

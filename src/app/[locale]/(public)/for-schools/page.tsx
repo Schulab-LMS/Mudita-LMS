@@ -167,7 +167,7 @@ const schoolFaqs = [
   },
   {
     q: "Can we white-label the platform?",
-    a: "Yes — School plans include custom branding, your logo, color palette, and a custom subdomain.",
+    a: "Yes — the Custom plan for schools includes custom branding, your logo, color palette, and a custom subdomain.",
   },
   {
     q: "What does pricing look like?",
