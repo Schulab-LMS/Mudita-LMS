@@ -143,12 +143,14 @@ All models use cuid() IDs. `src/lib/db.ts` exports `db` — a singleton PrismaCl
 - Mux signed playback uses PKCS#8 RS256 JWTs (`src/lib/mux.ts`)
 
 **Live Classroom (LiveKit)**
-- `ClassroomSession` — runtime artefact attached to a `Booking` (1:1). Holds the LiveKit room name and the server-of-truth slide position (`currentSlide` JSON).
+- `ClassroomSession` — runtime artefact attached to a `Booking` (1:1). Holds the LiveKit room name, the server-of-truth slide position (`currentSlide` JSON), and (P3+) the egress `recordingUrl`.
 - `ClassroomAttendance` — one row per (participant, join). Populated by the LiveKit webhook (`participant_joined` / `participant_left`); rejoins create new rows so totals are aggregates.
 - `ClassroomEvent` — append-only audit/history mirror of slide / chat / hand events. Real-time delivery is via the LiveKit data channel; this table is the durable mirror used for late-joiner chat scrollback.
-- Data channel topics (P2): `slide`, `chat`, `hand`. The tutor's React component publishes; followers subscribe. `recordSlideChange` / `recordChatMessage` / `recordHandState` server actions persist alongside the data channel publish.
-- `src/lib/livekit.ts` — `isLiveKitConfigured()`, `issueLiveKitToken()`, `verifyLiveKitWebhook()`. Mirrors the Stripe lazy-init pattern; rest of the app boots fine without LIVEKIT_* env vars.
-- `src/components/session/live-classroom.tsx` — client wrapper around `<LiveKitRoom>` with tutor-controlled Reveal.js + chat + raise-hand + roster.
+- `ClassroomPoll + ClassroomPollVote` — live polls run by the tutor. Vote is upserted on `(pollId, userId)` — one student, one vote, idempotent.
+- Data channel topics: `slide`, `chat`, `hand`, `poll` (P3 wake-up; poll state lives in Postgres). The tutor publishes; followers subscribe. `recordSlideChange` / `recordChatMessage` / `recordHandState` / `voteOnClassroomPoll` server actions persist alongside the data channel publish.
+- A/V publishing: tutors publish camera+mic from join. Students start subscriber-only and gain publish rights when the tutor calls the `grantStudentMedia` server action, which mutates the LiveKit participant grants via `RoomServiceClient.updateParticipant`.
+- `src/lib/livekit.ts` — `isLiveKitConfigured()`, `issueLiveKitToken()`, `verifyLiveKitWebhook()`, `roomServiceClient()`, `setParticipantPublishPermission()`. Mirrors the Stripe lazy-init pattern; rest of the app boots fine without LIVEKIT_* env vars.
+- `src/components/session/live-classroom.tsx` — client wrapper around `<LiveKitRoom>` composing `TileGrid`, `MediaControls`, `RosterPanel`, `PollsPanel`, `ChatPanel`, and the Reveal.js deck in presenter / follower mode.
 
 **Multi-tenant (scaffolding only)**
 - `Organization` — schools / B2B partners. Nullable `organizationId` FKs live on `User`, `Course`, `Booking`. Not enforced anywhere yet — added so the live-classroom + tenant-scoping work in later phases doesn't need a painful retrofit. New queries should NOT filter on `organizationId` until the enforcement phase ships.

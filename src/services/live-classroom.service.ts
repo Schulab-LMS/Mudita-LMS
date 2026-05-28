@@ -97,6 +97,10 @@ export async function joinClassroom(
     identity: userId,
     name: who.displayName,
     roomName: session.livekitRoom,
+    // Tutors publish camera + mic from the moment they join. Students start
+    // subscriber-only — the tutor flips their canPublish flag via the
+    // grantStudentMedia server action (P3+).
+    canPublishAv: who.role === "TUTOR",
   });
 
   return {

@@ -6,6 +6,7 @@ import {
   joinClassroom,
   loadChatHistory,
 } from "@/services/live-classroom.service";
+import { listPolls } from "@/services/classroom-poll.service";
 import { isLiveKitConfigured } from "@/lib/livekit";
 import { sanitize } from "@/lib/sanitize";
 import { ProtectedContent } from "@/components/shared/protected-content";
@@ -79,6 +80,9 @@ export default async function SessionPage({
   const initialChat = liveClassroom
     ? await loadChatHistory(liveClassroom.sessionId)
     : [];
+  const initialPolls = liveClassroom
+    ? await listPolls(liveClassroom.sessionId, session.user.id)
+    : [];
 
   const counterpart = isTutor ? booking.student.name : booking.tutor.user.name;
   const timeFmt = new Intl.DateTimeFormat("en-US", {
@@ -150,8 +154,10 @@ export default async function SessionPage({
                   role={liveClassroom.role}
                   selfId={session.user.id}
                   selfName={session.user.name ?? session.user.email ?? "Student"}
+                  studentIdentity={booking.studentId}
                   initialSlide={liveClassroom.currentSlide}
                   initialChat={initialChat}
+                  initialPolls={initialPolls}
                   presentationMarkdown={presentationMarkdown}
                   presentationConfig={
                     lesson.presentationConfig as PresentationConfig | null

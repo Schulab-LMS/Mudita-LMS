@@ -2,6 +2,7 @@
 
 import {
   LiveKitRoom,
+  RoomAudioRenderer,
   useDataChannel,
   useParticipants,
   useRoomContext,
@@ -25,10 +26,15 @@ import {
 import { ProtectedContent } from "@/components/shared/protected-content";
 import type { PresentationConfig } from "@/lib/presentation";
 import {
+  getClassroomPolls,
   recordChatMessage,
   recordHandState,
   recordSlideChange,
 } from "@/actions/live-classroom.actions";
+import type { PollView } from "@/services/classroom-poll.service";
+import { TileGrid } from "@/components/session/tile-grid";
+import { MediaControls } from "@/components/session/media-controls";
+import { PollsPanel } from "@/components/session/polls-panel";
 
 // LiveClassroom is the client-side core of a Phase-2 tutor-led session:
 //
@@ -65,8 +71,10 @@ interface LiveClassroomProps {
   role: Role;
   selfId: string;
   selfName: string;
+  studentIdentity: string;
   initialSlide: SlidePosition | null;
   initialChat: ChatMessageView[];
+  initialPolls: PollView[];
   presentationMarkdown: string | null;
   presentationConfig: PresentationConfig | null;
   watermark: string | undefined;
@@ -74,16 +82,20 @@ interface LiveClassroomProps {
 }
 
 export function LiveClassroom(props: LiveClassroomProps) {
+  const isTutor = props.role === "TUTOR";
   return (
     <LiveKitRoom
       token={props.token}
       serverUrl={props.livekitUrl}
       connect
-      audio={false}
-      video={false}
-      // We don't publish or subscribe to media tracks in P2 — the room is
-      // purely a data-channel transport.
+      // Tutor auto-prompts for mic+camera permissions on join (they're the
+      // presenter — no point making them click an extra button). Students
+      // start subscriber-only; mic/camera turn on once the tutor grants them
+      // via the roster's "Allow mic" affordance.
+      audio={isTutor}
+      video={isTutor}
     >
+      <RoomAudioRenderer />
       <LiveClassroomBody {...props} />
     </LiveKitRoom>
   );
@@ -249,7 +261,37 @@ function LiveClassroomBody(props: LiveClassroomProps) {
     await recordHandState(props.bookingId, next);
   }, [sendHand, myHandRaised, props.bookingId, props.selfId]);
 
+  // ── Polls (server-of-truth in Postgres; data channel pings = wake-up) ──
+  // State is owned here so a peer's poll-event ping can refresh the panel
+  // without prop-drilling an imperative handle. The data-channel payload
+  // itself is ignored; the durable record is the Postgres row.
+  const [polls, setPolls] = useState<PollView[]>(props.initialPolls);
+  const refreshPolls = useCallback(async () => {
+    try {
+      setPolls(await getClassroomPolls(props.bookingId));
+    } catch (e) {
+      console.warn("[live-classroom] polls refresh failed:", e);
+    }
+  }, [props.bookingId]);
+
+  const onPollPing = useCallback(() => {
+    void refreshPolls();
+  }, [refreshPolls]);
+  const { send: sendPollPing } = useDataChannel("poll", onPollPing);
+
+  const broadcastPollChange = useCallback(() => {
+    // Best-effort fan-out; we don't await because the local panel's already
+    // got fresh state and the durable record is the Postgres row.
+    sendPollPing(encodeJson({ at: Date.now() }), {
+      reliable: true,
+      topic: "poll",
+    }).catch(() => null);
+  }, [sendPollPing]);
+
   // ── Render ────────────────────────────────────────────────────────
+  // Layout: deck on top (or left), classroom chrome below (or right). On
+  // small screens everything stacks; from lg up the chrome moves into a
+  // fixed-width sidebar so the slide canvas takes the visual majority.
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
       <div className="min-w-0 space-y-4">
@@ -280,8 +322,15 @@ function LiveClassroomBody(props: LiveClassroomProps) {
             {currentSlide.v > 0 && `.${currentSlide.v + 1}`} · students follow you
           </p>
         )}
+        <MediaControls />
       </div>
       <aside className="space-y-4">
+        <TileGrid
+          bookingId={props.bookingId}
+          isTutor={isTutor}
+          handsRaised={handsRaised}
+          studentIdentity={props.studentIdentity}
+        />
         <RosterPanel
           participants={participants.map((p) => ({
             id: p.identity,
@@ -292,6 +341,13 @@ function LiveClassroomBody(props: LiveClassroomProps) {
           isTutor={isTutor}
         />
         {!isTutor && <RaiseHandButton raised={myHandRaised} onToggle={toggleHand} />}
+        <PollsPanel
+          bookingId={props.bookingId}
+          isTutor={isTutor}
+          polls={polls}
+          onRefresh={refreshPolls}
+          onLocalChange={broadcastPollChange}
+        />
         <ChatPanel
           messages={chat}
           onSend={sendChatMessage}

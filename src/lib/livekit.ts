@@ -1,4 +1,9 @@
-import { AccessToken, WebhookReceiver, type WebhookEvent } from "livekit-server-sdk";
+import {
+  AccessToken,
+  RoomServiceClient,
+  WebhookReceiver,
+  type WebhookEvent,
+} from "livekit-server-sdk";
 
 // LiveKit Cloud integration. Mirrors the lazy-init pattern used by Stripe
 // (src/lib/stripe.ts): a `configured` predicate plus accessors that throw if
@@ -109,4 +114,55 @@ export async function verifyLiveKitWebhook(
   }
   const receiver = new WebhookReceiver(apiKey, apiSecret);
   return receiver.receive(rawBody, authHeader ?? undefined);
+}
+
+// LiveKit's server-to-server REST endpoint lives on the HTTPS host of the
+// same project, not the wss:// realtime host. The SDK accepts either, but we
+// normalise here so callers can use LIVEKIT_URL verbatim.
+function liveKitRestHost(): string {
+  return liveKitUrl().replace(/^wss:/i, "https:").replace(/^ws:/i, "http:");
+}
+
+/**
+ * Server-side admin client. Used to mutate participant state (grant a raised
+ * hand the right to publish their mic, say) and to inspect the room from
+ * outside the room. Lazily constructed because not every code path needs it.
+ */
+export function roomServiceClient(): RoomServiceClient {
+  const apiKey = process.env.LIVEKIT_API_KEY;
+  const apiSecret = process.env.LIVEKIT_API_SECRET;
+  if (!apiKey || !apiSecret) {
+    throw new Error("LIVEKIT_API_KEY / LIVEKIT_API_SECRET are not configured");
+  }
+  return new RoomServiceClient(liveKitRestHost(), apiKey, apiSecret);
+}
+
+/**
+ * Toggle a student's ability to publish audio/video tracks. Used when the
+ * tutor approves a raised hand. LiveKit pushes the new permission to the
+ * connected client without requiring a reconnect.
+ */
+export async function setParticipantPublishPermission(
+  roomName: string,
+  identity: string,
+  canPublish: boolean
+): Promise<void> {
+  const client = roomServiceClient();
+  await client.updateParticipant(roomName, identity, {
+    permission: {
+      canPublish,
+      canSubscribe: true,
+      canPublishData: true,
+      hidden: false,
+      recorder: false,
+      canUpdateMetadata: false,
+      canSubscribeMetrics: false,
+      // LiveKit's UpdateParticipant treats `permission` atomically — any
+      // permission you don't set is reset to its zero value. The block above
+      // therefore lists every flag we care about (defaults to "everything
+      // students need except A/V publish, which is the toggle").
+      canPublishSources: [],
+      agent: false,
+    },
+  });
 }

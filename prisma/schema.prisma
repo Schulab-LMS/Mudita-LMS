@@ -638,6 +638,10 @@ model ClassroomSession {
   // without depending on the tutor being live at that instant.
   // Shape: { h: number, v: number, f: number } — Reveal's coords.
   currentSlide Json?
+  // Set by the post-egress webhook in P3+ when LiveKit finishes uploading the
+  // room recording to the configured storage destination. Null while recording
+  // is in progress and for sessions that opted not to record.
+  recordingUrl String?
   startedAt    DateTime?
   endedAt      DateTime?
   createdAt    DateTime               @default(now())
@@ -646,6 +650,7 @@ model ClassroomSession {
   booking    Booking               @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   attendance ClassroomAttendance[]
   events     ClassroomEvent[]
+  polls      ClassroomPoll[]
 
   @@index([status])
 }
@@ -683,6 +688,43 @@ model ClassroomEvent {
 
   @@index([sessionId, createdAt])
   @@index([sessionId, type])
+}
+
+// Live polls run by the tutor during a classroom session. The tutor opens
+// one, students vote, and (optionally) the tutor closes it to lock in
+// results. Votes are de-duped by (pollId, userId) — one vote per student.
+model ClassroomPoll {
+  id        String   @id @default(cuid())
+  sessionId String
+  // Question + ordered option strings. Options are stored on the row (rather
+  // than a separate table) because they're set once at open-time and never
+  // mutated; vote counts are derived from ClassroomPollVote rows.
+  question  String   @db.Text
+  options   String[]
+  openedAt  DateTime @default(now())
+  closedAt  DateTime?
+  // Tutor who opened the poll. Recorded for audit; not used for auth.
+  openedBy  String
+
+  session ClassroomSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  votes   ClassroomPollVote[]
+
+  @@index([sessionId, openedAt])
+}
+
+model ClassroomPollVote {
+  id          String   @id @default(cuid())
+  pollId      String
+  userId      String
+  optionIndex Int
+  votedAt     DateTime @default(now())
+
+  poll ClassroomPoll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+  // One vote per (poll, user). Subsequent calls update the existing row
+  // rather than insert duplicates — the service layer handles that upsert.
+  @@unique([pollId, userId])
+  @@index([pollId])
 }
 
 // ========== STEM KITS STORE ==========

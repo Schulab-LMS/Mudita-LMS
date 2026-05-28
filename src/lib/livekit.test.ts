@@ -117,4 +117,18 @@ describe("issueLiveKitToken", () => {
     expect(payload.video?.roomAdmin).toBe(true);
     expect(payload.video?.roomCreate).toBe(true);
   });
+
+  it("flips canPublish on when canPublishAv is true (tutor A/V publishing)", async () => {
+    const token = await issueLiveKitToken({
+      role: "TUTOR",
+      identity: "t-2",
+      name: "Mx. Tutor",
+      roomName: "classroom-xyz",
+      canPublishAv: true,
+    });
+    const payload = JSON.parse(
+      Buffer.from(token.split(".")[1], "base64url").toString("utf8")
+    );
+    expect(payload.video?.canPublish).toBe(true);
+  });
 });
