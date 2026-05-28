@@ -35,6 +35,12 @@ export async function getSessionView(bookingId: string, userId: string) {
           activity: true,
           activityAr: true,
           activityDe: true,
+          type: true,
+          presentationFormat: true,
+          presentationContent: true,
+          presentationContentAr: true,
+          presentationContentDe: true,
+          presentationConfig: true,
           quiz: { select: { id: true, _count: { select: { questions: true } } } },
           module: {
             select: {

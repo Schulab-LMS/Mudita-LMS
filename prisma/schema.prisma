@@ -587,12 +587,102 @@ model Booking {
   tutor          TutorProfile  @relation(fields: [tutorId], references: [id])
   lesson         Lesson?       @relation(fields: [lessonId], references: [id])
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  // Lazily created when the first participant joins the live classroom.
+  // 1:1 with Booking; cascade-deletes if the booking is removed.
+  classroomSession ClassroomSession?
 
   @@index([studentId])
   @@index([tutorId])
   @@index([startTime])
   @@index([lessonId])
   @@index([organizationId])
+}
+
+// ========== LIVE CLASSROOM (LiveKit) ==========
+
+enum ClassroomSessionStatus {
+  PENDING
+  LIVE
+  ENDED
+}
+
+// Append-only event types that flow through both the LiveKit data channel and
+// this audit table. Real-time delivery is the data channel's job; this row is
+// for late-joiner history (chat) and after-the-fact analytics (raise-hand
+// patterns, slide-by-slide engagement). POLL_OPEN/POLL_VOTE/REACTION/
+// PERMISSION_GRANT are declared for the P3 polish phase so we don't migrate
+// the enum twice.
+enum ClassroomEventType {
+  SLIDE_SET
+  CHAT_MSG
+  HAND_RAISE
+  HAND_LOWER
+  POLL_OPEN
+  POLL_VOTE
+  REACTION
+  PERMISSION_GRANT
+}
+
+// A live virtual classroom riding on top of a Booking. The Booking is the
+// scheduling artefact; this row is the runtime artefact (room name, current
+// slide, lifecycle status). Created on demand the first time someone joins.
+model ClassroomSession {
+  id           String                 @id @default(cuid())
+  bookingId    String                 @unique
+  // Stable LiveKit room name. Reusing a deterministic value across reconnects
+  // means we don't end up with two parallel rooms for the same Booking.
+  livekitRoom  String                 @unique
+  status       ClassroomSessionStatus @default(PENDING)
+  // Server-of-truth for the deck position. The tutor's data-channel
+  // `slide:set` event is mirrored here so a refresh / late-join can hydrate
+  // without depending on the tutor being live at that instant.
+  // Shape: { h: number, v: number, f: number } — Reveal's coords.
+  currentSlide Json?
+  startedAt    DateTime?
+  endedAt      DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  booking    Booking               @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  attendance ClassroomAttendance[]
+  events     ClassroomEvent[]
+
+  @@index([status])
+}
+
+// One row per (participant, join). LiveKit's webhook drives this:
+// participant_joined → INSERT; participant_left → UPDATE leftAt + durationSec.
+// A rejoin creates a new row — we never mutate an existing one — so "did the
+// student attend" is just `count(*) > 0` and "for how long" is the sum.
+model ClassroomAttendance {
+  id          String           @id @default(cuid())
+  sessionId   String
+  userId      String
+  joinedAt    DateTime         @default(now())
+  leftAt      DateTime?
+  durationSec Int?
+  session     ClassroomSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([userId])
+}
+
+// Append-only audit + history mirror of every meaningful event during a live
+// session. Written by the server when it receives a chat/slide/hand event
+// from the tutor or student (via authenticated REST call alongside the data
+// channel publish). Late joiners GET this table to rebuild chat scrollback.
+model ClassroomEvent {
+  id        String             @id @default(cuid())
+  sessionId String
+  // Null for server-emitted events (e.g. an auto SLIDE_SET on session start).
+  userId    String?
+  type      ClassroomEventType
+  payload   Json?
+  createdAt DateTime           @default(now())
+  session   ClassroomSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([sessionId, type])
 }
 
 // ========== STEM KITS STORE ==========

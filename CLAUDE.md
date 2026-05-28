@@ -142,6 +142,14 @@ All models use cuid() IDs. `src/lib/db.ts` exports `db` — a singleton PrismaCl
 - `VideoAsset` — provider-agnostic; providers: MUX, CLOUDFLARE_STREAM, VIMEO, YOUTUBE, EXTERNAL
 - Mux signed playback uses PKCS#8 RS256 JWTs (`src/lib/mux.ts`)
 
+**Live Classroom (LiveKit)**
+- `ClassroomSession` — runtime artefact attached to a `Booking` (1:1). Holds the LiveKit room name and the server-of-truth slide position (`currentSlide` JSON).
+- `ClassroomAttendance` — one row per (participant, join). Populated by the LiveKit webhook (`participant_joined` / `participant_left`); rejoins create new rows so totals are aggregates.
+- `ClassroomEvent` — append-only audit/history mirror of slide / chat / hand events. Real-time delivery is via the LiveKit data channel; this table is the durable mirror used for late-joiner chat scrollback.
+- Data channel topics (P2): `slide`, `chat`, `hand`. The tutor's React component publishes; followers subscribe. `recordSlideChange` / `recordChatMessage` / `recordHandState` server actions persist alongside the data channel publish.
+- `src/lib/livekit.ts` — `isLiveKitConfigured()`, `issueLiveKitToken()`, `verifyLiveKitWebhook()`. Mirrors the Stripe lazy-init pattern; rest of the app boots fine without LIVEKIT_* env vars.
+- `src/components/session/live-classroom.tsx` — client wrapper around `<LiveKitRoom>` with tutor-controlled Reveal.js + chat + raise-hand + roster.
+
 **Multi-tenant (scaffolding only)**
 - `Organization` — schools / B2B partners. Nullable `organizationId` FKs live on `User`, `Course`, `Booking`. Not enforced anywhere yet — added so the live-classroom + tenant-scoping work in later phases doesn't need a painful retrofit. New queries should NOT filter on `organizationId` until the enforcement phase ships.
 
@@ -259,6 +267,8 @@ See `.env.example` for the full list. Critical ones:
 | `MUX_SIGNING_KEY_ID / PRIVATE` | Mux signed playback (single-line PEM) |
 | `MUX_WEBHOOK_SECRET` | Mux webhook verification |
 | `REDIS_URL` | Optional — enables distributed rate limiting |
+| `LIVEKIT_URL` | wss:// URL of the LiveKit Cloud project (live classroom) |
+| `LIVEKIT_API_KEY / SECRET` | LiveKit Cloud credentials — used for both token signing and webhook verification |
 | `CRON_SECRET` | Bearer token for `/api/cron/drip` |
 | `CHILD_AGE_THRESHOLD` | Age of consent (default 16 for DE) |
 | `TERMS_VERSION / PRIVACY_VERSION` | Force re-consent when bumped |

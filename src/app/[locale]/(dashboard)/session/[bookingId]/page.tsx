@@ -2,6 +2,11 @@ import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getSessionView, getAssignableLessons } from "@/services/session.service";
 import { getLocalizedField } from "@/services/course.service";
+import {
+  joinClassroom,
+  loadChatHistory,
+} from "@/services/live-classroom.service";
+import { isLiveKitConfigured } from "@/lib/livekit";
 import { sanitize } from "@/lib/sanitize";
 import { ProtectedContent } from "@/components/shared/protected-content";
 import { PageHeader } from "@/components/ui/page-header";
@@ -9,6 +14,8 @@ import { Link } from "@/i18n/navigation";
 import { TutorControls } from "./tutor-controls";
 import { ActivitySubmission } from "@/components/course/activity-submission";
 import { ActivityFeedback } from "@/components/course/activity-feedback";
+import { LiveClassroom } from "@/components/session/live-classroom";
+import type { PresentationConfig } from "@/lib/presentation";
 import {
   Video,
   NotebookPen,
@@ -54,6 +61,24 @@ export default async function SessionPage({
   const activity = lesson ? getLocalizedField(lesson, "activity", locale) : "";
   const tutorNotesHtml =
     isTutor && tutorNotes ? getLocalizedField(tutorNotes, "tutorNotes", locale) : "";
+  const presentationMarkdown =
+    lesson && lesson.type === "PRESENTATION"
+      ? getLocalizedField(lesson, "presentationContent", locale)
+      : "";
+  const hasPresentation = Boolean(presentationMarkdown);
+
+  // Live classroom is offered when LiveKit is configured AND the lesson has
+  // a deck to project. Without one of those, we fall back to the static
+  // role-split view that already exists (handout + optional external
+  // meetingUrl). The token + chat history fetch is server-side so the
+  // browser only sees the LiveKit URL + JWT it actually needs.
+  const liveClassroom =
+    isLiveKitConfigured() && hasPresentation
+      ? await joinClassroom(booking.id, session.user.id)
+      : null;
+  const initialChat = liveClassroom
+    ? await loadChatHistory(liveClassroom.sessionId)
+    : [];
 
   const counterpart = isTutor ? booking.student.name : booking.tutor.user.name;
   const timeFmt = new Intl.DateTimeFormat("en-US", {
@@ -117,26 +142,52 @@ export default async function SessionPage({
 
           {lesson ? (
             <>
-              <div className="card-premium overflow-hidden">
-                <div className="flex items-center gap-2 border-b border-border px-5 py-3">
-                  <BookOpen className="h-4 w-4 text-primary" aria-hidden />
-                  <h2 className="text-sm font-semibold text-foreground">{lessonTitle}</h2>
+              {liveClassroom ? (
+                <LiveClassroom
+                  bookingId={booking.id}
+                  token={liveClassroom.token}
+                  livekitUrl={liveClassroom.livekitUrl}
+                  role={liveClassroom.role}
+                  selfId={session.user.id}
+                  selfName={session.user.name ?? session.user.email ?? "Student"}
+                  initialSlide={liveClassroom.currentSlide}
+                  initialChat={initialChat}
+                  presentationMarkdown={presentationMarkdown}
+                  presentationConfig={
+                    lesson.presentationConfig as PresentationConfig | null
+                  }
+                  watermark={watermark}
+                  rtl={locale === "ar"}
+                />
+              ) : (
+                <div className="card-premium overflow-hidden">
+                  <div className="flex items-center gap-2 border-b border-border px-5 py-3">
+                    <BookOpen className="h-4 w-4 text-primary" aria-hidden />
+                    <h2 className="text-sm font-semibold text-foreground">{lessonTitle}</h2>
+                  </div>
+                  <div className="p-6">
+                    {content ? (
+                      <ProtectedContent watermark={watermark}>
+                        <div
+                          className="prose prose-sm max-w-none dark:prose-invert"
+                          dangerouslySetInnerHTML={{ __html: sanitize(content) }}
+                        />
+                      </ProtectedContent>
+                    ) : hasPresentation ? (
+                      <p className="text-sm text-muted-foreground">
+                        This lesson has a Reveal.js deck. Configure LIVEKIT_URL
+                        / LIVEKIT_API_KEY / LIVEKIT_API_SECRET to open the live
+                        classroom; otherwise students see the deck via the
+                        self-paced lesson page.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        This lesson has no written content.
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="p-6">
-                  {content ? (
-                    <ProtectedContent watermark={watermark}>
-                      <div
-                        className="prose prose-sm max-w-none dark:prose-invert"
-                        dangerouslySetInnerHTML={{ __html: sanitize(content) }}
-                      />
-                    </ProtectedContent>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      This lesson has no written content.
-                    </p>
-                  )}
-                </div>
-              </div>
+              )}
 
               {activity && (
                 <div className="card-premium overflow-hidden">
