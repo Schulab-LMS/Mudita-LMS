@@ -1,4 +1,11 @@
 import { db } from "@/lib/db";
+import { awardPoints, checkAndAwardBadges } from "@/services/gamification.service";
+
+// Points awarded for a passing quiz attempt. Re-awarded on every fresh pass
+// is fine — the leaderboard rewards consistent practice — but we de-dupe
+// per (user, quiz) via the latest-passing check below so spamming the same
+// quiz doesn't game the score.
+const QUIZ_PASS_POINTS = 50;
 
 export async function getQuizByLessonId(lessonId: string) {
   try {
@@ -199,6 +206,24 @@ export async function submitAttempt(
         completedAt: new Date(),
       },
     });
+
+    // Award points + check for new badges on the first passing attempt for
+    // this quiz. Subsequent re-passes don't pile up more points — the
+    // dedupe lets learners retry without inflating their score.
+    if (passed) {
+      const earlierPass = await db.quizAttempt.findFirst({
+        where: { userId, quizId, passed: true, id: { not: attempt.id } },
+        select: { id: true },
+      });
+      if (!earlierPass) {
+        await awardPoints(userId, "QUIZ_PASSED", QUIZ_PASS_POINTS, {
+          quizId,
+          attemptId: attempt.id,
+          score,
+        });
+        await checkAndAwardBadges(userId);
+      }
+    }
 
     return {
       attemptId: attempt.id,

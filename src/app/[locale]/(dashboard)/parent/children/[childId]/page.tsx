@@ -1,7 +1,14 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { getChildren } from "@/services/user.service";
 import { getUserEnrollments } from "@/services/enrollment.service";
+import { isMinor } from "@/lib/compliance";
+import {
+  getActiveSubscriptionTier,
+  tierSatisfies,
+} from "@/lib/subscription-access";
+import { tenantScope } from "@/lib/tenant";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
@@ -19,6 +26,8 @@ import {
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { getInitials } from "@/lib/utils";
+import { ConsentPanel } from "./consent-panel";
+import { EnrollChildPanel } from "./enroll-child-panel";
 
 interface ChildDetailPageProps {
   params: Promise<{ childId: string }>;
@@ -45,6 +54,64 @@ export default async function ChildDetailPage({
           enrollments.reduce((s, e) => s + e.progress, 0) / enrollments.length
         )
       : 0;
+
+  // Compliance + enrolment data feeding the parent panels below.
+  const [latestConsent, parentTier, candidateCourses] = await Promise.all([
+    db.consentRecord.findFirst({
+      where: {
+        userId: childId,
+        type: { in: ["PARENTAL_COPPA", "PARENTAL_GDPR_K"] },
+      },
+      orderBy: { grantedAt: "desc" },
+      select: { granted: true, grantedAt: true },
+    }),
+    getActiveSubscriptionTier(session.user.id),
+    db.course.findMany({
+      where: {
+        status: "PUBLISHED",
+        AND: [tenantScope({ role: "STUDENT", organizationId: child.organizationId })],
+        NOT: { enrollments: { some: { userId: childId } } },
+        OR: [{ isFree: true }, { requiredPlan: { not: null } }],
+      },
+      select: {
+        id: true,
+        title: true,
+        isFree: true,
+        requiredPlan: true,
+        price: true,
+      },
+      orderBy: { title: "asc" },
+      take: 50,
+    }),
+  ]);
+
+  const childIsMinor = child.dateOfBirth ? isMinor(child.dateOfBirth) : true;
+  const hasActiveConsent = Boolean(latestConsent?.granted);
+  const consentRequired = childIsMinor && !hasActiveConsent;
+  const dobMissing = !child.dateOfBirth;
+
+  // Only surface courses the parent's plan actually entitles them to (plus
+  // free courses) — picking a course the parent can't enrol into would
+  // produce a confusing error after the click.
+  const enrollableCourses = candidateCourses
+    .filter((c) => {
+      const isFree = c.isFree || Number(c.price) === 0;
+      if (isFree) return true;
+      if (!c.requiredPlan) return false; // one-time-purchase courses go through Stripe
+      return Boolean(parentTier && tierSatisfies(parentTier, c.requiredPlan));
+    })
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      isFree: c.isFree || Number(c.price) === 0,
+      requiredPlan: c.requiredPlan,
+    }));
+
+  const enrolDisabledReason = dobMissing
+    ? "Add a date of birth for this child first."
+    : consentRequired
+      ? "Grant parental consent first."
+      : undefined;
 
   return (
     <div className="space-y-6">
@@ -92,6 +159,24 @@ export default async function ChildDetailPage({
           description="Across all courses"
         />
       </div>
+
+      {/* Parental controls */}
+      {childIsMinor && (
+        <ConsentPanel
+          childId={child.id}
+          childName={child.name}
+          hasActiveConsent={hasActiveConsent}
+          consentGrantedAt={latestConsent?.grantedAt ?? null}
+          defaultType="PARENTAL_GDPR_K"
+        />
+      )}
+      <EnrollChildPanel
+        childId={child.id}
+        childName={child.name}
+        courses={enrollableCourses}
+        disabled={Boolean(enrolDisabledReason)}
+        disabledReason={enrolDisabledReason}
+      />
 
       {/* Courses */}
       {enrollments.length === 0 ? (

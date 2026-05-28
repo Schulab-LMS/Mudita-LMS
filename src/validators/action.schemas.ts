@@ -182,9 +182,23 @@ export const addChildAccountSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  dateOfBirth: z.coerce
+    .date({ message: "Please enter a valid date of birth" })
+    .max(new Date(), "Date of birth cannot be in the future")
+    .min(new Date("1900-01-01"), "Please enter a valid date of birth"),
 });
 
 export const removeChildSchema = z.object({ childId: cuidSchema });
+
+export const grantChildConsentSchema = z.object({
+  childId: cuidSchema,
+  type: z.enum(["PARENTAL_COPPA", "PARENTAL_GDPR_K"]),
+});
+
+export const enrollChildInCourseSchema = z.object({
+  courseId: cuidSchema,
+  childId: cuidSchema,
+});
 
 // ── Billing ─────────────────────────────────────────────────────────────
 
