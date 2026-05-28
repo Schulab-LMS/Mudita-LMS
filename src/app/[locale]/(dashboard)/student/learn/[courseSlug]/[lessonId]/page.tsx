@@ -5,11 +5,13 @@ import { getCourseBySlug, getLocalizedField } from "@/services/course.service";
 import { getLessonProgress } from "@/services/progress.service";
 import { LessonSidebar } from "@/components/course/lesson-sidebar";
 import { VideoPlayer } from "@/components/course/video-player";
+import { RevealPresentation } from "@/components/course/reveal-presentation";
 import { MarkCompleteButton } from "@/components/course/mark-complete-button";
 import { ProtectedContent } from "@/components/shared/protected-content";
 import { ActivitySubmission } from "@/components/course/activity-submission";
 import { getActivitySubmission } from "@/services/activity.service";
 import { sanitize } from "@/lib/sanitize";
+import type { PresentationConfig } from "@/lib/presentation";
 import { db } from "@/lib/db";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import {
@@ -76,6 +78,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   const lessonContent = getLocalizedField(lesson, "content", locale);
   const lessonActivity = getLocalizedField(lesson, "activity", locale);
+  const presentationMarkdown =
+    lesson.type === "PRESENTATION"
+      ? getLocalizedField(lesson, "presentationContent", locale)
+      : "";
+  const hasPresentation =
+    lesson.type === "PRESENTATION" && Boolean(presentationMarkdown);
   const watermark = session.user.email ?? session.user.name ?? undefined;
   const submission = lessonActivity
     ? await getActivitySubmission(lesson.id, session.user.id)
@@ -128,8 +136,23 @@ export default async function LessonPage({ params }: LessonPageProps) {
             </h1>
           </div>
 
-          {/* Video / placeholder */}
-          {lesson.videoAssetId || lesson.videoUrl ? (
+          {/* Primary surface: Reveal.js deck for PRESENTATION lessons, video
+              otherwise. Both are wrapped in ProtectedContent so the same leak
+              watermark covers the slide canvas and the video pixels. */}
+          {hasPresentation ? (
+            <ProtectedContent
+              className="overflow-hidden rounded-2xl border border-border bg-black shadow-lg"
+              watermark={watermark}
+            >
+              <RevealPresentation
+                markdown={presentationMarkdown}
+                config={lesson.presentationConfig as PresentationConfig | null}
+                mode="self-paced"
+                rtl={locale === "ar"}
+                ariaLabel={lesson.title}
+              />
+            </ProtectedContent>
+          ) : lesson.videoAssetId || lesson.videoUrl ? (
             <div className="overflow-hidden rounded-2xl border border-border bg-black shadow-lg">
               <VideoPlayer
                 assetId={lesson.videoAssetId}
@@ -176,6 +199,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
                     }}
                   />
                 </ProtectedContent>
+              ) : hasPresentation ? (
+                <p className="text-sm text-muted-foreground">
+                  Slide deck is above. Use the arrow keys, controls, or swipe
+                  to navigate.
+                </p>
               ) : (
                 <p className="text-sm text-muted-foreground">
                   No written notes for this lesson. Watch the video above or

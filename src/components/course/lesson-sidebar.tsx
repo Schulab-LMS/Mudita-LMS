@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Cpu,
   ClipboardCheck,
+  Presentation,
 } from "lucide-react";
 
 interface Lesson {
@@ -34,6 +35,7 @@ const typeIcons: Record<string, React.ElementType> = {
   QUIZ: ClipboardList,
   INTERACTIVE: Cpu,
   ASSIGNMENT: ClipboardCheck,
+  PRESENTATION: Presentation,
 };
 
 const typeColors: Record<string, string> = {
@@ -42,6 +44,7 @@ const typeColors: Record<string, string> = {
   QUIZ: "text-amber-500",
   INTERACTIVE: "text-violet-500",
   ASSIGNMENT: "text-orange-500",
+  PRESENTATION: "text-fuchsia-500",
 };
 
 export async function LessonSidebar({

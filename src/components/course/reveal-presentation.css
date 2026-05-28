@@ -1,0 +1,24 @@
+/*
+ * Scoped overrides for embedded Reveal.js.
+ * The black theme assumes a full-viewport deck; we run it inside a 16:9
+ * card on the lesson page, so a couple of layout rules need clamping.
+ */
+
+.reveal-host {
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.reveal-host .reveal {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Reveal hides the cursor when idle; restore it for embedded decks so the
+ * student doesn't think the page is frozen. */
+.reveal-host .reveal,
+.reveal-host .reveal .slides {
+  cursor: default;
+}

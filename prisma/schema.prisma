@@ -19,20 +19,41 @@ enum Role {
   B2B_PARTNER
 }
 
+// Multi-tenant scaffolding (Phase 1: nullable everywhere, not enforced).
+// Lets us attach schools/organisations to users, courses, and bookings
+// without a painful retrofit when tenant-scoping ships in Phase 4.
+// See src/services/curriculum-sync.service.ts and the live-classroom plan.
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  settings  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  courses  Course[]
+  bookings Booking[]
+
+  @@index([slug])
+}
+
 model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
+  id               String        @id @default(cuid())
+  email            String        @unique
   emailVerified    DateTime?
   passwordHash     String?
   name             String
   avatar           String?
-  role             Role      @default(STUDENT)
-  locale           String    @default("en")
-  isActive         Boolean   @default(true)
+  role             Role          @default(STUDENT)
+  locale           String        @default("en")
+  isActive         Boolean       @default(true)
   dateOfBirth      DateTime?
-  stripeCustomerId String?   @unique
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  stripeCustomerId String?       @unique
+  organizationId   String?
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   profile      Profile?
   tutorProfile TutorProfile?
@@ -73,6 +94,7 @@ model User {
   @@index([email])
   @@index([role])
   @@index([stripeCustomerId])
+  @@index([organizationId])
 }
 
 model Account {
@@ -207,6 +229,9 @@ model Course {
   sourceCommitSha String?
   syncStatus      SyncStatus @default(ACTIVE)
 
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
   modules     Module[]
   enrollments Enrollment[]
   reviews     CourseReview[]
@@ -217,6 +242,7 @@ model Course {
   @@index([status])
   @@index([requiredPlan])
   @@index([managedByGit])
+  @@index([organizationId])
 }
 
 model Module {
@@ -243,6 +269,17 @@ enum LessonType {
   QUIZ
   INTERACTIVE
   ASSIGNMENT
+  PRESENTATION
+}
+
+// How Reveal.js presentation content is authored. MARKDOWN is the default and
+// preferred form — Reveal's markdown plugin parses it on the client. HTML is a
+// future escape hatch for hand-crafted decks; sanitized server-side before
+// store. P1 only emits MARKDOWN; the enum exists so we don't have to migrate
+// again when HTML support lands.
+enum PresentationFormat {
+  MARKDOWN
+  HTML
 }
 
 model Lesson {
@@ -263,6 +300,17 @@ model Lesson {
   tutorNotes   String?          @db.Text
   tutorNotesAr String?          @db.Text
   tutorNotesDe String?          @db.Text
+  // Reveal.js slide deck (synced from presentation.md). Raw markdown is stored
+  // so the client-side Reveal markdown plugin keeps slide-break semantics
+  // ('---' / '--') intact. presentationConfig holds parsed YAML frontmatter
+  // (theme, transition, plugins…). When presentationContent is non-null the
+  // lesson's `type` is PRESENTATION and the renderer takes over the main
+  // content surface.
+  presentationFormat    PresentationFormat?
+  presentationContent   String?              @db.Text
+  presentationContentAr String?              @db.Text
+  presentationContentDe String?              @db.Text
+  presentationConfig    Json?
   videoUrl     String?
   videoAssetId String?
   thumbnail    String?
@@ -516,32 +564,35 @@ enum BookingStatus {
 }
 
 model Booking {
-  id         String        @id @default(cuid())
-  studentId  String
-  tutorId    String
-  subject    String
-  startTime  DateTime
-  endTime    DateTime
-  status     BookingStatus @default(PENDING)
-  meetingUrl String?
-  meetingId  String?
-  notes      String?       @db.Text
-  rating     Int?
-  review     String?       @db.Text
-  price      Decimal       @db.Decimal(10, 2)
-  currency   String        @default("USD")
-  createdAt  DateTime      @default(now())
+  id             String        @id @default(cuid())
+  studentId      String
+  tutorId        String
+  subject        String
+  startTime      DateTime
+  endTime        DateTime
+  status         BookingStatus @default(PENDING)
+  meetingUrl     String?
+  meetingId      String?
+  notes          String?       @db.Text
+  rating         Int?
+  review         String?       @db.Text
+  price          Decimal       @db.Decimal(10, 2)
+  currency       String        @default("USD")
+  createdAt      DateTime      @default(now())
   // The curriculum lesson taught in this session (set by the tutor). Drives
   // the role-split live-session view. Null until the tutor assigns one.
-  lessonId   String?
-  student    User          @relation("StudentBookings", fields: [studentId], references: [id])
-  tutor      TutorProfile  @relation(fields: [tutorId], references: [id])
-  lesson     Lesson?       @relation(fields: [lessonId], references: [id])
+  lessonId       String?
+  organizationId String?
+  student        User          @relation("StudentBookings", fields: [studentId], references: [id])
+  tutor          TutorProfile  @relation(fields: [tutorId], references: [id])
+  lesson         Lesson?       @relation(fields: [lessonId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([tutorId])
   @@index([startTime])
   @@index([lessonId])
+  @@index([organizationId])
 }
 
 // ========== STEM KITS STORE ==========

@@ -4,7 +4,10 @@ import type {
   AgeGroup,
   CourseLevel,
   CourseStatus,
+  LessonType,
   PlanTier,
+  PresentationFormat,
+  Prisma,
   SyncTrigger,
 } from "@/generated/prisma/client";
 import {
@@ -16,6 +19,11 @@ import {
 } from "@/lib/github-curricula";
 import { renderCurriculumMarkdown, splitTutorContent } from "@/lib/markdown";
 import { parseQuizMarkdown, type ParsedQuiz } from "@/lib/curriculum-quiz-parser";
+import {
+  parsePresentationMarkdown,
+  rewritePresentationMediaUrls,
+  type PresentationConfig,
+} from "@/lib/presentation";
 import { sendCurriculumSyncAlert } from "@/lib/email";
 import {
   type CourseMeta,
@@ -49,6 +57,15 @@ interface BuiltLesson {
   activityAr: string | null;
   activityDe: string | null;
   tutorNotes: string | null;
+  // Reveal.js slide deck. Stored as raw markdown (NOT rendered to HTML) so
+  // the client-side Reveal markdown plugin can parse slide delimiters.
+  // presentation* is non-null when presentation.md exists in the unit; the
+  // localised variants are non-null when presentation.<locale>.md exists.
+  // When the english variant is present we promote lesson.type to PRESENTATION.
+  presentation: string | null;
+  presentationAr: string | null;
+  presentationDe: string | null;
+  presentationConfig: PresentationConfig | null;
   quiz: ParsedQuiz | null;
 }
 
@@ -141,6 +158,9 @@ async function buildCourse(
       const activityAr = await readText(`${unitPath}/activity.ar.md`);
       const activityDe = await readText(`${unitPath}/activity.de.md`);
       const quizMd = await readText(`${unitPath}/quiz.md`);
+      const presentationMd = await readText(`${unitPath}/presentation.md`);
+      const presentationArMd = await readText(`${unitPath}/presentation.ar.md`);
+      const presentationDeMd = await readText(`${unitPath}/presentation.de.md`);
 
       const split = handout ? splitTutorContent(handout) : null;
       const ctx = (file: string) => ({
@@ -148,6 +168,36 @@ async function buildCourse(
         courseRoot: root,
         sourceFilePath: file,
       });
+
+      // Reveal.js decks: pull frontmatter off the English variant only (it's
+      // the canonical config), keep raw markdown for all locales, and rewrite
+      // relative image paths to the authenticated media proxy.
+      let presentation: string | null = null;
+      let presentationAr: string | null = null;
+      let presentationDe: string | null = null;
+      let presentationConfig: PresentationConfig | null = null;
+      if (presentationMd) {
+        const parsed = parsePresentationMarkdown(presentationMd);
+        presentationConfig = parsed.config;
+        presentation = rewritePresentationMediaUrls(
+          parsed.markdown,
+          ctx(`${unitPath}/presentation.md`)
+        );
+      }
+      if (presentationArMd) {
+        const parsed = parsePresentationMarkdown(presentationArMd);
+        presentationAr = rewritePresentationMediaUrls(
+          parsed.markdown,
+          ctx(`${unitPath}/presentation.ar.md`)
+        );
+      }
+      if (presentationDeMd) {
+        const parsed = parsePresentationMarkdown(presentationDeMd);
+        presentationDe = rewritePresentationMediaUrls(
+          parsed.markdown,
+          ctx(`${unitPath}/presentation.de.md`)
+        );
+      }
 
       // Tutor notes = module overview (pedagogy) + this unit's TUTOR_ONLY fences.
       const tutorParts: string[] = [];
@@ -185,6 +235,10 @@ async function buildCourse(
           ? renderCurriculumMarkdown(activityDe, ctx(`${unitPath}/activity.de.md`))
           : null,
         tutorNotes: tutorParts.length ? tutorParts.join("\n") : null,
+        presentation,
+        presentationAr,
+        presentationDe,
+        presentationConfig,
         quiz: quizMd ? parseQuizMarkdown(quizMd) : null,
       });
     }
@@ -304,8 +358,19 @@ async function persistCourse(
   });
 }
 
+// True when two JSON-serialisable values are deep-equal. Used to compare the
+// presentation config block against what's already stored.
+function jsonEqual(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+}
+
 // Returns true if a write happened (create or content-changing update).
 async function persistLesson(moduleId: string, lesson: BuiltLesson): Promise<boolean> {
+  const hasPresentation = lesson.presentation !== null;
+  const lessonType: LessonType = hasPresentation ? "PRESENTATION" : "TEXT";
+  const presentationFormat: PresentationFormat | null = hasPresentation
+    ? "MARKDOWN"
+    : null;
   const data = {
     title: lesson.title,
     content: lesson.content,
@@ -315,8 +380,17 @@ async function persistLesson(moduleId: string, lesson: BuiltLesson): Promise<boo
     activityAr: lesson.activityAr,
     activityDe: lesson.activityDe,
     tutorNotes: lesson.tutorNotes,
+    presentationFormat,
+    presentationContent: lesson.presentation,
+    presentationContentAr: lesson.presentationAr,
+    presentationContentDe: lesson.presentationDe,
+    // PresentationConfig's `[extra: string]: unknown` index signature is too
+    // wide for Prisma's recursive InputJsonValue; the value is JSON-safe by
+    // construction (parsed from YAML) so the cast is sound.
+    presentationConfig: (lesson.presentationConfig ??
+      undefined) as Prisma.InputJsonValue | undefined,
     order: lesson.order,
-    type: "TEXT" as const,
+    type: lessonType,
     duration: DEFAULT_LESSON_SECONDS,
     syncStatus: "ACTIVE" as const,
   };
@@ -333,6 +407,12 @@ async function persistLesson(moduleId: string, lesson: BuiltLesson): Promise<boo
       activityAr: true,
       activityDe: true,
       tutorNotes: true,
+      presentationFormat: true,
+      presentationContent: true,
+      presentationContentAr: true,
+      presentationContentDe: true,
+      presentationConfig: true,
+      type: true,
       order: true,
       syncStatus: true,
     },
@@ -358,6 +438,12 @@ async function persistLesson(moduleId: string, lesson: BuiltLesson): Promise<boo
       existing.activityAr === data.activityAr &&
       existing.activityDe === data.activityDe &&
       existing.tutorNotes === data.tutorNotes &&
+      existing.presentationFormat === data.presentationFormat &&
+      existing.presentationContent === data.presentationContent &&
+      existing.presentationContentAr === data.presentationContentAr &&
+      existing.presentationContentDe === data.presentationContentDe &&
+      jsonEqual(existing.presentationConfig, lesson.presentationConfig) &&
+      existing.type === data.type &&
       existing.order === data.order &&
       existing.syncStatus === "ACTIVE";
     if (!unchanged) {

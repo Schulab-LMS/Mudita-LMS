@@ -112,8 +112,9 @@ All models use cuid() IDs. `src/lib/db.ts` exports `db` — a singleton PrismaCl
 - `OnboardingProfile` — post-signup onboarding wizard state
 
 **Courses & Content**
-- `Course → Module → Lesson` — three-level hierarchy; lessons have types: VIDEO, TEXT, QUIZ, INTERACTIVE, ASSIGNMENT
+- `Course → Module → Lesson` — three-level hierarchy; lessons have types: VIDEO, TEXT, QUIZ, INTERACTIVE, ASSIGNMENT, PRESENTATION
 - `Course.requiredPlan` — nullable `PlanTier`; gates subscription access alongside free/paid model
+- `Lesson.presentationContent*` — raw Reveal.js markdown synced from `presentation.md` (+ `.ar.md` / `.de.md`); rendered client-side by `src/components/course/reveal-presentation.tsx`. When present the lesson's `type` is `PRESENTATION` and the deck replaces the video block as the primary surface. Frontmatter (theme / transition / plugins) lives in `presentationConfig` (JSON). Sync-time helpers live in `src/lib/presentation.ts`.
 - `Quiz → Question → Answer` — quizzes are 1:1 with lessons
 - `QuizAttempt` — per-user attempt records with JSON answers
 - `Enrollment` — user↔course; tracks progress (0–100) and completion
@@ -140,6 +141,9 @@ All models use cuid() IDs. `src/lib/db.ts` exports `db` — a singleton PrismaCl
 **Video**
 - `VideoAsset` — provider-agnostic; providers: MUX, CLOUDFLARE_STREAM, VIMEO, YOUTUBE, EXTERNAL
 - Mux signed playback uses PKCS#8 RS256 JWTs (`src/lib/mux.ts`)
+
+**Multi-tenant (scaffolding only)**
+- `Organization` — schools / B2B partners. Nullable `organizationId` FKs live on `User`, `Course`, `Booking`. Not enforced anywhere yet — added so the live-classroom + tenant-scoping work in later phases doesn't need a painful retrofit. New queries should NOT filter on `organizationId` until the enforcement phase ships.
 
 **Other**
 - `AuditLog` — admin action trail
