@@ -195,9 +195,30 @@ export const grantChildConsentSchema = z.object({
   type: z.enum(["PARENTAL_COPPA", "PARENTAL_GDPR_K"]),
 });
 
+export const withdrawChildConsentSchema = z.object({
+  childId: cuidSchema,
+  type: z.enum(["PARENTAL_COPPA", "PARENTAL_GDPR_K"]),
+});
+
+export const bulkGrantChildConsentSchema = z.object({
+  type: z.enum(["PARENTAL_COPPA", "PARENTAL_GDPR_K"]),
+});
+
 export const enrollChildInCourseSchema = z.object({
   courseId: cuidSchema,
   childId: cuidSchema,
+});
+
+export const buyCourseForChildSchema = z.object({
+  courseId: cuidSchema,
+  childId: cuidSchema,
+  couponCode: z
+    .string()
+    .trim()
+    .min(3)
+    .max(32)
+    .regex(/^[A-Za-z0-9_-]+$/)
+    .optional(),
 });
 
 // ── Billing ─────────────────────────────────────────────────────────────

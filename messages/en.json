@@ -699,7 +699,10 @@
     "completed": "Completed",
     "markComplete": "Mark as complete",
     "saving": "Saving…",
-    "noVideo": "No video available"
+    "noVideo": "No video available",
+    "accessPausedTitle": "Access paused",
+    "accessPausedWithdrawn": "A parent or guardian has withdrawn consent. Please contact them — or our support team — to restore access.",
+    "accessPausedDobMissing": "Please add your date of birth to your profile before continuing."
   },
   "notifications": {
     "title": "Notifications",

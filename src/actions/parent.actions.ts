@@ -9,12 +9,22 @@ import {
   addChildAccountSchema,
   removeChildSchema,
   grantChildConsentSchema,
+  withdrawChildConsentSchema,
+  bulkGrantChildConsentSchema,
   enrollChildInCourseSchema,
+  buyCourseForChildSchema,
 } from "@/validators/action.schemas";
-import { recordConsent, PRIVACY_VERSION, assertMinorConsent } from "@/lib/compliance";
+import {
+  recordConsent,
+  PRIVACY_VERSION,
+  assertMinorConsent,
+  isMinor,
+} from "@/lib/compliance";
 import { hasActivePlanAtLeast } from "@/lib/subscription-access";
 import { assertSameTenant } from "@/lib/tenant";
 import { enrollUser } from "@/services/enrollment.service";
+import { createCourseCheckoutSession } from "@/services/billing.service";
+import { isStripeConfigured } from "@/lib/stripe";
 import { sendEnrollmentConfirmation } from "@/lib/email";
 
 export async function addChildAccount(data: {
@@ -151,6 +161,149 @@ export async function grantChildConsent(input: {
   }
 }
 
+// Parent withdraws an earlier parental consent for a linked child. Appends
+// a `granted: false` row to the ledger — never updates the prior grant.
+// `assertMinorConsent` reads the most recent row, so a withdrawal blocks
+// the child from new enrolments, purchases, and lesson access going
+// forward.
+export async function withdrawChildConsent(input: {
+  childId: string;
+  type: "PARENTAL_COPPA" | "PARENTAL_GDPR_K";
+}) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "Not authenticated" };
+    }
+    if (session.user.role !== "PARENT") {
+      return { success: false, error: "Only parents can withdraw child consent" };
+    }
+
+    const parsed = withdrawChildConsentSchema.safeParse(input);
+    if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const link = await db.parentChild.findUnique({
+      where: {
+        parentId_childId: {
+          parentId: session.user.id,
+          childId: parsed.data.childId,
+        },
+      },
+    });
+    if (!link) return { success: false, error: "Child not found" };
+
+    const h = await headers().catch(() => null);
+    const ipAddress =
+      h?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      h?.get("x-real-ip") ??
+      null;
+    const userAgent = h?.get("user-agent") ?? null;
+
+    await recordConsent(
+      {
+        userId: parsed.data.childId,
+        grantedById: session.user.id,
+        ipAddress,
+        userAgent,
+      },
+      parsed.data.type,
+      PRIVACY_VERSION,
+      false
+    );
+
+    revalidatePath(`/parent/children/${parsed.data.childId}`);
+    revalidatePath("/parent/children");
+    return { success: true };
+  } catch (error) {
+    console.error("withdrawChildConsent action error:", error);
+    return { success: false, error: "Failed to record withdrawal" };
+  }
+}
+
+// Grants parental consent for every linked child who is a minor without an
+// active consent on record. Writes happen in one transaction so the legal
+// record either fully reflects the parent's action or not at all. IP/UA are
+// captured once and stamped onto every row — the parent's signal is one
+// signal applied to N children, not N independent signals.
+export async function bulkGrantChildConsent(input: {
+  type: "PARENTAL_COPPA" | "PARENTAL_GDPR_K";
+}) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "Not authenticated" };
+    }
+    if (session.user.role !== "PARENT") {
+      return { success: false, error: "Only parents can grant child consent" };
+    }
+
+    const parsed = bulkGrantChildConsentSchema.safeParse(input);
+    if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const parentId = session.user.id;
+    const links = await db.parentChild.findMany({
+      where: { parentId },
+      include: {
+        child: {
+          select: {
+            id: true,
+            dateOfBirth: true,
+            consentRecords: {
+              where: {
+                type: { in: ["PARENTAL_COPPA", "PARENTAL_GDPR_K"] },
+              },
+              orderBy: { grantedAt: "desc" },
+              take: 1,
+              select: { granted: true },
+            },
+          },
+        },
+      },
+    });
+
+    const candidates = links
+      .map((l) => l.child)
+      .filter((c) => c.dateOfBirth && isMinor(c.dateOfBirth))
+      .filter((c) => !c.consentRecords[0]?.granted);
+
+    if (candidates.length === 0) {
+      return { success: true, data: { granted: 0 } };
+    }
+
+    const h = await headers().catch(() => null);
+    const ipAddress =
+      h?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      h?.get("x-real-ip") ??
+      null;
+    const userAgent = h?.get("user-agent") ?? null;
+
+    await db.$transaction(
+      candidates.map((c) =>
+        db.consentRecord.create({
+          data: {
+            userId: c.id,
+            grantedById: parentId,
+            type: parsed.data.type,
+            version: PRIVACY_VERSION,
+            granted: true,
+            ipAddress: ipAddress ?? undefined,
+            userAgent: userAgent ?? undefined,
+          },
+        })
+      )
+    );
+
+    revalidatePath("/parent/children");
+    candidates.forEach((c) =>
+      revalidatePath(`/parent/children/${c.id}`)
+    );
+    return { success: true, data: { granted: candidates.length } };
+  } catch (error) {
+    console.error("bulkGrantChildConsent action error:", error);
+    return { success: false, error: "Failed to grant consent" };
+  }
+}
+
 // Parent enrols a linked child in a course. Mirrors enrollInCourse but
 // runs all of the gates against the child: tenancy, plan entitlement, and
 // minor-consent. The subscription gate uses the PARENT's plan — the
@@ -265,5 +418,122 @@ export async function enrollChildInCourse(input: {
   } catch (error) {
     console.error("enrollChildInCourse action error:", error);
     return { success: false, error: "An unexpected error occurred" };
+  }
+}
+
+// Parent buys a one-time-purchase course on behalf of a linked child.
+// All gates run against the CHILD (tenant, consent, published). The Stripe
+// customer + invoice remain attributed to the parent (the payer), but the
+// resulting Enrollment lands on the child via the webhook handler reading
+// CoursePurchase.beneficiaryUserId. Returns the Stripe Checkout URL — the
+// caller redirects.
+type BuyCourseForChildResult =
+  | { success: true; data: { url: string; sessionId: string } }
+  | { success: false; error: string };
+
+export async function buyCourseForChild(input: {
+  courseId: string;
+  childId: string;
+  couponCode?: string;
+}): Promise<BuyCourseForChildResult> {
+  try {
+    if (!isStripeConfigured()) {
+      return { success: false, error: "Billing is not configured yet" };
+    }
+
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "Not authenticated" };
+    }
+    if (session.user.role !== "PARENT") {
+      return { success: false, error: "Only parents can buy a course for a child" };
+    }
+
+    const parsed = buyCourseForChildSchema.safeParse(input);
+    if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const link = await db.parentChild.findUnique({
+      where: {
+        parentId_childId: {
+          parentId: session.user.id,
+          childId: parsed.data.childId,
+        },
+      },
+    });
+    if (!link) return { success: false, error: "Child not found" };
+
+    const [course, child] = await Promise.all([
+      db.course.findUnique({
+        where: { id: parsed.data.courseId },
+        select: {
+          status: true,
+          isFree: true,
+          price: true,
+          requiredPlan: true,
+          organizationId: true,
+        },
+      }),
+      db.user.findUnique({
+        where: { id: parsed.data.childId },
+        select: { organizationId: true },
+      }),
+    ]);
+    if (!course) return { success: false, error: "Course not found" };
+    if (course.status !== "PUBLISHED") {
+      return { success: false, error: "This course is not available for purchase" };
+    }
+    if (!child) return { success: false, error: "Child not found" };
+
+    // Same not-found masking the catalog uses — never leak the existence of
+    // another org's content.
+    const tenantError = assertSameTenant(
+      { role: "STUDENT", organizationId: child.organizationId },
+      course
+    );
+    if (tenantError) return { success: false, error: "Course not found" };
+
+    const isFree = course.isFree || Number(course.price) === 0;
+    if (isFree) {
+      return {
+        success: false,
+        error: "This course is free — enrol your child directly instead",
+      };
+    }
+    if (course.requiredPlan) {
+      return {
+        success: false,
+        error: "This course is included with a subscription — please subscribe and enrol instead",
+      };
+    }
+
+    const consent = await assertMinorConsent(parsed.data.childId);
+    if (!consent.ok) {
+      return {
+        success: false,
+        error:
+          consent.reason === "consent_withdrawn"
+            ? "Consent for this child has been withdrawn"
+            : consent.reason === "dob_missing"
+              ? "Please add the child's date of birth before purchase"
+              : "Please grant parental consent for this child before purchase",
+      };
+    }
+
+    const result = await createCourseCheckoutSession({
+      userId: session.user.id,
+      beneficiaryUserId: parsed.data.childId,
+      courseId: parsed.data.courseId,
+      couponCode: parsed.data.couponCode,
+      successPath: `/parent/children/${parsed.data.childId}?purchase=success`,
+      cancelPath: `/parent/children/${parsed.data.childId}?purchase=cancelled`,
+    });
+
+    return { success: true as const, data: result };
+  } catch (error) {
+    console.error("buyCourseForChild action error:", error);
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
 }

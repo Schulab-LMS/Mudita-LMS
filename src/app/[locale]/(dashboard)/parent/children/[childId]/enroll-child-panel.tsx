@@ -1,14 +1,22 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { GraduationCap } from "lucide-react";
-import { enrollChildInCourse } from "@/actions/parent.actions";
+import { GraduationCap, CreditCard } from "lucide-react";
+import {
+  enrollChildInCourse,
+  buyCourseForChild,
+} from "@/actions/parent.actions";
 
 interface EnrollableCourse {
   id: string;
   title: string;
   requiredPlan: string | null;
   isFree: boolean;
+  price: number;
+  currency: string;
+  // "subscription" = covered by parent's active plan; "paid" = one-time
+  // purchase via Stripe; "free" = enrol directly.
+  kind: "free" | "subscription" | "paid";
 }
 
 interface EnrollChildPanelProps {
@@ -31,11 +39,27 @@ export function EnrollChildPanel({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  function handleEnrol() {
-    if (!selected) return;
+  const selectedCourse = courses.find((c) => c.id === selected);
+  const isPaid = selectedCourse?.kind === "paid";
+
+  function handleSubmit() {
+    if (!selected || !selectedCourse) return;
     setError(null);
     setSuccess(null);
     startTransition(async () => {
+      if (selectedCourse.kind === "paid") {
+        const result = await buyCourseForChild({
+          childId,
+          courseId: selected,
+        });
+        if (!result.success) {
+          setError(result.error ?? "Failed to start checkout");
+          return;
+        }
+        // Stripe redirect — leave the app.
+        window.location.href = result.data.url;
+        return;
+      }
       const result = await enrollChildInCourse({
         childId,
         courseId: selected,
@@ -44,9 +68,15 @@ export function EnrollChildPanel({
         setError(result.error ?? "Failed to enrol");
         return;
       }
-      const enrolled = courses.find((c) => c.id === selected);
-      setSuccess(`${childName} is now enrolled in ${enrolled?.title ?? "this course"}.`);
+      setSuccess(`${childName} is now enrolled in ${selectedCourse.title}.`);
     });
+  }
+
+  function badgeFor(course: EnrollableCourse): string {
+    if (course.kind === "free") return " · Free";
+    if (course.kind === "subscription" && course.requiredPlan)
+      return ` · ${course.requiredPlan} plan`;
+    return ` · ${course.currency} ${course.price.toFixed(2)}`;
   }
 
   return (
@@ -60,8 +90,8 @@ export function EnrollChildPanel({
             Enrol {childName} in a course
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Pick a course covered by your subscription and enrol {childName}
-            {" "}in one click.
+            Pick a course — free and subscription-included courses enrol in
+            one click; paid courses redirect to Stripe checkout.
           </p>
 
           {disabled ? (
@@ -87,11 +117,7 @@ export function EnrollChildPanel({
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.title}
-                      {c.isFree
-                        ? " · Free"
-                        : c.requiredPlan
-                          ? ` · ${c.requiredPlan} plan`
-                          : ""}
+                      {badgeFor(c)}
                     </option>
                   ))}
                 </select>
@@ -108,11 +134,18 @@ export function EnrollChildPanel({
               )}
               <button
                 type="button"
-                onClick={handleEnrol}
+                onClick={handleSubmit}
                 disabled={pending || !selected}
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-60"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-60"
               >
-                {pending ? "Enrolling…" : "Enrol"}
+                {isPaid && <CreditCard className="h-4 w-4" aria-hidden />}
+                {pending
+                  ? isPaid
+                    ? "Redirecting…"
+                    : "Enrolling…"
+                  : isPaid
+                    ? `Buy for ${childName}`
+                    : "Enrol"}
               </button>
             </div>
           )}

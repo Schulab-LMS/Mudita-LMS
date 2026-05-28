@@ -1,8 +1,11 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { getChildren } from "@/services/user.service";
+import { isMinor } from "@/lib/compliance";
 import { ChildCard } from "@/components/dashboard/child-card";
 import { AddChildForm } from "./add-child-form";
+import { BulkConsentBanner } from "./bulk-consent-banner";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NoCoursesScene } from "@/components/illustrations/empty-scenes";
@@ -17,6 +20,32 @@ export default async function ParentChildrenPage() {
 
   const children = await getChildren(session.user.id);
 
+  // Count children who are minors AND don't have an active parental
+  // consent on file. The bulk-consent banner only renders when 2+ qualify
+  // — for a single child the per-child panel is the right surface.
+  let unconsentedMinorCount = 0;
+  if (children.length > 1) {
+    const childIds = children.map((c) => c.id);
+    const consentByChild = await db.consentRecord.findMany({
+      where: {
+        userId: { in: childIds },
+        type: { in: ["PARENTAL_COPPA", "PARENTAL_GDPR_K"] },
+      },
+      orderBy: { grantedAt: "desc" },
+      select: { userId: true, granted: true },
+    });
+    const latestGrantPerChild = new Map<string, boolean>();
+    for (const r of consentByChild) {
+      if (!latestGrantPerChild.has(r.userId)) {
+        latestGrantPerChild.set(r.userId, r.granted);
+      }
+    }
+    unconsentedMinorCount = children.filter((c) => {
+      if (!c.dateOfBirth || !isMinor(c.dateOfBirth)) return false;
+      return !latestGrantPerChild.get(c.id);
+    }).length;
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -30,6 +59,13 @@ export default async function ParentChildrenPage() {
         ]}
         icon={<Users className="h-5 w-5" />}
       />
+
+      {unconsentedMinorCount >= 2 && (
+        <BulkConsentBanner
+          unconsentedCount={unconsentedMinorCount}
+          defaultType="PARENTAL_GDPR_K"
+        />
+      )}
 
       {children.length === 0 ? (
         <EmptyState

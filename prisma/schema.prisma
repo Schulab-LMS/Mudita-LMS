@@ -70,7 +70,8 @@ model User {
 
   bookingsAsStudent Booking[]                 @relation("StudentBookings")
   orders            Order[]
-  coursePurchases   CoursePurchase[]
+  coursePurchases            CoursePurchase[] @relation("CoursePurchasePayer")
+  coursePurchasesForChildren CoursePurchase[] @relation("CoursePurchaseBeneficiary")
   subscriptions     Subscription[]
   invoices          Invoice[]
   notifications     Notification[]
@@ -1148,6 +1149,9 @@ enum CoursePurchaseStatus {
 model CoursePurchase {
   id                    String               @id @default(cuid())
   userId                String
+  // When set, the enrollment created by the webhook goes to beneficiaryUserId
+  // instead of userId (parent-buys-for-child path). Null means self-purchase.
+  beneficiaryUserId     String?
   courseId              String
   status                CoursePurchaseStatus @default(PENDING)
   amount                Decimal              @db.Decimal(10, 2)
@@ -1159,11 +1163,13 @@ model CoursePurchase {
   createdAt             DateTime             @default(now())
   updatedAt             DateTime             @updatedAt
 
-  user    User     @relation(fields: [userId], references: [id])
-  invoice Invoice?
+  user        User  @relation("CoursePurchasePayer", fields: [userId], references: [id])
+  beneficiary User? @relation("CoursePurchaseBeneficiary", fields: [beneficiaryUserId], references: [id])
+  invoice     Invoice?
 
-  @@unique([userId, courseId, status])
+  @@unique([userId, courseId, beneficiaryUserId, status])
   @@index([userId])
+  @@index([beneficiaryUserId])
   @@index([courseId])
   @@index([status])
 }

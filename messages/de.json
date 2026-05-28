@@ -699,7 +699,10 @@
     "completed": "Abgeschlossen",
     "markComplete": "Als abgeschlossen markieren",
     "saving": "Wird gespeichert…",
-    "noVideo": "Kein Video verfügbar"
+    "noVideo": "Kein Video verfügbar",
+    "accessPausedTitle": "Zugriff pausiert",
+    "accessPausedWithdrawn": "Ein Elternteil oder Erziehungsberechtigter hat die Einwilligung widerrufen. Bitte wenden Sie sich an diese Person — oder an unser Support-Team — um den Zugriff wiederherzustellen.",
+    "accessPausedDobMissing": "Bitte fügen Sie Ihrem Profil das Geburtsdatum hinzu, bevor Sie fortfahren."
   },
   "notifications": {
     "title": "Benachrichtigungen",

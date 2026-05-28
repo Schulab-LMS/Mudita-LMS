@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { getCourseBySlug, getLocalizedField } from "@/services/course.service";
 import { getLessonProgress } from "@/services/progress.service";
+import { assertMinorConsent } from "@/lib/compliance";
 import { LessonSidebar } from "@/components/course/lesson-sidebar";
 import { VideoPlayer } from "@/components/course/video-player";
 import { RevealPresentation } from "@/components/course/reveal-presentation";
@@ -14,6 +15,7 @@ import { sanitize } from "@/lib/sanitize";
 import type { PresentationConfig } from "@/lib/presentation";
 import { db } from "@/lib/db";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { EmptyState } from "@/components/shared/empty-state";
 import {
   BookOpen,
   Clock,
@@ -24,6 +26,7 @@ import {
   ChevronLeft,
   ClipboardList,
   PenLine,
+  ShieldAlert,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
@@ -35,6 +38,30 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const { courseSlug, lessonId, locale } = await params;
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  // Consent gate at lesson load: a parent withdrawal must take effect for
+  // already-enrolled children, not only at the next enrolment. Adults and
+  // children with a current active consent pass through unchanged.
+  const consent = await assertMinorConsent(session.user.id);
+  if (!consent.ok) {
+    const tLesson = await getTranslations("lesson");
+    return (
+      <div className="py-16">
+        <EmptyState
+          icon={<ShieldAlert className="h-12 w-12" aria-hidden />}
+          title={tLesson("accessPausedTitle")}
+          description={
+            consent.reason === "consent_withdrawn"
+              ? tLesson("accessPausedWithdrawn")
+              : consent.reason === "dob_missing"
+                ? tLesson("accessPausedDobMissing")
+                : tLesson("accessPausedWithdrawn")
+          }
+          size="lg"
+        />
+      </div>
+    );
+  }
 
   const course = await getCourseBySlug(courseSlug);
   if (!course) notFound();

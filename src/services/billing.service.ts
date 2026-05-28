@@ -39,11 +39,16 @@ export type CheckoutSessionResult = {
 export async function createCourseCheckoutSession(params: {
   userId: string;
   courseId: string;
+  // When set, the enrollment created on checkout completion is assigned to
+  // this user (parent-buys-for-child path). The Stripe customer + invoice
+  // still belong to the payer (userId).
+  beneficiaryUserId?: string;
   couponCode?: string | null;
   successPath?: string;
   cancelPath?: string;
 }): Promise<CheckoutSessionResult> {
-  const { userId, courseId } = params;
+  const { userId, courseId, beneficiaryUserId } = params;
+  const enrolleeId = beneficiaryUserId ?? userId;
 
   const course = await db.course.findUnique({
     where: { id: courseId },
@@ -66,8 +71,10 @@ export async function createCourseCheckoutSession(params: {
     throw new Error("Course is free — enroll directly instead of buying");
   }
 
+  // The "already enrolled" guard runs against the *enrollee* — checking the
+  // payer would let a parent re-buy a course their child already owns.
   const existing = await db.enrollment.findUnique({
-    where: { userId_courseId: { userId, courseId } },
+    where: { userId_courseId: { userId: enrolleeId, courseId } },
     select: { id: true },
   });
   if (existing) throw new Error("Already enrolled in this course");
@@ -97,6 +104,7 @@ export async function createCourseCheckoutSession(params: {
   const purchase = await db.coursePurchase.create({
     data: {
       userId,
+      beneficiaryUserId: beneficiaryUserId ?? null,
       courseId,
       status: "PENDING",
       amount: course.price,
@@ -134,6 +142,7 @@ export async function createCourseCheckoutSession(params: {
       userId,
       courseId,
       purchaseId: purchase.id,
+      ...(beneficiaryUserId ? { beneficiaryUserId } : {}),
       ...(couponId
         ? { couponId, couponAmountOff: couponAmountOff.toFixed(2) }
         : {}),
@@ -144,6 +153,7 @@ export async function createCourseCheckoutSession(params: {
         userId,
         courseId,
         purchaseId: purchase.id,
+        ...(beneficiaryUserId ? { beneficiaryUserId } : {}),
       },
     },
   });
@@ -326,12 +336,13 @@ async function handleCoursePurchaseCompleted(
     });
 
     // Enrol the learner in the same transaction so we can never leave a
-    // paid-but-unenrolled user. Ignore the duplicate case in case the user
-    // was already enrolled (e.g. a free preview enrolment upgraded to paid).
+    // paid-but-unenrolled user. The enrollee is the beneficiary when set
+    // (parent-buys-for-child); otherwise the payer is the enrollee.
+    const enrolleeId = purchase.beneficiaryUserId ?? purchase.userId;
     const existingEnrolment = await tx.enrollment.findUnique({
       where: {
         userId_courseId: {
-          userId: purchase.userId,
+          userId: enrolleeId,
           courseId: purchase.courseId,
         },
       },
@@ -340,7 +351,7 @@ async function handleCoursePurchaseCompleted(
     if (!existingEnrolment) {
       await tx.enrollment.create({
         data: {
-          userId: purchase.userId,
+          userId: enrolleeId,
           courseId: purchase.courseId,
           status: "ACTIVE",
           progress: 0,

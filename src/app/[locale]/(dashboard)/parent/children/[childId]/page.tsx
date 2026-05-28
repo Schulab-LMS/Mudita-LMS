@@ -71,7 +71,6 @@ export default async function ChildDetailPage({
         status: "PUBLISHED",
         AND: [tenantScope({ role: "STUDENT", organizationId: child.organizationId })],
         NOT: { enrollments: { some: { userId: childId } } },
-        OR: [{ isFree: true }, { requiredPlan: { not: null } }],
       },
       select: {
         id: true,
@@ -79,6 +78,7 @@ export default async function ChildDetailPage({
         isFree: true,
         requiredPlan: true,
         price: true,
+        currency: true,
       },
       orderBy: { title: "asc" },
       take: 50,
@@ -90,22 +90,37 @@ export default async function ChildDetailPage({
   const consentRequired = childIsMinor && !hasActiveConsent;
   const dobMissing = !child.dateOfBirth;
 
-  // Only surface courses the parent's plan actually entitles them to (plus
-  // free courses) — picking a course the parent can't enrol into would
-  // produce a confusing error after the click.
+  // Surface three classes of course: free (direct enrol), subscription-
+  // included that the parent's plan entitles, and paid one-time-purchase
+  // (routes to Stripe via buyCourseForChild). Subscription-tier courses the
+  // parent does NOT have are filtered out — clicking would dead-end.
   const enrollableCourses = candidateCourses
-    .filter((c) => {
+    .map((c) => {
       const isFree = c.isFree || Number(c.price) === 0;
-      if (isFree) return true;
-      if (!c.requiredPlan) return false; // one-time-purchase courses go through Stripe
-      return Boolean(parentTier && tierSatisfies(parentTier, c.requiredPlan));
+      let kind: "free" | "subscription" | "paid";
+      if (isFree) {
+        kind = "free";
+      } else if (c.requiredPlan) {
+        kind = "subscription";
+      } else {
+        kind = "paid";
+      }
+      return {
+        id: c.id,
+        title: c.title,
+        isFree,
+        requiredPlan: c.requiredPlan,
+        price: Number(c.price),
+        currency: c.currency ?? "USD",
+        kind,
+      };
     })
-    .map((c) => ({
-      id: c.id,
-      title: c.title,
-      isFree: c.isFree || Number(c.price) === 0,
-      requiredPlan: c.requiredPlan,
-    }));
+    .filter((c) => {
+      if (c.kind === "subscription") {
+        return Boolean(parentTier && tierSatisfies(parentTier, c.requiredPlan!));
+      }
+      return true;
+    });
 
   const enrolDisabledReason = dobMissing
     ? "Add a date of birth for this child first."
