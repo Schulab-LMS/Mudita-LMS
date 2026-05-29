@@ -12,7 +12,6 @@ import {
   withdrawChildConsentSchema,
   bulkGrantChildConsentSchema,
   enrollChildInCourseSchema,
-  buyCourseForChildSchema,
 } from "@/validators/action.schemas";
 import {
   recordConsent,
@@ -23,8 +22,6 @@ import {
 import { hasActivePlanAtLeast } from "@/lib/subscription-access";
 import { assertSameTenant } from "@/lib/tenant";
 import { enrollUser } from "@/services/enrollment.service";
-import { createCourseCheckoutSession } from "@/services/billing.service";
-import { isStripeConfigured } from "@/lib/stripe";
 import { sendEnrollmentConfirmation } from "@/lib/email";
 
 export async function addChildAccount(data: {
@@ -308,7 +305,8 @@ export async function bulkGrantChildConsent(input: {
 // runs all of the gates against the child: tenancy, plan entitlement, and
 // minor-consent. The subscription gate uses the PARENT's plan — the
 // household model: one parent subscription covers their linked children.
-// One-time-purchase courses still must go through Stripe, not this path.
+// Individual course purchases are no longer supported; legacy paid courses
+// (price > 0 with no requiredPlan) default to the lowest paid tier.
 export async function enrollChildInCourse(input: {
   courseId: string;
   childId: string;
@@ -370,19 +368,16 @@ export async function enrollChildInCourse(input: {
 
     const isFree = course.isFree || Number(course.price) === 0;
     if (!isFree) {
-      if (course.requiredPlan) {
-        // Household model: check the PARENT's subscription, not the child's.
-        const ok = await hasActivePlanAtLeast(session.user.id, course.requiredPlan);
-        if (!ok) {
-          return {
-            success: false,
-            error: "This course is included with a subscription — please subscribe first",
-          };
-        }
-      } else {
+      // Household model: check the PARENT's subscription, not the child's.
+      // Legacy paid courses without a requiredPlan fall back to LEARNER —
+      // every paid course is subscription-only now.
+      const requiredTier = course.requiredPlan ?? "LEARNER";
+      const ok = await hasActivePlanAtLeast(session.user.id, requiredTier);
+      if (!ok) {
         return {
           success: false,
-          error: "This course requires payment — please purchase it from the catalog first",
+          error:
+            "This course is included with a subscription — subscribe to Solo, Family, or Custom to enrol your child",
         };
       }
     }
@@ -421,119 +416,23 @@ export async function enrollChildInCourse(input: {
   }
 }
 
-// Parent buys a one-time-purchase course on behalf of a linked child.
-// All gates run against the CHILD (tenant, consent, published). The Stripe
-// customer + invoice remain attributed to the parent (the payer), but the
-// resulting Enrollment lands on the child via the webhook handler reading
-// CoursePurchase.beneficiaryUserId. Returns the Stripe Checkout URL — the
-// caller redirects.
+// Retained for type compatibility with older callers; new code shouldn't
+// rely on the success branch.
 type BuyCourseForChildResult =
   | { success: true; data: { url: string; sessionId: string } }
   | { success: false; error: string };
 
-export async function buyCourseForChild(input: {
+// Individual course purchases for children were retired alongside the
+// learner-facing flow. The action stays so the parent UI gets a deterministic
+// error instead of a 500 if it hasn't migrated yet. No Stripe call is made.
+export async function buyCourseForChild(_input: {
   courseId: string;
   childId: string;
   couponCode?: string;
 }): Promise<BuyCourseForChildResult> {
-  try {
-    if (!isStripeConfigured()) {
-      return { success: false, error: "Billing is not configured yet" };
-    }
-
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, error: "Not authenticated" };
-    }
-    if (session.user.role !== "PARENT") {
-      return { success: false, error: "Only parents can buy a course for a child" };
-    }
-
-    const parsed = buyCourseForChildSchema.safeParse(input);
-    if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
-
-    const link = await db.parentChild.findUnique({
-      where: {
-        parentId_childId: {
-          parentId: session.user.id,
-          childId: parsed.data.childId,
-        },
-      },
-    });
-    if (!link) return { success: false, error: "Child not found" };
-
-    const [course, child] = await Promise.all([
-      db.course.findUnique({
-        where: { id: parsed.data.courseId },
-        select: {
-          status: true,
-          isFree: true,
-          price: true,
-          requiredPlan: true,
-          organizationId: true,
-        },
-      }),
-      db.user.findUnique({
-        where: { id: parsed.data.childId },
-        select: { organizationId: true },
-      }),
-    ]);
-    if (!course) return { success: false, error: "Course not found" };
-    if (course.status !== "PUBLISHED") {
-      return { success: false, error: "This course is not available for purchase" };
-    }
-    if (!child) return { success: false, error: "Child not found" };
-
-    // Same not-found masking the catalog uses — never leak the existence of
-    // another org's content.
-    const tenantError = assertSameTenant(
-      { role: "STUDENT", organizationId: child.organizationId },
-      course
-    );
-    if (tenantError) return { success: false, error: "Course not found" };
-
-    const isFree = course.isFree || Number(course.price) === 0;
-    if (isFree) {
-      return {
-        success: false,
-        error: "This course is free — enrol your child directly instead",
-      };
-    }
-    if (course.requiredPlan) {
-      return {
-        success: false,
-        error: "This course is included with a subscription — please subscribe and enrol instead",
-      };
-    }
-
-    const consent = await assertMinorConsent(parsed.data.childId);
-    if (!consent.ok) {
-      return {
-        success: false,
-        error:
-          consent.reason === "consent_withdrawn"
-            ? "Consent for this child has been withdrawn"
-            : consent.reason === "dob_missing"
-              ? "Please add the child's date of birth before purchase"
-              : "Please grant parental consent for this child before purchase",
-      };
-    }
-
-    const result = await createCourseCheckoutSession({
-      userId: session.user.id,
-      beneficiaryUserId: parsed.data.childId,
-      courseId: parsed.data.courseId,
-      couponCode: parsed.data.couponCode,
-      successPath: `/parent/children/${parsed.data.childId}?purchase=success`,
-      cancelPath: `/parent/children/${parsed.data.childId}?purchase=cancelled`,
-    });
-
-    return { success: true as const, data: result };
-  } catch (error) {
-    console.error("buyCourseForChild action error:", error);
-    return {
-      success: false as const,
-      error: error instanceof Error ? error.message : "An unexpected error occurred",
-    };
-  }
+  return {
+    success: false,
+    error:
+      "Individual course purchases are not available — subscribe to Solo, Family, or Custom and enrol your child instead.",
+  };
 }

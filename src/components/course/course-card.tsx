@@ -85,9 +85,8 @@ export function CourseCard({ course }: CourseCardProps) {
 
   const priceNum = course.price ? Number(course.price) : 0;
   const isFree = course.isFree || priceNum === 0;
-  const priceLabel = isFree
-    ? "Free"
-    : `${course.currency ?? "USD"} ${priceNum.toFixed(2)}`;
+  // Paid courses are subscription-only — never surface a raw price on cards.
+  const priceLabel = isFree ? "Free" : "Subscribers Only";
 
   return (
     <Link href={`/courses/${course.slug}`}>

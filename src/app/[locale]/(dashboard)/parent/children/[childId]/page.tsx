@@ -91,9 +91,10 @@ export default async function ChildDetailPage({
   const dobMissing = !child.dateOfBirth;
 
   // Surface three classes of course: free (direct enrol), subscription-
-  // included that the parent's plan entitles, and paid one-time-purchase
-  // (routes to Stripe via buyCourseForChild). Subscription-tier courses the
-  // parent does NOT have are filtered out — clicking would dead-end.
+  // included that the parent's plan entitles, and legacy paid courses
+  // (price > 0 with no explicit requiredPlan — now subscription-only at the
+  // lowest paid tier). Subscription-tier courses the parent does NOT have
+  // are filtered out — clicking would dead-end.
   const enrollableCourses = candidateCourses
     .map((c) => {
       const isFree = c.isFree || Number(c.price) === 0;

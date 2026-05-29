@@ -114,13 +114,16 @@ export default async function CourseDetailPage({
   const firstLessonId = allLessons[0]?.id;
   const rating = Number(course.averageRating ?? 0);
   const reviewCount = course.reviewCount ?? 0;
-  const isSubGated = !!course.requiredPlan;
-  const isPaid = !(course.isFree || !course.price || Number(course.price) === 0) && !isSubGated;
-  const priceDisplay = isSubGated
-    ? t("includedWithPlan", { plan: course.requiredPlan ?? "" })
-    : isPaid
-      ? `${course.currency} ${Number(course.price).toFixed(2)}`
-      : t("free");
+  // Course access is either free or subscription-gated — individual purchases
+  // were retired. Any course with a non-zero price falls back to the lowest
+  // paid tier at enrolment time (see enrollInCourse).
+  const isFreeCourse =
+    course.isFree || !course.price || Number(course.price) === 0;
+  const priceDisplay = isFreeCourse
+    ? t("free")
+    : t("includedWithPlan", {
+        plan: course.requiredPlan ?? t("subscribersOnlyPlan"),
+      });
   const isBestseller = course.enrollmentCount >= 50 && rating >= 4.5;
   // Server component — Date is evaluated once per request, which is the
   // semantics we want for "published in the last 30 days".
@@ -242,7 +245,11 @@ export default async function CourseDetailPage({
               {/* Price */}
               <div>
                 <p className="font-display text-3xl font-bold leading-none">{priceDisplay}</p>
-                {isPaid && <p className="mt-1 text-xs text-muted-foreground">One-time payment · Lifetime access</p>}
+                {!isFreeCourse && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t("subscriptionAccessNote")}
+                  </p>
+                )}
               </div>
 
               {/* Primary CTA */}
@@ -251,9 +258,7 @@ export default async function CourseDetailPage({
                   courseId={course.id}
                   courseSlug={course.slug}
                   firstLessonId={firstLessonId}
-                  isFree={!isPaid}
-                  price={course.price ? String(course.price) : undefined}
-                  currency={course.currency}
+                  isFree={isFreeCourse}
                   enrollmentStatus={enrollmentStatus}
                 />
               ) : (
@@ -436,9 +441,7 @@ export default async function CourseDetailPage({
             courseId={course.id}
             courseSlug={course.slug}
             firstLessonId={firstLessonId}
-            isFree={!isPaid}
-            price={course.price ? String(course.price) : undefined}
-            currency={course.currency}
+            isFree={isFreeCourse}
             enrollmentStatus={enrollmentStatus}
           />
         ) : (

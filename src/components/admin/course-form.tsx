@@ -234,36 +234,51 @@ export default function CourseForm({ mode, initialData }: CourseFormProps) {
             className="h-4 w-4 rounded border-input"
           />
           <label htmlFor="isFree" className="text-sm font-medium">
-            This course is free
+            This course is free (open to any verified user)
           </label>
         </div>
+        <p className="-mt-2 text-xs text-muted-foreground">
+          Leave unchecked to make this course subscription-only — access is
+          gated by the learner&apos;s active Solo / Family / Custom plan.
+        </p>
 
-        {/* Price and Currency */}
+        {/* Price and Currency — legacy fields, kept for historical reporting
+            only. Individual course purchases are no longer offered. */}
         {!isFree && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium">Price</label>
-              <input
-                name="price"
-                type="number"
-                min="0"
-                step="0.01"
-                defaultValue={initialData?.price ?? ""}
-                placeholder="29.99"
-                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium">Currency</label>
-              <select
-                name="currency"
-                defaultValue={initialData?.currency ?? "USD"}
-                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+          <div className="space-y-3 rounded-lg border border-dashed border-border bg-muted/30 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Legacy pricing (not billed)
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Price and currency are retained for accounting/legacy invoice
+              records. New enrolments do not charge this amount — access is
+              granted through a subscription.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">Price</label>
+                <input
+                  name="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  defaultValue={initialData?.price ?? ""}
+                  placeholder="29.99"
+                  className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">Currency</label>
+                <select
+                  name="currency"
+                  defaultValue={initialData?.currency ?? "USD"}
+                  className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         )}

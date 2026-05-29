@@ -4,10 +4,7 @@ import { auth } from "@/lib/auth";
 import { isStripeConfigured } from "@/lib/stripe";
 import { assertMinorConsent } from "@/lib/compliance";
 import { isSafeInternalPath } from "@/lib/safe-redirect";
-import {
-  createCourseCheckoutSession,
-  createSubscriptionCheckoutSession,
-} from "@/services/billing.service";
+import { createSubscriptionCheckoutSession } from "@/services/billing.service";
 
 export const dynamic = "force-dynamic";
 
@@ -71,6 +68,19 @@ export async function POST(request: Request) {
     );
   }
 
+  // Individual course purchases were retired in favour of a subscription-only
+  // access model. Reject any client still POSTing kind=course before we run
+  // consent checks or hit Stripe.
+  if (parsed.data.kind === "course") {
+    return NextResponse.json(
+      {
+        error:
+          "Individual course purchases are not available — subscribe to Solo, Family, or Custom to access this course.",
+      },
+      { status: 410 }
+    );
+  }
+
   const consent = await assertMinorConsent(session.user.id);
   if (!consent.ok) {
     return NextResponse.json(
@@ -87,22 +97,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result =
-      parsed.data.kind === "course"
-        ? await createCourseCheckoutSession({
-            userId: session.user.id,
-            courseId: parsed.data.courseId,
-            couponCode: parsed.data.couponCode,
-            successPath: parsed.data.successPath,
-            cancelPath: parsed.data.cancelPath,
-          })
-        : await createSubscriptionCheckoutSession({
-            userId: session.user.id,
-            planId: parsed.data.planId,
-            couponCode: parsed.data.couponCode,
-            successPath: parsed.data.successPath,
-            cancelPath: parsed.data.cancelPath,
-          });
+    const result = await createSubscriptionCheckoutSession({
+      userId: session.user.id,
+      planId: parsed.data.planId,
+      couponCode: parsed.data.couponCode,
+      successPath: parsed.data.successPath,
+      cancelPath: parsed.data.cancelPath,
+    });
 
     return NextResponse.json(result);
   } catch (err) {

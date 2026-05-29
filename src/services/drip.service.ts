@@ -57,23 +57,29 @@ const JOURNEYS: Record<DripJourney, DripStep[]> = {
       `,
     },
   ],
+  // Individual course purchases were retired in favour of subscription-only
+  // access. The two CART_ABANDONMENT steps below stay because there are still
+  // in-flight DripState rows in production from before the change. The copy
+  // points them at the subscription flow instead of a now-410'd course
+  // checkout. New users are no longer enrolled into this journey (see
+  // seedCartAbandonmentJourney).
   CART_ABANDONMENT: [
     {
       delayMs: 60 * 60 * 1000,
-      subject: () => "Left something in your cart?",
+      subject: () => "Your saved course is now part of every plan",
       html: ({ appUrl }) => `
-        <h2>Still thinking it over?</h2>
-        <p>Your course is saved — finish the purchase anytime.</p>
-        <p><a href="${appUrl}/student/courses">Return to checkout</a></p>
+        <h2>Good news — you don't need to buy it separately anymore.</h2>
+        <p>The course you were looking at is now included with every Schulab subscription, alongside the full catalogue and 4 live tutor sessions per month.</p>
+        <p><a href="${appUrl}/pricing">See plans &amp; start with a free tutor session</a></p>
       `,
     },
     {
       delayMs: DAY,
-      subject: () => "10% off if you come back today",
+      subject: () => "Pick up where you left off",
       html: ({ appUrl }) => `
-        <h2>A little nudge</h2>
-        <p>Use code <strong>COMEBACK10</strong> at checkout within 24 hours.</p>
-        <p><a href="${appUrl}/student/courses">Finish checkout</a></p>
+        <h2>Ready to continue?</h2>
+        <p>Subscribe to Solo, Family, or Custom to unlock the course you started — your first tutor session is on us.</p>
+        <p><a href="${appUrl}/pricing">Choose a plan</a></p>
       `,
     },
   ],
@@ -198,40 +204,17 @@ export async function processDueDripRows(
   return { sent, completed, failed };
 }
 
-// Sweep for abandoned carts: course purchases that have been PENDING for
-// more than the grace window. We enrol their owner into the CART_ABANDONMENT
-// drip (upsert semantics: re-entering a journey resets it).
+// Sweep for abandoned carts. Disabled: individual course purchases were
+// retired in favour of subscription-only access, so no new PENDING
+// CoursePurchase rows are created. The function stays so the cron caller
+// doesn't have to change, but it no longer enrols anyone — pre-existing
+// DripState rows continue to fire through the (revised) email steps and
+// drain naturally.
 export async function seedCartAbandonmentJourney(
-  graceMinutes = 30,
-  now: Date = new Date()
+  _graceMinutes = 30,
+  _now: Date = new Date()
 ) {
-  const cutoff = new Date(now.getTime() - graceMinutes * 60 * 1000);
-  const stale = await db.coursePurchase.findMany({
-    where: {
-      status: "PENDING",
-      createdAt: { lt: cutoff },
-    },
-    select: { userId: true, id: true, courseId: true },
-    take: 200,
-  });
-  const byUser = new Map<string, { purchaseId: string; courseId: string }>();
-  for (const p of stale) {
-    if (!byUser.has(p.userId)) {
-      byUser.set(p.userId, { purchaseId: p.id, courseId: p.courseId });
-    }
-  }
-  let enrolled = 0;
-  for (const [userId, meta] of byUser.entries()) {
-    const existing = await db.dripState.findUnique({
-      where: {
-        userId_journey: { userId, journey: "CART_ABANDONMENT" },
-      },
-    });
-    if (existing) continue;
-    await enrollInDripJourney(userId, "CART_ABANDONMENT", meta);
-    enrolled += 1;
-  }
-  return { scanned: stale.length, enrolled };
+  return { scanned: 0, enrolled: 0 };
 }
 
 // Weekly parent digest: enrol every parent with a child into PARENT_DIGEST.

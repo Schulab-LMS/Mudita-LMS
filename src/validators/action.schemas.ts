@@ -209,19 +209,10 @@ export const enrollChildInCourseSchema = z.object({
   childId: cuidSchema,
 });
 
-export const buyCourseForChildSchema = z.object({
-  courseId: cuidSchema,
-  childId: cuidSchema,
-  couponCode: z
-    .string()
-    .trim()
-    .min(3)
-    .max(32)
-    .regex(/^[A-Za-z0-9_-]+$/)
-    .optional(),
-});
-
 // ── Billing ─────────────────────────────────────────────────────────────
+// Individual course purchases (buyCourse / buyCourseForChild) were retired
+// in favour of a subscription-only access model; their schemas were removed
+// when the actions were neutered.
 
 const couponCodeSchema = z
   .string()
@@ -230,11 +221,6 @@ const couponCodeSchema = z
   .max(32)
   .regex(/^[A-Za-z0-9_-]+$/)
   .optional();
-
-export const buyCourseSchema = z.object({
-  courseId: cuidSchema,
-  couponCode: couponCodeSchema,
-});
 
 export const startSubscriptionSchema = z.object({
   planId: cuidSchema,

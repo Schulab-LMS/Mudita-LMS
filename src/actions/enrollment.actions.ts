@@ -37,10 +37,10 @@ export async function enrollInCourse(courseId: string) {
     // via adminEnrollUser):
     //   1. Course must be PUBLISHED.
     //   2. Free courses (isFree) are open to any verified user.
-    //   3. Subscription-gated courses (requiredPlan != null) are open to
-    //      any user with an active subscription at or above that tier.
-    //   4. One-time-purchase courses must go through Stripe checkout —
-    //      enrolling here would bypass payment.
+    //   3. Every other course is subscription-only. If `requiredPlan` is
+    //      set, it gates at that tier; if it's null on a paid course, we
+    //      default to LEARNER (= any active Solo/Family/Custom plan).
+    //      Individual course purchases are no longer supported.
     const course = await db.course.findUnique({
       where: { id: parsed.data.courseId },
       select: {
@@ -76,18 +76,15 @@ export async function enrollInCourse(courseId: string) {
 
     const isFree = course.isFree || Number(course.price) === 0;
     if (!isFree) {
-      if (course.requiredPlan) {
-        const ok = await hasActivePlanAtLeast(session.user.id, course.requiredPlan);
-        if (!ok) {
-          return {
-            success: false,
-            error: "This course is included with a subscription — please subscribe first",
-          };
-        }
-      } else {
+      // Default any legacy paid course (price > 0 with no requiredPlan) to
+      // the lowest paid tier — every paid course is now subscription-only.
+      const requiredTier = course.requiredPlan ?? "LEARNER";
+      const ok = await hasActivePlanAtLeast(session.user.id, requiredTier);
+      if (!ok) {
         return {
           success: false,
-          error: "This course requires payment — please purchase it first",
+          error:
+            "This course is included with a subscription — subscribe to Solo, Family, or Custom to enrol",
         };
       }
     }

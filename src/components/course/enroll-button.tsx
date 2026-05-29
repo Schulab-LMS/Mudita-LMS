@@ -3,16 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { enrollInCourse } from "@/actions/enrollment.actions";
-import { buyCourse } from "@/actions/billing.actions";
-import { Loader2, Play, CheckCircle2, ShoppingCart } from "lucide-react";
+import { Loader2, Play, CheckCircle2, Sparkles } from "lucide-react";
 
 interface EnrollButtonProps {
   courseId: string;
   courseSlug: string;
   firstLessonId?: string;
   isFree: boolean;
-  price?: string;
-  currency?: string;
   enrollmentStatus?: "ACTIVE" | "COMPLETED" | null;
 }
 
@@ -21,8 +18,6 @@ export function EnrollButton({
   courseSlug,
   firstLessonId,
   isFree,
-  price,
-  currency,
   enrollmentStatus,
 }: EnrollButtonProps) {
   const [loading, setLoading] = useState(false);
@@ -71,47 +66,37 @@ export function EnrollButton({
     );
   }
 
-  // Not enrolled — show enroll button
+  // Not enrolled — call enrollInCourse and let the server decide. Free courses
+  // enrol immediately; paid (subscription-gated) courses succeed when the user
+  // already has an active plan, and otherwise return the "subscribe first"
+  // error, which we surface as a redirect to /pricing.
   async function handleEnroll() {
     setLoading(true);
     setError(null);
 
-    if (!isFree) {
-      const result = await buyCourse({ courseId });
-      if (!result.success) {
-        if (/not authenticated/i.test(result.error)) {
-          router.push("/login");
-          return;
-        }
-        setError(result.error);
-        setLoading(false);
-        return;
-      }
-      // Hand off to Stripe — full-page redirect (not a client router push).
-      window.location.assign(result.data.url);
-      return;
-    }
-
     const result = await enrollInCourse(courseId);
 
     if (!result.success) {
-      setError(result.error || "Failed to enroll");
+      const errMessage = result.error ?? "";
+      if (/not authenticated/i.test(errMessage)) {
+        router.push("/login");
+        return;
+      }
+      if (/subscri/i.test(errMessage)) {
+        router.push("/pricing");
+        return;
+      }
+      setError(errMessage || "Failed to enroll");
       setLoading(false);
       return;
     }
 
-    // Enrolled successfully — redirect to first lesson or courses page
     if (firstLessonId) {
       router.push(`/student/learn/${courseSlug}/${firstLessonId}`);
     } else {
       router.push("/student/courses");
     }
   }
-
-  const priceDisplay =
-    isFree || !price || price === "0"
-      ? "Free"
-      : `${currency ?? "USD"} ${price}`;
 
   return (
     <div className="space-y-2">
@@ -124,17 +109,17 @@ export function EnrollButton({
         {loading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Enrolling...
+            {isFree ? "Enrolling..." : "Checking subscription..."}
           </>
         ) : isFree ? (
           <>
             <Play className="h-4 w-4" />
-            Enroll Now — {priceDisplay}
+            Enroll for Free
           </>
         ) : (
           <>
-            <ShoppingCart className="h-4 w-4" />
-            Enroll — {priceDisplay}
+            <Sparkles className="h-4 w-4" />
+            Subscribe to access
           </>
         )}
       </button>

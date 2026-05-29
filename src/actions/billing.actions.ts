@@ -6,13 +6,9 @@ import { assertMinorConsent } from "@/lib/compliance";
 import { assertEmailVerified } from "@/lib/auth-helpers";
 import {
   createBillingPortalSession,
-  createCourseCheckoutSession,
   createSubscriptionCheckoutSession,
 } from "@/services/billing.service";
-import {
-  buyCourseSchema,
-  startSubscriptionSchema,
-} from "@/validators/action.schemas";
+import { startSubscriptionSchema } from "@/validators/action.schemas";
 
 type ActionResult<T = unknown> =
   | { success: true; data: T }
@@ -44,34 +40,18 @@ async function guardMinorConsent(userId: string) {
   };
 }
 
-export async function buyCourse(input: { courseId: string; couponCode?: string }) {
-  if (!isStripeConfigured()) {
-    return { success: false as const, error: "Billing is not configured yet" };
-  }
+// Individual course purchases were retired in favour of a subscription-only
+// access model (Solo / Family / Custom). The action is kept so older clients
+// that still POST to it get a deterministic, surface-able error instead of a
+// 500 — but it never reaches Stripe and never validates input deeply.
+export const INDIVIDUAL_COURSE_PURCHASE_DISABLED_ERROR =
+  "Individual course purchases are not available — subscribe to Solo, Family, or Custom to access this course.";
 
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false as const, error: "Not authenticated" };
-  }
-
-  const parsed = buyCourseSchema.safeParse(input);
-  if (!parsed.success) {
-    return { success: false as const, error: parsed.error.issues[0].message };
-  }
-
-  const emailCheck = await assertEmailVerified(session.user.id);
-  if (!emailCheck.ok) return { success: false as const, error: emailCheck.error };
-
-  const consentFail = await guardMinorConsent(session.user.id);
-  if (consentFail) return consentFail;
-
-  return guard(() =>
-    createCourseCheckoutSession({
-      userId: session.user!.id!,
-      courseId: parsed.data.courseId,
-      couponCode: parsed.data.couponCode,
-    })
-  );
+export async function buyCourse(_input: { courseId: string; couponCode?: string }) {
+  return {
+    success: false as const,
+    error: INDIVIDUAL_COURSE_PURCHASE_DISABLED_ERROR,
+  };
 }
 
 export async function startSubscription(input: { planId: string; couponCode?: string }) {

@@ -268,7 +268,7 @@ export async function createBillingPortalSession(params: {
     select: { stripeCustomerId: true },
   });
   if (!user?.stripeCustomerId) {
-    throw new Error("No billing history yet. Buy a course or subscribe first.");
+    throw new Error("No billing history yet. Subscribe to a plan first.");
   }
 
   const session = await stripe().billingPortal.sessions.create({

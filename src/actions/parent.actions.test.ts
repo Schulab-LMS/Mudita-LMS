@@ -184,102 +184,20 @@ describe("bulkGrantChildConsent", () => {
 });
 
 // ── buyCourseForChild ──────────────────────────────────────────────────
+// Individual course purchases for children were retired; the action is kept
+// only as a deterministic error surface for legacy clients. It must never
+// reach the billing service.
 
 describe("buyCourseForChild", () => {
-  const happyArgs = {
-    childId: "child_____________________1",
-    courseId: "course____________________1",
-  };
-
-  function setHappyPathMocks(overrides: {
-    course?: Partial<{
-      isFree: boolean;
-      price: number;
-      requiredPlan: string | null;
-      organizationId: string | null;
-      status: string;
-    }>;
-    consent?: { ok: boolean; reason?: string };
-    tenant?: string | null;
-  } = {}) {
-    vi.mocked(auth).mockResolvedValue(parentSession as never);
-    vi.mocked(db.parentChild.findUnique).mockResolvedValue({
-      id: "link1",
-      parentId: "parent1",
-      childId: happyArgs.childId,
-    } as never);
-    vi.mocked(db.course.findUnique).mockResolvedValue({
-      status: "PUBLISHED",
-      isFree: false,
-      price: 19.99,
-      requiredPlan: null,
-      organizationId: null,
-      ...(overrides.course ?? {}),
-    } as never);
-    vi.mocked(db.user.findUnique).mockResolvedValue({
-      organizationId: null,
-    } as never);
-    vi.mocked(assertSameTenant).mockReturnValue(
-      (overrides.tenant ?? null) as never
-    );
-    vi.mocked(assertMinorConsent).mockResolvedValue(
-      (overrides.consent ?? { ok: true }) as never
-    );
-    vi.mocked(createCourseCheckoutSession).mockResolvedValue({
-      url: "https://stripe.test/session/x",
-      sessionId: "cs_test_x",
-    });
-  }
-
-  it("returns a Stripe URL on the happy path with beneficiary set to the child", async () => {
-    setHappyPathMocks();
-    const result = await buyCourseForChild(happyArgs);
-
-    expect(result.success).toBe(true);
-    expect(createCourseCheckoutSession).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userId: "parent1",
-        beneficiaryUserId: happyArgs.childId,
-        courseId: happyArgs.courseId,
-      })
-    );
-  });
-
-  it("blocks when consent has been withdrawn for the child", async () => {
-    setHappyPathMocks({
-      consent: { ok: false, reason: "consent_withdrawn" },
+  it("always refuses with a subscribe-instead error and never calls Stripe", async () => {
+    const result = await buyCourseForChild({
+      childId: "child_____________________1",
+      courseId: "course____________________1",
     });
 
-    const result = await buyCourseForChild(happyArgs);
-
     expect(result.success).toBe(false);
-    expect(createCourseCheckoutSession).not.toHaveBeenCalled();
-  });
-
-  it("masks a cross-tenant course as 'not found'", async () => {
-    setHappyPathMocks({ tenant: "tenant_mismatch" });
-
-    const result = await buyCourseForChild(happyArgs);
-
-    expect(result).toEqual({ success: false, error: "Course not found" });
-    expect(createCourseCheckoutSession).not.toHaveBeenCalled();
-  });
-
-  it("rejects free courses (directs the parent to free enrolment)", async () => {
-    setHappyPathMocks({ course: { isFree: true, price: 0 } });
-
-    const result = await buyCourseForChild(happyArgs);
-
-    expect(result.success).toBe(false);
-    expect(createCourseCheckoutSession).not.toHaveBeenCalled();
-  });
-
-  it("rejects subscription-tier courses (directs the parent to subscribe)", async () => {
-    setHappyPathMocks({ course: { requiredPlan: "LEARNER" } });
-
-    const result = await buyCourseForChild(happyArgs);
-
-    expect(result.success).toBe(false);
+    expect(result).toHaveProperty("error");
+    expect((result as { error: string }).error).toMatch(/subscribe/i);
     expect(createCourseCheckoutSession).not.toHaveBeenCalled();
   });
 });

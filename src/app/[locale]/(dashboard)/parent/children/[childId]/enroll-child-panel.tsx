@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { GraduationCap, CreditCard } from "lucide-react";
-import {
-  enrollChildInCourse,
-  buyCourseForChild,
-} from "@/actions/parent.actions";
+import Link from "next/link";
+import { GraduationCap, Sparkles } from "lucide-react";
+import { enrollChildInCourse } from "@/actions/parent.actions";
 
 interface EnrollableCourse {
   id: string;
@@ -14,8 +12,8 @@ interface EnrollableCourse {
   isFree: boolean;
   price: number;
   currency: string;
-  // "subscription" = covered by parent's active plan; "paid" = one-time
-  // purchase via Stripe; "free" = enrol directly.
+  // "subscription" = covered by parent's active plan; "paid" = legacy paid
+  // course now subscription-only; "free" = enrol directly.
   kind: "free" | "subscription" | "paid";
 }
 
@@ -40,26 +38,16 @@ export function EnrollChildPanel({
   const [success, setSuccess] = useState<string | null>(null);
 
   const selectedCourse = courses.find((c) => c.id === selected);
-  const isPaid = selectedCourse?.kind === "paid";
+  // Paid courses default to the lowest paid tier server-side, so the parent
+  // needs an active subscription before we let them enrol.
+  const requiresSubscription =
+    selectedCourse?.kind === "paid" || selectedCourse?.kind === "subscription";
 
   function handleSubmit() {
     if (!selected || !selectedCourse) return;
     setError(null);
     setSuccess(null);
     startTransition(async () => {
-      if (selectedCourse.kind === "paid") {
-        const result = await buyCourseForChild({
-          childId,
-          courseId: selected,
-        });
-        if (!result.success) {
-          setError(result.error ?? "Failed to start checkout");
-          return;
-        }
-        // Stripe redirect — leave the app.
-        window.location.href = result.data.url;
-        return;
-      }
       const result = await enrollChildInCourse({
         childId,
         courseId: selected,
@@ -74,9 +62,7 @@ export function EnrollChildPanel({
 
   function badgeFor(course: EnrollableCourse): string {
     if (course.kind === "free") return " · Free";
-    if (course.kind === "subscription" && course.requiredPlan)
-      return ` · ${course.requiredPlan} plan`;
-    return ` · ${course.currency} ${course.price.toFixed(2)}`;
+    return " · Included with subscription";
   }
 
   return (
@@ -90,8 +76,8 @@ export function EnrollChildPanel({
             Enrol {childName} in a course
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Pick a course — free and subscription-included courses enrol in
-            one click; paid courses redirect to Stripe checkout.
+            Pick a course — free courses enrol in one click; every other
+            course is included with your Solo, Family, or Custom subscription.
           </p>
 
           {disabled ? (
@@ -132,21 +118,25 @@ export function EnrollChildPanel({
                   {success}
                 </p>
               )}
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={pending || !selected}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-60"
-              >
-                {isPaid && <CreditCard className="h-4 w-4" aria-hidden />}
-                {pending
-                  ? isPaid
-                    ? "Redirecting…"
-                    : "Enrolling…"
-                  : isPaid
-                    ? `Buy for ${childName}`
-                    : "Enrol"}
-              </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={pending || !selected}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-60"
+                >
+                  {pending ? "Enrolling…" : "Enrol"}
+                </button>
+                {requiresSubscription && (
+                  <Link
+                    href="/pricing"
+                    className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-4 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                  >
+                    <Sparkles className="h-4 w-4" aria-hidden />
+                    Subscribe
+                  </Link>
+                )}
+              </div>
             </div>
           )}
         </div>
