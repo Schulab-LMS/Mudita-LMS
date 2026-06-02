@@ -439,22 +439,22 @@ async function upsertPresentationCourse(
     },
   });
 
-  let module = await db.module.findFirst({
+  let courseModule = await db.module.findFirst({
     where: { courseId: course.id, order: 1 },
   });
-  if (!module) {
-    module = await db.module.create({
+  if (!courseModule) {
+    courseModule = await db.module.create({
       data: { courseId: course.id, title: spec.moduleTitle, order: 1 },
     });
   }
 
   let lesson = await db.lesson.findFirst({
-    where: { moduleId: module.id, order: 1 },
+    where: { moduleId: courseModule.id, order: 1 },
   });
   if (!lesson) {
     lesson = await db.lesson.create({
       data: {
-        moduleId: module.id,
+        moduleId: courseModule.id,
         title: spec.lessonTitle,
         order: 1,
         isFree: true,
@@ -516,7 +516,7 @@ async function upsertPresentationCourse(
     }
   }
 
-  return { course, module, lesson, quiz };
+  return { course, module: courseModule, lesson, quiz };
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────
