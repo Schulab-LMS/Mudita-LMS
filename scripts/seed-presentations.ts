@@ -524,24 +524,29 @@ async function upsertPresentationCourse(
 async function main() {
   console.log("Seeding sample presentations…");
 
-  const admin = await db.user.findUnique({
+  // createdBy: prefer the well-known dev admin, fall back to any
+  // ADMIN / SUPER_ADMIN on the DB so prod (which may not have the demo
+  // admin account) still gets the courses seeded against a valid user.
+  let admin = await db.user.findUnique({
     where: { email: "admin@schulab.com" },
   });
   if (!admin) {
+    admin = await db.user.findFirst({
+      where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } },
+      orderBy: { createdAt: "asc" },
+    });
+  }
+  if (!admin) {
     throw new Error(
-      "admin@schulab.com not found — run `npm run db:seed` first"
+      "No ADMIN or SUPER_ADMIN user found — create one before seeding."
     );
   }
 
+  // Aisha + Marcus are dev-only fixtures. If they're absent (prod), skip the
+  // enrolment and booking — the courses still seed successfully on their own.
   const aisha = await db.user.findUnique({
     where: { email: "aisha@example.com" },
   });
-  if (!aisha) {
-    throw new Error(
-      "aisha@example.com not found — run `npm run db:seed` first"
-    );
-  }
-
   const tutorUser = await db.user.findUnique({
     where: { email: "marcus@example.com" },
   });
@@ -773,17 +778,23 @@ async function main() {
   console.log(`  ✓ Advanced: ${advanced.course.slug}`);
 
   // Enrol Aisha so the student dashboard has something to render ──────────
-  for (const c of [beginner.course, intermediate.course, advanced.course]) {
-    await db.enrollment.upsert({
-      where: { userId_courseId: { userId: aisha.id, courseId: c.id } },
-      update: {},
-      create: { userId: aisha.id, courseId: c.id, status: "ACTIVE", progress: 0 },
-    });
+  if (aisha) {
+    for (const c of [beginner.course, intermediate.course, advanced.course]) {
+      await db.enrollment.upsert({
+        where: { userId_courseId: { userId: aisha.id, courseId: c.id } },
+        update: {},
+        create: { userId: aisha.id, courseId: c.id, status: "ACTIVE", progress: 0 },
+      });
+    }
+    console.log("  ✓ Enrolled Aisha in all three sample-presentation courses");
+  } else {
+    console.log(
+      "  ⚠️  aisha@example.com not present — skipped demo enrolment (expected on prod)"
+    );
   }
-  console.log("  ✓ Enrolled Aisha in all three sample-presentation courses");
 
   // Live-classroom entry point on the Intermediate lesson ─────────────────
-  if (tutorProfile) {
+  if (aisha && tutorProfile) {
     const lessonId = intermediate.lesson.id;
     const existing = await db.booking.findFirst({
       where: {
@@ -827,7 +838,7 @@ async function main() {
     }
   } else {
     console.log(
-      "  ⚠️  No tutor profile for marcus@example.com — skipped Booking creation"
+      "  ⚠️  Aisha or tutor profile missing — skipped Booking creation (expected on prod)"
     );
   }
 
