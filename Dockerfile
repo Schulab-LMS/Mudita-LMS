@@ -13,6 +13,12 @@ COPY . .
 # Prisma v7 needs a DATABASE_URL to generate the client (no actual connection).
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 ENV NEXT_TELEMETRY_DISABLED=1
+# NEXT_PUBLIC_* values are inlined into the bundle at BUILD time, so the canonical
+# app URL must be present here (not just in the runtime .env) for the static
+# sitemap.xml / robots.txt / metadata to emit production URLs instead of localhost.
+# Overridable via --build-arg (deploy.yml passes it); defaults to the prod domain.
+ARG NEXT_PUBLIC_APP_URL=https://schulab.com
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 RUN npx prisma generate
 RUN npm run build
 

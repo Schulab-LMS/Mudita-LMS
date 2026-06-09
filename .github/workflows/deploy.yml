@@ -32,6 +32,8 @@ jobs:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXTAUTH_SECRET: ci-placeholder-not-a-real-secret
       NEXTAUTH_URL: http://localhost:3000
+      # Keep the gate build's inlined public URL in parity with the shipped image.
+      NEXT_PUBLIC_APP_URL: https://schulab.com
 
     steps:
       - name: Checkout
@@ -92,6 +94,11 @@ jobs:
         with:
           context: .
           push: true
+          # NEXT_PUBLIC_* are inlined at build time. Source from the repo/environment
+          # variable NEXT_PUBLIC_APP_URL (Settings > Variables), falling back to the
+          # canonical domain so a missing var never bakes localhost into the image.
+          build-args: |
+            NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL || 'https://schulab.com' }}
           # Tag the immutable SHA tag (used by the deploy step) plus `latest`
           # so manual `docker compose pull` on the box still works in a pinch.
           tags: |
