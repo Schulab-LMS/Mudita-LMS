@@ -38,6 +38,11 @@ RUN apk add --no-cache openssl tini
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
+# Bind the Next.js standalone server to all interfaces. Otherwise Docker sets HOSTNAME
+# to the container id and Next binds only to that hostname, so the compose healthcheck
+# (wget http://127.0.0.1:3000/api/health) can't reach it — the container shows
+# (unhealthy) despite serving fine through the host port mapping.
+ENV HOSTNAME="0.0.0.0"
 
 # Run as the unprivileged `node` user that the official image already provides.
 RUN chown -R node:node /app
