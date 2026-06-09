@@ -6,7 +6,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 // Content-Security-Policy ships in **Report-Only** mode first: it surfaces
 // violations (browser console / report endpoint) WITHOUT breaking the page, so a
 // wrong allowlist can't take down the launch. Tighten these directives against real
-// beta traffic, then promote the header key to `Content-Security-Policy` (enforcing)
+// beta traffic, then set CSP_ENFORCE=true (and rebuild) to promote it to enforcing
 // before the public ramp. Allowlists are scoped to the platform's actual integrations:
 // Stripe, PostHog/GA4, LiveKit (wss), Mux, UploadThing, YouTube/Vimeo embeds.
 // next/font self-hosts fonts at build time, so font-src stays 'self'.
@@ -43,7 +43,15 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(self), microphone=(self), display-capture=(self), geolocation=(), browsing-topics=()",
   },
-  { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy },
+  {
+    // Report-Only by default (safe). Flip with CSP_ENFORCE=true + rebuild once beta
+    // traffic has shown the report-only policy produces no legitimate violations.
+    key:
+      process.env.CSP_ENFORCE === "true"
+        ? "Content-Security-Policy"
+        : "Content-Security-Policy-Report-Only",
+    value: contentSecurityPolicy,
+  },
 ];
 
 const nextConfig: NextConfig = {

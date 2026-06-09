@@ -15,19 +15,19 @@ export const metadata: Metadata = {
   description:
     "Schulab launches young minds. Interactive STEM courses, live tutoring, and hands-on kits for children ages 3–18.",
   robots: { index: true, follow: true },
+  // og:image / twitter image come from src/app/opengraph-image.tsx (file convention),
+  // injected automatically — no explicit `images` here to avoid pointing at a missing file.
   openGraph: {
     type: "website",
     siteName: siteConfig.name,
     title: "Schulab – Launch Young Minds",
     description: siteConfig.description,
     url: "/",
-    images: [{ url: siteConfig.ogImage, width: 1200, height: 630, alt: siteConfig.name }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Schulab – Launch Young Minds",
     description: siteConfig.description,
-    images: [siteConfig.ogImage],
   },
 };
 
