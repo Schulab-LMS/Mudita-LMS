@@ -29,14 +29,17 @@ BACKUP_DIR="${BACKUP_DIR:-./backups}"
 RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-14}"
 COMPOSE_CMD="${COMPOSE_CMD:-docker compose}"
 
-# Load DB_USER / DB_NAME from .env if not already exported.
+# Read ONLY the two vars we need from .env — do NOT `source` it. Docker-style .env
+# files contain unquoted values with spaces (e.g. a single-line PEM key), which bash
+# `source` tries to execute ("RSA: command not found"). Grep extracts just these keys.
 if [[ -f .env ]]; then
-  # shellcheck disable=SC1091
-  set -a; source .env; set +a
+  # \042 = double-quote, \047 = single-quote (strip them if the value is quoted).
+  : "${DB_USER:=$(grep -E '^DB_USER=' .env | head -n1 | cut -d= -f2- | tr -d '\042\047')}"
+  : "${DB_NAME:=$(grep -E '^DB_NAME=' .env | head -n1 | cut -d= -f2- | tr -d '\042\047')}"
 fi
 
-: "${DB_USER:?DB_USER is required (set it in .env)}"
-: "${DB_NAME:?DB_NAME is required (set it in .env)}"
+: "${DB_USER:?DB_USER is required (set it in .env or the environment)}"
+: "${DB_NAME:?DB_NAME is required (set it in .env or the environment)}"
 
 timestamp="$(date -u +%Y%m%d-%H%M%S)"
 outfile="${BACKUP_DIR}/schulab-${DB_NAME}-${timestamp}.sql.gz"
