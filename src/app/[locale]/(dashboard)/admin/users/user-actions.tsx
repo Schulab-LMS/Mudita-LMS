@@ -2,7 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { updateUserRole, toggleUserActive } from "@/actions/admin.actions";
+import {
+  updateUserRole,
+  toggleUserActive,
+  grantCompAccess,
+  revokeCompAccess,
+} from "@/actions/admin.actions";
 
 const ROLE_VALUES = [
   "STUDENT",
@@ -19,9 +24,10 @@ interface Props {
   isActive: boolean;
   canManageRoles: boolean;
   isSelf: boolean;
+  hasComp: boolean;
 }
 
-export function UserActions({ userId, currentRole, isActive, canManageRoles, isSelf }: Props) {
+export function UserActions({ userId, currentRole, isActive, canManageRoles, isSelf, hasComp }: Props) {
   const t = useTranslations("admin.users");
   const tCommon = useTranslations("admin.common");
   const tRoles = useTranslations("admin.roles");
@@ -31,6 +37,16 @@ export function UserActions({ userId, currentRole, isActive, canManageRoles, isS
   function handleToggleActive() {
     startTransition(async () => {
       const result = await toggleUserActive(userId);
+      if (!result.success) alert(result.error ?? tCommon("genericError"));
+    });
+  }
+
+  function handleToggleComp() {
+    if (hasComp && !confirm(t("compRevokeConfirm"))) return;
+    startTransition(async () => {
+      const result = hasComp
+        ? await revokeCompAccess(userId)
+        : await grantCompAccess(userId);
       if (!result.success) alert(result.error ?? tCommon("genericError"));
     });
   }
@@ -76,6 +92,20 @@ export function UserActions({ userId, currentRole, isActive, canManageRoles, isS
           </button>
         )
       )}
+
+      {/* Grant / revoke complimentary access (payments-off beta) */}
+      <button
+        onClick={handleToggleComp}
+        disabled={pending}
+        title={hasComp ? t("compRevokeHint") : t("compGrantHint")}
+        className={`rounded px-2 py-1 text-xs font-medium disabled:opacity-50 ${
+          hasComp
+            ? "text-amber-700 hover:bg-amber-50"
+            : "text-emerald-700 hover:bg-emerald-50"
+        }`}
+      >
+        {pending ? "..." : hasComp ? t("compRevoke") : t("compGrant")}
+      </button>
 
       {/* Toggle active/inactive */}
       {!isSelf && (

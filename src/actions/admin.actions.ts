@@ -5,9 +5,11 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { assertCourseEditable } from "@/lib/curriculum-guard";
 import { audit } from "@/lib/audit";
+import { grantComp, revokeComp } from "@/services/comp-access.service";
 import {
   updateUserRoleSchema,
   toggleUserActiveSchema,
+  compAccessSchema,
   createCourseSchema,
   updateCourseSchema,
   deleteCourseSchema,
@@ -60,6 +62,56 @@ export async function toggleUserActive(userId: string) {
   } catch (error) {
     console.error("toggleUserActive error:", error);
     return { success: false, error: "Failed to toggle user status" };
+  }
+}
+
+// Grant complimentary ("comp") full access — an ACTIVE LIFETIME subscription with no
+// Stripe, used during the payments-off beta to clear requiredPlan gating for invited
+// users. Idempotent; see src/services/comp-access.service.ts.
+export async function grantCompAccess(userId: string) {
+  try {
+    const session = await requireAdmin();
+    const parsed = compAccessSchema.safeParse({ userId });
+    if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const user = await db.user.findUnique({ where: { id: parsed.data.userId }, select: { id: true } });
+    if (!user) return { success: false, error: "User not found" };
+
+    const created = await grantComp(parsed.data.userId);
+    await audit({
+      actorId: session.user!.id,
+      action: "user.comp_grant",
+      resource: "User",
+      resourceId: parsed.data.userId,
+      metadata: { created },
+    });
+    revalidatePath("/admin/users");
+    return { success: true };
+  } catch (error) {
+    console.error("grantCompAccess error:", error);
+    return { success: false, error: "Failed to grant comp access" };
+  }
+}
+
+export async function revokeCompAccess(userId: string) {
+  try {
+    const session = await requireAdmin();
+    const parsed = compAccessSchema.safeParse({ userId });
+    if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+    const revoked = await revokeComp(parsed.data.userId);
+    await audit({
+      actorId: session.user!.id,
+      action: "user.comp_revoke",
+      resource: "User",
+      resourceId: parsed.data.userId,
+      metadata: { revoked },
+    });
+    revalidatePath("/admin/users");
+    return { success: true };
+  } catch (error) {
+    console.error("revokeCompAccess error:", error);
+    return { success: false, error: "Failed to revoke comp access" };
   }
 }
 
