@@ -15,6 +15,7 @@ import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { GradientText } from "@/components/ui/gradient-text";
 import { AuroraBlobs } from "@/components/ui/aurora-blobs";
 import { TestimonialCard } from "@/components/shared/testimonial-card";
+import { paymentsEnabled } from "@/lib/flags";
 import { PricingTiers } from "./pricing-tiers";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -153,6 +154,10 @@ function resolveCell(
 }
 
 export default function PricingPage() {
+  // Server-only flag (this is a Server Component). During the payments-off beta we
+  // suppress purchase-specific trust copy (refund / cancel-anytime) since nothing is
+  // being sold yet; PricingTiers handles the per-card reframe.
+  const payments = paymentsEnabled();
   const t = useTranslations("pricing");
   const tGroup = useTranslations("pricing.comparison.groups") as (
     key: string
@@ -165,23 +170,19 @@ export default function PricingPage() {
   ) => string;
   const faqs = t.raw("faq") as { q: string; a: string }[];
 
-  const trustPoints = [
-    {
-      icon: Shield,
-      title: t("trustCancelTitle"),
-      text: t("trustCancelBody"),
-    },
-    {
-      icon: Sparkles,
-      title: t("trustRefundTitle"),
-      text: t("trustRefundBody"),
-    },
-    {
-      icon: Zap,
-      title: t("trustInstantTitle"),
-      text: t("trustInstantBody"),
-    },
-  ];
+  // "Cancel anytime" / "14-day refund" only make sense once we sell. In the
+  // payments-off beta, lead with the early-access promise instead.
+  const trustPoints = payments
+    ? [
+        { icon: Shield, title: t("trustCancelTitle"), text: t("trustCancelBody") },
+        { icon: Sparkles, title: t("trustRefundTitle"), text: t("trustRefundBody") },
+        { icon: Zap, title: t("trustInstantTitle"), text: t("trustInstantBody") },
+      ]
+    : [
+        { icon: Sparkles, title: t("earlyAccess.trustFreeTitle"), text: t("earlyAccess.trustFreeBody") },
+        { icon: Shield, title: t("earlyAccess.trustNoCardTitle"), text: t("earlyAccess.trustNoCardBody") },
+        { icon: Zap, title: t("trustInstantTitle"), text: t("trustInstantBody") },
+      ];
 
   return (
     <div>
@@ -207,13 +208,13 @@ export default function PricingPage() {
           </ScrollReveal>
           <ScrollReveal mode="fade" delay={160}>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-              {t("subtitle")}
+              {payments ? t("subtitle") : t("earlyAccess.subtitle")}
             </p>
           </ScrollReveal>
           <ScrollReveal mode="fade" delay={240}>
             <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#34d399]/15 px-4 py-2 text-sm font-medium text-[#047857] ring-1 ring-[#34d399]/30">
               <Shield className="h-4 w-4" />
-              {t("guarantee")}
+              {payments ? t("guarantee") : t("earlyAccess.guarantee")}
             </div>
           </ScrollReveal>
         </div>
@@ -221,7 +222,7 @@ export default function PricingPage() {
 
       {/* === Plans (client) === */}
       <section className="mx-auto -mt-8 max-w-5xl px-4 sm:px-6 lg:px-8">
-        <PricingTiers />
+        <PricingTiers paymentsEnabled={payments} />
       </section>
 
       {/* === Trust strip === */}
@@ -269,7 +270,7 @@ export default function PricingPage() {
                   {t("basic.name")}
                 </div>
                 <div className="mt-0.5 text-xs text-muted-foreground">
-                  {t("basic.headerPrice")}
+                  {payments ? t("basic.headerPrice") : t("earlyAccess.free")}
                 </div>
               </div>
               <div className="rounded-2xl bg-launch-gradient-soft px-3 py-2 text-center ring-2 ring-[#4f3ff0]/20">
@@ -281,7 +282,7 @@ export default function PricingPage() {
                   {t("family.name")}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {t("family.headerPrice")}
+                  {payments ? t("family.headerPrice") : t("earlyAccess.free")}
                 </div>
               </div>
               <div className="text-center">

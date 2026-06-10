@@ -124,7 +124,15 @@ function formatEur(locale: string, amount: number, decimals = 0): string {
   }).format(amount);
 }
 
-export function PricingTiers() {
+// During the payments-off beta, every purchase CTA routes to free registration
+// instead of a checkout we can't fulfil. Custom/school still routes to contact.
+const BETA_SUB_HREF: Record<SubKey, string> = {
+  basic: "/register?plan=solo",
+  family: "/register?plan=family",
+  school: "/contact?subject=Custom%20Plan%20Inquiry",
+};
+
+export function PricingTiers({ paymentsEnabled }: { paymentsEnabled: boolean }) {
   const t = useTranslations("pricing");
   const locale = useLocale();
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
@@ -147,11 +155,13 @@ export function PricingTiers() {
           </div>
         </ScrollReveal>
 
-        <ScrollReveal mode="up" delay={80}>
-          <div className="mt-8 flex justify-center">
-            <BillingToggle value={cycle} onChange={setCycle} />
-          </div>
-        </ScrollReveal>
+        {paymentsEnabled && (
+          <ScrollReveal mode="up" delay={80}>
+            <div className="mt-8 flex justify-center">
+              <BillingToggle value={cycle} onChange={setCycle} />
+            </div>
+          </ScrollReveal>
+        )}
 
         <div className="mt-10 grid grid-cols-1 items-stretch gap-8 md:grid-cols-3">
           {subPlans.map((plan, i) => {
@@ -163,8 +173,15 @@ export function PricingTiers() {
             let secondaryLine: React.ReactNode = null;
             let annualSavings: React.ReactNode = null;
             const isCustom = plan.monthlyEur === null;
+            // In the payments-off beta, paid tiers read "Free / Early access" and
+            // route to registration; Custom still routes to contact sales.
+            const betaFree = !paymentsEnabled && !isCustom;
+            const href = paymentsEnabled ? plan.href : BETA_SUB_HREF[plan.key];
 
-            if (plan.monthlyEur === null) {
+            if (betaFree) {
+              priceValue = t("earlyAccess.free");
+              periodLabel = t("earlyAccess.freePeriod");
+            } else if (plan.monthlyEur === null) {
               priceValue = t("custom");
               periodLabel = t(`${plan.key}.period`);
             } else {
@@ -250,7 +267,7 @@ export function PricingTiers() {
                         {!isCustom && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-[#34d399]/15 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#047857]">
                             <Sparkles className="h-3 w-3" />
-                            {t("firstSessionFree")}
+                            {betaFree ? t("earlyAccess.badge") : t("firstSessionFree")}
                           </span>
                         )}
                         <div className="flex items-baseline justify-center gap-1 whitespace-nowrap">
@@ -269,7 +286,7 @@ export function PricingTiers() {
                         {annualSavings}
                         {!isCustom && (
                           <p className="text-[11px] text-muted-foreground">
-                            {t("autoRenewNote")}
+                            {betaFree ? t("earlyAccess.cardNote") : t("autoRenewNote")}
                           </p>
                         )}
                       </div>
@@ -304,14 +321,14 @@ export function PricingTiers() {
 
                     <CardFooter>
                       <Link
-                        href={plan.href}
+                        href={href}
                         className={`group/cta flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
                           plan.featured
                             ? "bg-launch-gradient text-white shadow-lg hover:shadow-xl hover-blastoff"
                             : "border border-input bg-background hover:bg-muted hover-lift"
                         }`}
                       >
-                        {t(`${plan.key}.cta`)}
+                        {betaFree ? t("earlyAccess.cta") : t(`${plan.key}.cta`)}
                         <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform group-hover/cta:translate-x-1 rtl:group-hover/cta:-translate-x-1" />
                       </Link>
                     </CardFooter>
@@ -336,6 +353,12 @@ export function PricingTiers() {
             <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
               {t("tutoringSubtitle")}
             </p>
+            {!paymentsEnabled && (
+              <div className="mx-auto mt-4 inline-flex items-center gap-1 rounded-full bg-[#34d399]/15 px-3 py-1 text-xs font-semibold text-[#047857] ring-1 ring-[#34d399]/30">
+                <Sparkles className="h-3 w-3" />
+                {t("earlyAccess.tutoringNote")}
+              </div>
+            )}
           </div>
         </ScrollReveal>
 
@@ -375,26 +398,41 @@ export function PricingTiers() {
                       <CardTitle className="mt-4 font-display text-xl">
                         {t(`tutoring.${pack.key}.name`)}
                       </CardTitle>
-                      {/* Reserved price block — same min-height across all 3 cards */}
+                      {/* Reserved price block — same min-height across all 3 cards.
+                          In the payments-off beta we don't show buyable € prices;
+                          the section note already says sessions are free in early access. */}
                       <div className="mt-4 flex min-h-[7.5rem] flex-col items-center justify-start gap-1">
-                        <span className="font-display text-5xl font-extrabold leading-none">
-                          {formatEur(locale, pack.priceEur)}
-                        </span>
-                        <p className={`text-sm font-semibold ${pack.accent}`}>
-                          {t("perSession", {
-                            price: formatEur(
-                              locale,
-                              perSession,
-                              perSessionDecimals
-                            ),
-                          })}
-                        </p>
-                        {savings > 0 && (
-                          <p className="inline-flex items-center rounded-full bg-[#34d399]/15 px-2.5 py-0.5 text-xs font-bold text-[#047857]">
-                            {t("saveAmount", {
-                              amount: formatEur(locale, savings),
-                            })}
-                          </p>
+                        {paymentsEnabled ? (
+                          <>
+                            <span className="font-display text-5xl font-extrabold leading-none">
+                              {formatEur(locale, pack.priceEur)}
+                            </span>
+                            <p className={`text-sm font-semibold ${pack.accent}`}>
+                              {t("perSession", {
+                                price: formatEur(
+                                  locale,
+                                  perSession,
+                                  perSessionDecimals
+                                ),
+                              })}
+                            </p>
+                            {savings > 0 && (
+                              <p className="inline-flex items-center rounded-full bg-[#34d399]/15 px-2.5 py-0.5 text-xs font-bold text-[#047857]">
+                                {t("saveAmount", {
+                                  amount: formatEur(locale, savings),
+                                })}
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-display text-4xl font-extrabold leading-none">
+                              {t("earlyAccess.free")}
+                            </span>
+                            <p className={`text-sm font-semibold ${pack.accent}`}>
+                              {t("earlyAccess.freePeriod")}
+                            </p>
+                          </>
                         )}
                       </div>
                     </CardHeader>

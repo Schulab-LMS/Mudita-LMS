@@ -275,6 +275,20 @@
     "firstSessionFree": "1. Sitzung gratis",
     "trialBadge": "Testphase",
     "autoRenewNote": "Verlängert sich monatlich automatisch, bis du kündigst.",
+    "earlyAccess": {
+      "subtitle": "Wir sind im Early Access — alle Tarife sind kostenlos, während wir öffnen. Erstelle dein Konto und starte noch heute.",
+      "guarantee": "Kostenlos im Early Access — keine Karte nötig",
+      "free": "Kostenlos",
+      "freePeriod": "Early Access",
+      "badge": "Early Access",
+      "cardNote": "Kostenlos im Early Access — keine Zahlung, keine Karte.",
+      "cta": "Kostenlos starten",
+      "trustFreeTitle": "Kostenlos im Early Access",
+      "trustFreeBody": "Voller Zugriff auf alle Kurse während der Beta.",
+      "trustNoCardTitle": "Keine Karte nötig",
+      "trustNoCardBody": "Einfach ein Konto erstellen — noch nichts zu zahlen.",
+      "tutoringNote": "Kostenlos im Early Access — Sitzung ohne Gebühr buchen"
+    },
     "basic": {
       "name": "Solo",
       "tagline": "Für eine:n einzelne:n Lernende:n",

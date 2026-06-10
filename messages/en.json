@@ -275,6 +275,20 @@
     "firstSessionFree": "1st session free",
     "trialBadge": "Trial",
     "autoRenewNote": "Auto-renews monthly until you cancel.",
+    "earlyAccess": {
+      "subtitle": "We're in early access — every plan is free while we open the doors. Create your account and start learning today.",
+      "guarantee": "Free during early access — no card required",
+      "free": "Free",
+      "freePeriod": "early access",
+      "badge": "Early access",
+      "cardNote": "Free while in early access — no payment, no card.",
+      "cta": "Start free",
+      "trustFreeTitle": "Free in early access",
+      "trustFreeBody": "Full access to every course while we're in beta.",
+      "trustNoCardTitle": "No card required",
+      "trustNoCardBody": "Just create an account — nothing to pay yet.",
+      "tutoringNote": "Free during early access — book a session at no charge"
+    },
     "basic": {
       "name": "Solo",
       "tagline": "For one focused learner",
