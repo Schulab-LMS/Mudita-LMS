@@ -20,6 +20,8 @@
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "@react-pdf/renderer": "^4.5.1",
+    "@sentry/browser": "^10.57.0",
+    "@sentry/node": "^10.57.0",
     "@uploadthing/react": "^7.3.3",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",

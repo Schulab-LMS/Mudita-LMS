@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { captureClientError } from "@/lib/observability.client";
 
 export default function CoursesError({
   error,
@@ -11,6 +12,7 @@ export default function CoursesError({
 }) {
   useEffect(() => {
     console.error(error);
+    captureClientError(error, { digest: error.digest, boundary: "courses" });
   }, [error]);
 
   return (

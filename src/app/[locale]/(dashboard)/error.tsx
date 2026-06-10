@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { captureClientError } from "@/lib/observability.client";
 
 export default function DashboardError({
   error,
@@ -11,6 +12,7 @@ export default function DashboardError({
 }) {
   useEffect(() => {
     console.error(error);
+    captureClientError(error, { digest: error.digest, boundary: "dashboard" });
   }, [error]);
 
   return (

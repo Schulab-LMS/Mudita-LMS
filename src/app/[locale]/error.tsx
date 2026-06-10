@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { AlertTriangle, RotateCw, Home, HelpCircle } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { captureClientError } from "@/lib/observability.client";
 
 export default function RootError({
   error,
@@ -13,6 +14,7 @@ export default function RootError({
 }) {
   useEffect(() => {
     console.error(error);
+    captureClientError(error, { digest: error.digest, boundary: "locale-root" });
   }, [error]);
 
   return (
