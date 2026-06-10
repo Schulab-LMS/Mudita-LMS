@@ -903,7 +903,12 @@
       "changeRole": "Rolle ändern",
       "activate": "Aktivieren",
       "deactivate": "Deaktivieren",
-      "you": "Du"
+      "you": "Du",
+      "compGrant": "Zugang gewähren",
+      "compRevoke": "Zugang entziehen",
+      "compGrantHint": "Kostenlosen Vollzugang gewähren (Early-Access-Beta)",
+      "compRevokeHint": "Kostenlosen Zugang entziehen",
+      "compRevokeConfirm": "Kostenlosen Zugang dieses Nutzers entziehen? Er verliert den Zugriff auf kostenpflichtige Inhalte."
     },
     "courses": {
       "pageTitle": "Kurse verwalten | Admin",

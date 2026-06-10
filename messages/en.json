@@ -903,7 +903,12 @@
       "changeRole": "Change Role",
       "activate": "Activate",
       "deactivate": "Deactivate",
-      "you": "You"
+      "you": "You",
+      "compGrant": "Grant access",
+      "compRevoke": "Revoke access",
+      "compGrantHint": "Grant complimentary full access (early-access beta)",
+      "compRevokeHint": "Revoke complimentary access",
+      "compRevokeConfirm": "Revoke this user's complimentary access? They will lose access to paid content."
     },
     "courses": {
       "pageTitle": "Manage Courses | Admin",

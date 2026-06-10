@@ -3,6 +3,7 @@ import { getTranslations, getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole, isSuperAdmin } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
+import { compStatusFor } from "@/services/comp-access.service";
 import { UserActions } from "./user-actions";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -66,6 +67,9 @@ export default async function AdminUsersPage() {
       })
       .catch(() => []),
   ]);
+
+  // One query for comp state across the whole table (avoids N+1).
+  const compUserIds = await compStatusFor(users.map((u) => u.id));
 
   const dateFormatter = new Intl.DateTimeFormat(locale, {
     year: "numeric",
@@ -261,6 +265,7 @@ export default async function AdminUsersPage() {
                         isActive={user.isActive}
                         canManageRoles={canManageRoles}
                         isSelf={user.id === session.user.id}
+                        hasComp={compUserIds.has(user.id)}
                       />
                     </td>
                   </tr>

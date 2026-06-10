@@ -15,6 +15,10 @@ export const toggleUserActiveSchema = z.object({
   userId: cuidSchema,
 });
 
+export const compAccessSchema = z.object({
+  userId: cuidSchema,
+});
+
 // ── Admin: Courses ──────────────────────────────────────────────────────
 
 export const createCourseSchema = z.object({
