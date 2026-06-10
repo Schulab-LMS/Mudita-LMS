@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { captureClientError } from "@/lib/observability.client";
 
 export default function AdminError({
   error,
@@ -14,6 +15,7 @@ export default function AdminError({
 
   useEffect(() => {
     console.error(error);
+    captureClientError(error, { digest: error.digest, boundary: "admin" });
   }, [error]);
 
   return (
