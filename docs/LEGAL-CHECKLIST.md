@@ -45,17 +45,23 @@ is your intended stance.
     payments are OFF; required before `PAYMENTS_ENABLED=true`).
   - Whether a **Muster-Widerrufsformular** (model withdrawal form) is included.
 
-## 3. AGB (Terms of Service) — 🔴 content + review
-- `lastUpdated="[Datum]"` placeholder → set a real date.
-- German body text exists but is **unreviewed**. Must cover: contract formation,
-  subscription terms + auto-renewal, prices/VAT, minors & parental authority,
-  termination, liability, applicable law. **Lawyer review required.**
+## 3. AGB (Terms of Service) — 🟡 drafted, review pending
+- ✅ Real date set (11. Juni 2026).
+- ✅ Early-access clauses added (§ 2, § 4, § 6): free during early access; price,
+  payment, and auto-renewal provisions apply only once paid offerings launch — so
+  the terms match the payments-OFF reality.
+- German body text covers contract formation, prices/VAT, minors, termination,
+  liability, applicable law. **Lawyer review still required** (see
+  docs/LEGAL-REVIEW-BRIEF.md for the prepared briefing).
 
-## 4. Datenschutzerklärung (Privacy) — 🔴 SUBSTANTIVE GAP
-The biggest gap. Current page is **in English and names no data processors**. A
-GDPR-compliant German Datenschutzerklärung must disclose, per processor: what data,
-legal basis (Art. 6), retention, and any third-country transfer (Drittlandtransfer).
-**Processors actually used by this app (disclose each):**
+## 4. Datenschutzerklärung (Privacy) — 🟡 REWRITTEN (2026-06-11), review pending
+✅ Fully rewritten: **German canonical** (renders on `de` locale) + English version
+(`en`/`ar`, with "German version governs" note). 18 sections covering: controller
+(env-driven like Impressum), legal bases (Art. 6 + Art. 8), every processor with
+purpose + location, children's consent (correct **16-year GDPR-K threshold** — the
+old page wrongly said COPPA-13), cookies/TDDDG, US transfers (DPF/SCC), retention,
+data-subject rights incl. Art. 77 complaint, security. Draft-review notice at the
+bottom until counsel signs off. **Processors disclosed:**
 
 | Processor | Purpose | Note |
 |---|---|---|

@@ -28,7 +28,7 @@ export default function AgbPage() {
     <LegalLayout
       title="Allgemeine Geschäftsbedingungen"
       description="AGB für Nutzerinnen und Nutzer in Deutschland, Österreich und der Schweiz."
-      lastUpdated="[Datum]"
+      lastUpdated="11. Juni 2026"
       sections={sections}
     >
       <section id="geltungsbereich">
@@ -52,6 +52,15 @@ export default function AgbPage() {
           Leistungsumfang ergibt sich aus der jeweiligen Produktbeschreibung
           zum Zeitpunkt des Vertragsschlusses.
         </p>
+        <p>
+          <strong>Early-Access-Phase:</strong> Während der Early-Access-Phase
+          stellt der Anbieter die Plattform unentgeltlich zur Verfügung. Ein
+          Anspruch auf bestimmte Funktionen, ununterbrochene Verfügbarkeit
+          oder die dauerhafte Unentgeltlichkeit besteht nicht. Die Einführung
+          kostenpflichtiger Angebote wird rechtzeitig angekündigt;
+          kostenpflichtige Leistungen entstehen nur durch ausdrückliche
+          Bestellung.
+        </p>
       </section>
 
       <section id="vertragsschluss">
@@ -66,6 +75,11 @@ export default function AgbPage() {
 
       <section id="preise">
         <h2>§ 4 Preise, Zahlung, Rechnungsstellung</h2>
+        <p>
+          Während der Early-Access-Phase ist die Nutzung der Plattform
+          kostenlos; die nachfolgenden Regelungen zu Preisen und Zahlung
+          gelten erst ab Einführung kostenpflichtiger Angebote.
+        </p>
         <p>
           Alle Preise verstehen sich in Euro inklusive der gesetzlichen
           Umsatzsteuer. Die Zahlung erfolgt über den im Checkout-Prozess
@@ -87,7 +101,8 @@ export default function AgbPage() {
       <section id="laufzeit">
         <h2>§ 6 Laufzeit und Kündigung von Abonnements</h2>
         <p>
-          Abonnements verlängern sich automatisch um den jeweils gewählten
+          Dieser Abschnitt gilt erst ab Einführung kostenpflichtiger
+          Abonnements. Abonnements verlängern sich automatisch um den jeweils gewählten
           Zeitraum (monatlich oder jährlich), sofern sie nicht vor Ablauf
           der laufenden Periode über den Abrechnungsbereich gekündigt
           werden. Das Recht zur außerordentlichen Kündigung aus wichtigem
