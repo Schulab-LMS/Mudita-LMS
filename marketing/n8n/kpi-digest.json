@@ -1,0 +1,68 @@
+{
+  "name": "Schulab — Daily KPI digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "days", "daysInterval": 1, "triggerAtHour": 8, "triggerAtMinute": 0 }]
+        }
+      },
+      "id": "c3000000-0000-4000-8000-000000000001",
+      "name": "Daily 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  (SELECT COUNT(*) FROM \"User\" WHERE \"createdAt\" >= NOW() - INTERVAL '24 hours')::int AS new_users,\n  (SELECT COUNT(*) FROM \"Enrollment\" WHERE \"createdAt\" >= NOW() - INTERVAL '24 hours')::int AS new_enrollments,\n  (SELECT COUNT(*) FROM \"Booking\" WHERE \"createdAt\" >= NOW() - INTERVAL '24 hours')::int AS new_bookings,\n  (SELECT COUNT(*) FROM \"ConsentRecord\" WHERE type = 'MARKETING_EMAIL' AND granted AND \"grantedAt\" >= NOW() - INTERVAL '24 hours')::int AS new_marketing_optins,\n  (SELECT COUNT(*) FROM \"User\")::int AS total_users,\n  (SELECT COUNT(*) FROM \"Enrollment\")::int AS total_enrollments,\n  (SELECT COUNT(*) FROM \"Certificate\")::int AS total_certificates;",
+        "options": {}
+      },
+      "id": "c3000000-0000-4000-8000-000000000002",
+      "name": "KPI query",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [240, 0],
+      "credentials": {
+        "postgres": { "id": "REPLACE_AFTER_IMPORT", "name": "Schulab Postgres RO" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format the digest. EDIT the `to` address for your team inbox/channel.\nconst kpi = $input.first().json;\nconst today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());\nconst row = (label, v) => `<tr><td style=\"padding:6px 12px;border-bottom:1px solid #e2e8f0\">${label}</td><td style=\"padding:6px 12px;border-bottom:1px solid #e2e8f0;text-align:right\"><b>${v}</b></td></tr>`;\nconst html = `<div style=\"font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#0f172a\">` +\n  `<h2 style=\"margin:0 0 4px\">Schulab daily KPIs</h2>` +\n  `<p style=\"margin:0 0 16px;color:#64748b;font-size:13px\">${today} · last 24h vs totals</p>` +\n  `<table style=\"border-collapse:collapse;width:100%;font-size:14px\">` +\n  row('New signups (24h)', kpi.new_users) +\n  row('New enrollments (24h)', kpi.new_enrollments) +\n  row('New bookings (24h)', kpi.new_bookings) +\n  row('New marketing opt-ins (24h)', kpi.new_marketing_optins) +\n  row('Total users', kpi.total_users) +\n  row('Total enrollments', kpi.total_enrollments) +\n  row('Total certificates', kpi.total_certificates) +\n  `</table></div>`;\nreturn [{ json: { body: {\n  from: 'Schulab <noreply@schulab.com>',\n  to: ['admin@schulab.com'],\n  subject: `Schulab KPIs ${today}: ${kpi.new_users} signups, ${kpi.new_enrollments} enrollments`,\n  html,\n} } }];"
+      },
+      "id": "c3000000-0000-4000-8000-000000000003",
+      "name": "Build digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "c3000000-0000-4000-8000-000000000004",
+      "name": "Send via Resend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [720, 0],
+      "credentials": {
+        "httpHeaderAuth": { "id": "REPLACE_AFTER_IMPORT", "name": "Resend API" }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 08:00": { "main": [[{ "node": "KPI query", "type": "main", "index": 0 }]] },
+    "KPI query": { "main": [[{ "node": "Build digest", "type": "main", "index": 0 }]] },
+    "Build digest": { "main": [[{ "node": "Send via Resend", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "timezone": "Europe/Berlin" }
+}

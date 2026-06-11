@@ -1,0 +1,178 @@
+{
+  "campaign": "earlyaccess_jun2026",
+  "timezone": "Europe/Berlin",
+  "_comment": "Launch content bank P1-P15, re-dated from 2026-06-11 (T-14). Copy is corrected for the payments-OFF early-access beta: no prices, no 'first session free', no recording/student-camera claims. {{link}} is replaced by the script with the locale-specific register URL carrying UTM parameters. 'gated: true' posts are NOT auto-scheduled — they are released manually on launch day only after the platform is confirmed healthy.",
+  "posts": [
+    {
+      "id": "P1",
+      "date": "2026-06-12T10:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "facebook", "linkedin"],
+      "localePolicy": "en-only",
+      "visual": "Brand hero card: logo + 'Early Access - June 25' badge (1080x1080 + 1200x627)",
+      "content": {
+        "en": "Something new is coming for curious minds. 🚀\n\nSchulab — interactive STEM learning with live tutors, for ages 3–18, in English · Deutsch · العربية.\n\nEarly access opens June 25 — and it's free during early access.\n\nJoin now → {{link}}\n\n#EdTech #STEM #Lernplattform #تعليم #OnlineLearning"
+      }
+    },
+    {
+      "id": "P2",
+      "date": "2026-06-13T16:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "tiktok", "youtube"],
+      "localePolicy": "en-only",
+      "visual": "15–30s screen capture of an interactive lesson / Reveal.js deck with fragments + a quiz answer reveal",
+      "content": {
+        "en": "What if STEM actually felt like play? 👀\n\nA peek inside Schulab's interactive lessons — slides, quizzes, badges, certificates.\n\nFree during early access. Doors open June 25 — link in bio.\n\n#STEMeducation #learnontiktok #EdTech #interactivelearning"
+      }
+    },
+    {
+      "id": "P3",
+      "date": "2026-06-14T11:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "facebook"],
+      "localePolicy": "en-only",
+      "visual": "Split before/after carousel: worksheet vs interactive lesson + live session",
+      "content": {
+        "en": "Worksheets are boring. 😴\n\nSchulab blends interactive lessons + live sessions with real STEM tutors + certificates your child can be proud of — in 3 languages. 🌍\n\nFree during early access, starting June 25 → {{link}}\n\n#parenting #STEM #homeschool #EdTech"
+      }
+    },
+    {
+      "id": "P4",
+      "date": "2026-06-15T09:00:00+02:00",
+      "gated": false,
+      "channels": ["linkedin"],
+      "localePolicy": "en-only",
+      "visual": "Founder photo or product collage, clean text card",
+      "content": {
+        "en": "We're building Schulab to make world-class STEM learning accessible, multilingual, and genuinely interactive — with live tutors at its core.\n\nFor learners aged 3–18, in English, German, and Arabic. Early access opens June 25, free while we grow with our first families.\n\nEducators and schools: we'd love to talk. {{link}}\n\n#EdTech #STEM #startup #education"
+      }
+    },
+    {
+      "id": "P5",
+      "date": "2026-06-16T10:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "facebook"],
+      "localePolicy": "all",
+      "visual": "Bold 'FREE during early access' card, trilingual variants, brand gradient",
+      "content": {
+        "en": "🎁 Schulab is FREE during early access.\n\nFull access to interactive STEM courses, live tutor sessions, badges and certificates — for ages 3–18, in English · Deutsch · العربية.\n\nDoors open June 25. Sign up now → {{link}}\n\n#STEM #EdTech #OnlineLearning #freeducation",
+        "de": "🎁 Schulab ist im Early Access KOSTENLOS.\n\nVoller Zugang zu interaktiven MINT-Kursen, Live-Sessions mit Tutoren, Abzeichen und Zertifikaten — für 3- bis 18-Jährige, auf Deutsch · Englisch · Arabisch.\n\nStart am 25. Juni. Jetzt anmelden → {{link}}\n\n#MINT #Lernplattform #Nachhilfe #OnlineLernen",
+        "ar": "🎁 منصة Schulab مجانية خلال فترة الوصول المبكر.\n\nوصول كامل إلى دورات STEM تفاعلية وجلسات مباشرة مع معلّمين وشارات وشهادات — للأعمار من ٣ إلى ١٨، بالعربية والإنجليزية والألمانية.\n\nالانطلاق في ٢٥ يونيو. سجّل الآن → {{link}}\n\n#تعليم #تعلم_عن_بعد #STEM"
+      }
+    },
+    {
+      "id": "P6",
+      "date": "2026-06-18T10:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "facebook", "linkedin"],
+      "localePolicy": "en-only",
+      "visual": "'Early access invites going out' envelope/countdown motif",
+      "content": {
+        "en": "📨 Early-access invites are going out this week.\n\nFirst cohort gets the full Schulab experience — interactive STEM courses, live tutor sessions, certificates — free during early access.\n\nDoors open to everyone June 25 → {{link}}\n\n#EdTech #STEM #earlyaccess"
+      }
+    },
+    {
+      "id": "P7",
+      "date": "2026-06-20T12:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "tiktok", "youtube"],
+      "localePolicy": "en-only",
+      "visual": "20–30s tutor intro clip (record during beta week; tutor consent on file)",
+      "content": {
+        "en": "Meet the tutors who make STEM click. 👩‍🏫\n\nLive sessions on Schulab start June 25 — free during early access.\n\n{{link}}\n\n#STEM #tutoring #EdTech #teachersofinstagram"
+      }
+    },
+    {
+      "id": "P8",
+      "date": "2026-06-22T10:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "facebook"],
+      "localePolicy": "all",
+      "visual": "Countdown '3 days' card, trilingual variants",
+      "content": {
+        "en": "3 days. ⏳\n\nInteractive STEM + live tutors land June 25 — free during early access.\n\nBe there from day one → {{link}}\n\n#countdown #STEM #EdTech",
+        "de": "Nur noch 3 Tage. ⏳\n\nInteraktives MINT-Lernen + Live-Tutoren ab dem 25. Juni — im Early Access kostenlos.\n\nVon Anfang an dabei sein → {{link}}\n\n#MINT #Lernplattform #OnlineLernen",
+        "ar": "٣ أيام فقط. ⏳\n\nتعلّم STEM تفاعلي مع معلّمين مباشرين بدءًا من ٢٥ يونيو — مجانًا خلال الوصول المبكر.\n\nكن معنا من اليوم الأول → {{link}}\n\n#تعليم #STEM #تعلم_عن_بعد"
+      }
+    },
+    {
+      "id": "P9",
+      "date": "2026-06-24T10:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "facebook", "linkedin"],
+      "localePolicy": "en-only",
+      "visual": "'Tomorrow' rocket-on-launchpad card",
+      "content": {
+        "en": "Tomorrow. 🚀\n\nSchulab opens its (virtual) doors — interactive STEM, live tutors, certificates. Ages 3–18, three languages, free during early access.\n\nGet a head start → {{link}}\n\n#launch #STEM #EdTech"
+      }
+    },
+    {
+      "id": "P10",
+      "date": "2026-06-25T09:30:00+02:00",
+      "gated": true,
+      "channels": ["instagram", "facebook", "linkedin"],
+      "localePolicy": "all",
+      "visual": "LAUNCH hero: product screenshot collage + 'We are live'",
+      "content": {
+        "en": "🚀 Schulab is LIVE!\n\nInteractive STEM learning with live tutors, for ages 3–18 — in English · Deutsch · العربية. Badges, certificates, parent dashboard.\n\nFree during early access. Start now → {{link}}\n\n#EdTech #STEM #OnlineLearning #launchday",
+        "de": "🚀 Schulab ist DA!\n\nInteraktives MINT-Lernen mit Live-Tutoren — für 3- bis 18-Jährige, auf Deutsch · Englisch · Arabisch. Abzeichen, Zertifikate, Eltern-Dashboard.\n\nIm Early Access kostenlos. Jetzt starten → {{link}}\n\n#MINT #Lernplattform #Nachhilfe #OnlineLernen",
+        "ar": "🚀 انطلقت منصة Schulab!\n\nتعلّم STEM تفاعلي مع معلّمين مباشرين — للأعمار من ٣ إلى ١٨، بالعربية والإنجليزية والألمانية. شارات وشهادات ولوحة متابعة لأولياء الأمور.\n\nمجانًا خلال الوصول المبكر. ابدأ الآن → {{link}}\n\n#تعليم #تعلم_عن_بعد #STEM"
+      }
+    },
+    {
+      "id": "P11",
+      "date": "2026-06-25T17:00:00+02:00",
+      "gated": true,
+      "channels": ["instagram", "facebook"],
+      "localePolicy": "en-only",
+      "visual": "Story/Reel: 'We're live' + real first-day moments (no learner faces without consent)",
+      "content": {
+        "en": "We're officially live — and the first learners are already in. 🎉\n\nInteractive STEM courses + live tutor sessions, free during early access.\n\nDon't miss day one → {{link}}\n\n#launchday #STEM #EdTech"
+      }
+    },
+    {
+      "id": "P12",
+      "date": "2026-06-26T11:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "facebook"],
+      "localePolicy": "en-only",
+      "visual": "First certificate screenshot (anonymized name) + confetti motif",
+      "content": {
+        "en": "First certificates are already being earned. 🏅\n\nEvery Schulab course ends with a verifiable certificate your child can be proud of.\n\nJoin free during early access → {{link}}\n\n#certificates #STEM #proudparent"
+      }
+    },
+    {
+      "id": "P13",
+      "date": "2026-06-28T12:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "tiktok"],
+      "localePolicy": "en-only",
+      "visual": "ONLY if a consented live-class clip exists from week one — otherwise skip this slot",
+      "content": {
+        "en": "Inside a live Schulab session: slides, chat, polls — and a tutor who keeps every learner engaged. 🎓\n\nLive sessions are part of early access, free right now → {{link}}\n\n#livelearning #STEM #tutoring"
+      }
+    },
+    {
+      "id": "P14",
+      "date": "2026-06-30T09:00:00+02:00",
+      "gated": false,
+      "channels": ["linkedin"],
+      "localePolicy": "en-only",
+      "visual": "Clean metric card (fill real numbers before it fires — or edit in Postiz)",
+      "content": {
+        "en": "One week since Schulab opened early access.\n\nFamilies across our first markets are learning STEM interactively — in English, German, and Arabic — with live tutor sessions at the core.\n\nSchools and learning centres: we're onboarding partners for the next phase. Let's talk → {{link}}\n\n#EdTech #STEM #schools #partnerships"
+      }
+    },
+    {
+      "id": "P15",
+      "date": "2026-07-02T10:00:00+02:00",
+      "gated": false,
+      "channels": ["instagram", "facebook"],
+      "localePolicy": "en-only",
+      "visual": "Quote card with a real early-access parent testimonial (collect during week one)",
+      "content": {
+        "en": "\"My kid asked for MORE science homework. I still can't believe it.\" — early-access parent\n\nSchulab early access is open and free: interactive STEM, live tutors, real certificates.\n\nJoin the first families → {{link}}\n\n#testimonial #STEM #EdTech #parenting"
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "Schulab — Drip cron (lifecycle emails)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 15 }]
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Every 15 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://schulab.com/api/cron/drip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": { "timeout": 30000 }
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "Trigger drip endpoint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [260, 0],
+      "credentials": {
+        "httpHeaderAuth": { "id": "REPLACE_AFTER_IMPORT", "name": "Schulab Cron Secret" }
+      }
+    }
+  ],
+  "connections": {
+    "Every 15 minutes": {
+      "main": [[{ "node": "Trigger drip endpoint", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "timezone": "Europe/Berlin" }
+}

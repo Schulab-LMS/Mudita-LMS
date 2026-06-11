@@ -1,0 +1,55 @@
+{
+  "_comment": "Editing reference for the countdown broadcast emails (E2-E4). The RUNNING copy lives inside marketing/n8n/countdown-broadcasts.json ('Pick Today Email' code node) — if you edit copy here, update the workflow node too. E1 (signup confirmation) and E5-E8 (lifecycle nurture) are handled by the app itself: transactional email + DripState journeys, activated by the drip-cron workflow.",
+  "cta": {
+    "en": "https://schulab.com/register?utm_source=email&utm_medium=email&utm_campaign=earlyaccess_jun2026",
+    "de": "https://schulab.com/de/register?utm_source=email&utm_medium=email&utm_campaign=earlyaccess_jun2026",
+    "ar": "https://schulab.com/ar/register?utm_source=email&utm_medium=email&utm_campaign=earlyaccess_jun2026"
+  },
+  "emails": [
+    {
+      "id": "E2",
+      "sendDate": "2026-06-18",
+      "audience": "verified users with latest MARKETING_EMAIL consent = granted",
+      "subject": {
+        "en": "Your Schulab early access is open 🎉",
+        "de": "Dein Schulab Early Access ist da 🎉",
+        "ar": "وصولك المبكر إلى Schulab أصبح متاحًا 🎉"
+      },
+      "body": {
+        "en": "Hi {{name}}, You are in the first group to experience Schulab: interactive STEM courses, live tutor sessions, badges and certificates — ages 3–18, in EN/DE/AR. Everything is free during early access. CTA: Start exploring",
+        "de": "Hallo {{name}}, du gehörst zur ersten Gruppe, die Schulab erlebt: interaktive MINT-Kurse, Live-Sessions, Abzeichen und Zertifikate. Im Early Access kostenlos. CTA: Jetzt entdecken",
+        "ar": "مرحبًا {{name}}، أنت ضمن المجموعة الأولى التي تجرّب Schulab: دورات تفاعلية وجلسات مباشرة وشارات وشهادات. مجانًا خلال الوصول المبكر. CTA: ابدأ الاستكشاف"
+      }
+    },
+    {
+      "id": "E3",
+      "sendDate": "2026-06-24",
+      "audience": "same consented audience",
+      "subject": {
+        "en": "Doors open tomorrow — Schulab launches June 25",
+        "de": "Morgen geht's los — Schulab startet am 25. Juni",
+        "ar": "غدًا الانطلاق — Schulab تبدأ في ٢٥ يونيو"
+      },
+      "body": {
+        "en": "Hi {{name}}, Schulab officially opens tomorrow, June 25. Log in early and pick your first course tonight. CTA: Get a head start",
+        "de": "Hallo {{name}}, Schulab öffnet morgen offiziell. Logg dich heute ein und wähle deinen ersten Kurs. CTA: Vorsprung sichern",
+        "ar": "مرحبًا {{name}}، تفتح Schulab أبوابها رسميًا غدًا. سجّل دخولك الليلة واختر دورتك الأولى. CTA: احجز مكانك"
+      }
+    },
+    {
+      "id": "E4",
+      "sendDate": "2026-06-25",
+      "audience": "same consented audience",
+      "subject": {
+        "en": "Schulab is live — start learning free today 🚀",
+        "de": "Schulab ist live — heute kostenlos starten 🚀",
+        "ar": "انطلقت Schulab — ابدأ التعلم مجانًا اليوم 🚀"
+      },
+      "body": {
+        "en": "Hi {{name}}, Schulab is officially open. Interactive courses, live sessions, your first certificate — free during early access. CTA: Start learning now",
+        "de": "Hallo {{name}}, Schulab ist offiziell gestartet. Interaktive Kurse, Live-Sessions, dein erstes Zertifikat — kostenlos. CTA: Jetzt lernen",
+        "ar": "مرحبًا {{name}}، انطلقت Schulab رسميًا. دورات تفاعلية وجلسات مباشرة وشهادتك الأولى — مجانًا. CTA: ابدأ التعلم الآن"
+      }
+    }
+  ]
+}

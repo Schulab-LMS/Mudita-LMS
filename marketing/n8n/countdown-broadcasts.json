@@ -1,0 +1,82 @@
+{
+  "name": "Schulab — Countdown broadcasts (consented users only)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "days", "daysInterval": 1, "triggerAtHour": 9, "triggerAtMinute": 0 }]
+        }
+      },
+      "id": "b2000000-0000-4000-8000-000000000001",
+      "name": "Daily 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fires E2/E3/E4 on their calendar dates (Europe/Berlin). Any other day → no items → workflow ends.\n// Source of truth for copy: marketing/emails/countdown-emails.json (keep in sync when editing).\nconst today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());\n\nconst CTA = {\n  en: 'https://schulab.com/register?utm_source=email&utm_medium=email&utm_campaign=earlyaccess_jun2026',\n  de: 'https://schulab.com/de/register?utm_source=email&utm_medium=email&utm_campaign=earlyaccess_jun2026',\n  ar: 'https://schulab.com/ar/register?utm_source=email&utm_medium=email&utm_campaign=earlyaccess_jun2026',\n};\n\nfunction layout(locale, heading, body, ctaLabel) {\n  const dir = locale === 'ar' ? 'rtl' : 'ltr';\n  const footer = {\n    en: 'You receive this because you opted in to Schulab updates. Manage preferences: https://schulab.com/account',\n    de: 'Du erhältst diese E-Mail, weil du Schulab-Updates abonniert hast. Einstellungen: https://schulab.com/de/account',\n    ar: 'تصلك هذه الرسالة لأنك اشتركت في تحديثات Schulab. إدارة التفضيلات: https://schulab.com/ar/account',\n  }[locale];\n  return `<div dir=\"${dir}\" style=\"font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a\">` +\n    `<h1 style=\"font-size:22px;margin:0 0 16px\">${heading}</h1>` +\n    `<p style=\"font-size:15px;line-height:1.6;margin:0 0 24px\">${body}</p>` +\n    `<p style=\"margin:0 0 32px\"><a href=\"${CTA[locale]}\" style=\"background:#4f3ff0;color:#ffffff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:bold\">${ctaLabel}</a></p>` +\n    `<p style=\"font-size:12px;color:#64748b;line-height:1.5\">${footer}<br/>Impressum: https://schulab.com/impressum</p></div>`;\n}\n\nconst EMAILS = {\n  '2026-06-18': {\n    id: 'E2',\n    subject: { en: 'Your Schulab early access is open 🎉', de: 'Dein Schulab Early Access ist da 🎉', ar: 'وصولك المبكر إلى Schulab أصبح متاحًا 🎉' },\n    html: {\n      en: layout('en', 'Early access is open', 'Hi {{name}},<br/><br/>You are in the first group to experience Schulab: interactive STEM courses, live tutor sessions, badges and certificates — for ages 3–18, in English, German, and Arabic.<br/><br/>Everything is <b>free during early access</b>.', 'Start exploring'),\n      de: layout('de', 'Der Early Access ist offen', 'Hallo {{name}},<br/><br/>du gehörst zur ersten Gruppe, die Schulab erlebt: interaktive MINT-Kurse, Live-Sessions mit Tutoren, Abzeichen und Zertifikate — für 3- bis 18-Jährige, auf Deutsch, Englisch und Arabisch.<br/><br/>Im Early Access ist alles <b>kostenlos</b>.', 'Jetzt entdecken'),\n      ar: layout('ar', 'الوصول المبكر متاح الآن', 'مرحبًا {{name}}،<br/><br/>أنت ضمن المجموعة الأولى التي تجرّب Schulab: دورات STEM تفاعلية وجلسات مباشرة مع معلّمين وشارات وشهادات — للأعمار من ٣ إلى ١٨، بالعربية والإنجليزية والألمانية.<br/><br/>كل شيء <b>مجاني خلال فترة الوصول المبكر</b>.', 'ابدأ الاستكشاف'),\n    },\n  },\n  '2026-06-24': {\n    id: 'E3',\n    subject: { en: 'Doors open tomorrow — Schulab launches June 25', de: 'Morgen geht’s los — Schulab startet am 25. Juni', ar: 'غدًا الانطلاق — Schulab تبدأ في ٢٥ يونيو' },\n    html: {\n      en: layout('en', 'Tomorrow is the day 🚀', 'Hi {{name}},<br/><br/>Schulab officially opens tomorrow, June 25. Interactive STEM, live tutors, certificates — free during early access. Log in early and pick your first course tonight.', 'Get a head start'),\n      de: layout('de', 'Morgen ist es so weit 🚀', 'Hallo {{name}},<br/><br/>Schulab öffnet morgen, am 25. Juni, offiziell die Türen. Interaktives MINT-Lernen, Live-Tutoren, Zertifikate — im Early Access kostenlos. Logg dich schon heute ein und wähle deinen ersten Kurs.', 'Vorsprung sichern'),\n      ar: layout('ar', 'غدًا هو اليوم المنتظر 🚀', 'مرحبًا {{name}}،<br/><br/>تفتح Schulab أبوابها رسميًا غدًا، ٢٥ يونيو. تعلّم STEM تفاعلي ومعلّمون مباشرون وشهادات — مجانًا خلال الوصول المبكر. سجّل دخولك الليلة واختر دورتك الأولى.', 'احجز مكانك'),\n    },\n  },\n  '2026-06-25': {\n    id: 'E4',\n    subject: { en: 'Schulab is live — start learning free today 🚀', de: 'Schulab ist live — heute kostenlos starten 🚀', ar: 'انطلقت Schulab — ابدأ التعلم مجانًا اليوم 🚀' },\n    html: {\n      en: layout('en', 'We are live!', 'Hi {{name}},<br/><br/>Schulab is officially open. Jump into interactive STEM courses, book a live session with a tutor, and earn your first certificate — all free during early access.', 'Start learning now'),\n      de: layout('de', 'Wir sind live!', 'Hallo {{name}},<br/><br/>Schulab ist offiziell gestartet. Stürz dich in interaktive MINT-Kurse, buche eine Live-Session mit einem Tutor und verdiene dein erstes Zertifikat — im Early Access alles kostenlos.', 'Jetzt lernen'),\n      ar: layout('ar', 'انطلقنا!', 'مرحبًا {{name}}،<br/><br/>انطلقت Schulab رسميًا. انضم إلى دورات STEM التفاعلية واحجز جلسة مباشرة مع معلّم واحصل على شهادتك الأولى — كل ذلك مجانًا خلال الوصول المبكر.', 'ابدأ التعلم الآن'),\n    },\n  },\n};\n\nconst email = EMAILS[today];\nif (!email) { return []; }\nreturn [{ json: email }];"
+      },
+      "id": "b2000000-0000-4000-8000-000000000002",
+      "name": "Pick Today Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT u.email, u.name, u.locale\nFROM \"User\" u\nJOIN LATERAL (\n  SELECT c.granted FROM \"ConsentRecord\" c\n  WHERE c.\"userId\" = u.id AND c.type = 'MARKETING_EMAIL'\n  ORDER BY c.\"grantedAt\" DESC LIMIT 1\n) latest ON latest.granted = true\nWHERE u.\"emailVerified\" IS NOT NULL;",
+        "options": {}
+      },
+      "id": "b2000000-0000-4000-8000-000000000003",
+      "name": "Consented recipients",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [480, 0],
+      "credentials": {
+        "postgres": { "id": "REPLACE_AFTER_IMPORT", "name": "Schulab Postgres RO" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pair each consented user with today's template in their locale (fallback en),\n// personalise {{name}}, and emit a ready-to-send Resend request body per user.\nconst email = $('Pick Today Email').first().json;\nconst out = [];\nfor (const item of $input.all()) {\n  const user = item.json;\n  const locale = ['en', 'de', 'ar'].includes(user.locale) ? user.locale : 'en';\n  const firstName = String(user.name || '').split(' ')[0] || 'there';\n  out.push({\n    json: {\n      body: {\n        from: 'Schulab <noreply@schulab.com>',\n        to: [user.email],\n        subject: email.subject[locale],\n        html: email.html[locale].replaceAll('{{name}}', firstName),\n      },\n    },\n  });\n}\nreturn out;"
+      },
+      "id": "b2000000-0000-4000-8000-000000000004",
+      "name": "Build Emails",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "batching": { "batch": { "batchSize": 1, "batchInterval": 700 } },
+          "timeout": 30000
+        }
+      },
+      "id": "b2000000-0000-4000-8000-000000000005",
+      "name": "Send via Resend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [960, 0],
+      "credentials": {
+        "httpHeaderAuth": { "id": "REPLACE_AFTER_IMPORT", "name": "Resend API" }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 09:00": { "main": [[{ "node": "Pick Today Email", "type": "main", "index": 0 }]] },
+    "Pick Today Email": { "main": [[{ "node": "Consented recipients", "type": "main", "index": 0 }]] },
+    "Consented recipients": { "main": [[{ "node": "Build Emails", "type": "main", "index": 0 }]] },
+    "Build Emails": { "main": [[{ "node": "Send via Resend", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "timezone": "Europe/Berlin" }
+}
