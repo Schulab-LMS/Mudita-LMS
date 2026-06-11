@@ -8,6 +8,7 @@ import { locales, isRtl, type Locale } from "@/i18n/config";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { CookieBanner } from "@/components/compliance/cookie-banner";
+import { Analytics } from "@/components/analytics/analytics";
 
 // Inline script avoids dark-mode FOUC — runs before React hydrates, setting
 // data-theme on <html> from localStorage or OS preference.
@@ -77,6 +78,7 @@ export default async function LocaleLayout({
             <ThemeProvider>
               <ToastProvider>{children}</ToastProvider>
               <CookieBanner />
+              <Analytics />
             </ThemeProvider>
           </NextIntlClientProvider>
         </SessionProvider>
