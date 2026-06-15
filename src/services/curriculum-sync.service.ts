@@ -394,6 +394,89 @@ async function buildFlatCourse(
   };
 }
 
+// Deep layout: <root>/module-NN-*/lesson-NN-*/ (course → module → lesson, with
+// hyphenated module folders each holding several lesson folders). Like nested,
+// but with no `modules/` wrapper and hyphenated `module-`/`lesson-` folders; the
+// course root is an age-band "stage" folder (no meta.yml ⇒ imports as DRAFT).
+async function buildDeepCourse(
+  root: string,
+  tree: TreeEntry[],
+  readText: (path: string) => Promise<string | null>
+): Promise<BuiltCourse> {
+  const folderName = baseName(root);
+  const meta = await readMeta(root, readText);
+  const readme = await readText(`${root}/README.md`);
+  const slug = meta.slug ? slugify(meta.slug) : slugify(folderName);
+  const title = meta.title || firstHeading(readme) || prettifyCourseFolder(folderName);
+  const description = deriveDescription(meta, readme, title);
+
+  // Module folders directly under <root>, hyphenated (module-NN-*).
+  const moduleDirs = new Set<string>();
+  const moduleRe = new RegExp(`^${escapeRegExp(root)}/(module-\\d+[^/]*)/`);
+  for (const entry of tree) {
+    const m = entry.path.match(moduleRe);
+    if (m) moduleDirs.add(`${root}/${m[1]}`);
+  }
+
+  const modules: BuiltModule[] = [];
+  for (const modulePath of [...moduleDirs].sort()) {
+    const moduleFolder = baseName(modulePath);
+    const moduleMeta = await readMeta(modulePath, readText);
+    const overviewMd = await readText(`${modulePath}/overview.md`);
+    const moduleTitle =
+      moduleMeta.title || firstHeading(overviewMd) || prettifyFolder(moduleFolder);
+    const overview = overviewMd ? { markdown: overviewMd, path: `${modulePath}/overview.md` } : null;
+
+    // Lesson folders under this module, hyphenated (lesson-NN-*).
+    const lessonDirs = new Set<string>();
+    const lessonRe = new RegExp(`^${escapeRegExp(modulePath)}/(lesson-[^/]+)/`);
+    for (const entry of tree) {
+      const m = entry.path.match(lessonRe);
+      if (m) lessonDirs.add(`${modulePath}/${m[1]}`);
+    }
+
+    const lessons = await mapWithConcurrency(
+      [...lessonDirs].sort(),
+      READ_CONCURRENCY,
+      (lessonPath) =>
+        buildLesson({
+          dir: lessonPath,
+          order: numericPrefix(baseName(lessonPath)),
+          slug,
+          courseRoot: root,
+          moduleOverview: overview,
+          readText,
+        })
+    );
+
+    lessons.sort((a, b) => a.order - b.order);
+    modules.push({
+      sourcePath: modulePath,
+      order: numericPrefix(moduleFolder),
+      title: moduleTitle,
+      lessons,
+    });
+  }
+
+  modules.sort((a, b) => a.order - b.order);
+
+  return {
+    slug,
+    sourcePath: root,
+    title,
+    titleAr: meta.titleAr || null,
+    titleDe: meta.titleDe || null,
+    description,
+    ageGroup: resolveAgeGroup(meta.ageGroup, folderName),
+    level: resolveLevel(meta.level),
+    category: meta.category || "STEM",
+    requiredPlan: resolvePlan(meta.requiredPlan),
+    tags: Array.isArray(meta.tags) ? meta.tags : [],
+    status: resolveStatus(meta.status),
+    modules,
+  };
+}
+
 // ── Persistence (idempotent, change-detecting, soft-archive) ─────────────
 
 interface SyncCounts {
@@ -748,7 +831,9 @@ export async function runCurriculumSync(opts: {
         const course =
           root.layout === "flat"
             ? await buildFlatCourse(root.path, tree, readText)
-            : await buildNestedCourse(root.path, tree, readText);
+            : root.layout === "deep"
+              ? await buildDeepCourse(root.path, tree, readText)
+              : await buildNestedCourse(root.path, tree, readText);
         await persistCourse(course, commitSha, counts);
         seenSlugs.push(course.slug);
       } catch (e) {

@@ -89,6 +89,54 @@ describe("findCourseRoots", () => {
     ]);
   });
 
+  it("detects deep course roots where modules hold multiple lesson folders", () => {
+    const tree: TreeEntry[] = [
+      {
+        path: "programming/age-groups/5-7-computational-thinking/module-01-sequencing/overview.md",
+        type: "blob",
+        sha: "a",
+      },
+      {
+        path: "programming/age-groups/5-7-computational-thinking/module-01-sequencing/meta.yml",
+        type: "blob",
+        sha: "b",
+      },
+      {
+        path: "programming/age-groups/5-7-computational-thinking/module-01-sequencing/lesson-01-first-sequences/handout.md",
+        type: "blob",
+        sha: "c",
+      },
+      {
+        path: "programming/age-groups/5-7-computational-thinking/module-01-sequencing/lesson-01-first-sequences/presentation.md",
+        type: "blob",
+        sha: "d",
+      },
+      {
+        path: "programming/age-groups/5-7-computational-thinking/module-01-sequencing/lesson-02-maze-sequencing/handout.md",
+        type: "blob",
+        sha: "e",
+      },
+    ];
+    const roots = findCourseRoots(tree);
+    expect(roots).toEqual([
+      { path: "programming/age-groups/5-7-computational-thinking", layout: "deep" },
+    ]);
+  });
+
+  it("does not misclassify a deep course (lesson files in lesson-NN folders) as flat", () => {
+    const tree: TreeEntry[] = [
+      {
+        path: "programming/age-groups/8-10-block-programming/module-01-scratch-basics/lesson-01-getting-started/handout.md",
+        type: "blob",
+        sha: "a",
+      },
+    ];
+    const roots = findCourseRoots(tree);
+    expect(roots).toEqual([
+      { path: "programming/age-groups/8-10-block-programming", layout: "deep" },
+    ]);
+  });
+
   it("keeps nested and flat layouts disjoint in a mixed repo", () => {
     const tree: TreeEntry[] = [
       {

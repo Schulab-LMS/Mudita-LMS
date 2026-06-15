@@ -92,13 +92,16 @@ export function resolvePlan(raw: string | undefined): PlanTier | null {
   return null;
 }
 
-// The folder convention a syncable course follows. Two coexist in the repo:
+// The folder convention a syncable course follows. Three coexist in the repo:
 //   "nested" — <root>/modules/module_NN_*/unit_NN_*/<files>  (course → module → unit;
 //              e.g. space-science-children-8-12)
 //   "flat"   — <root>/module-NN-*/<files>                    (course → module, where
 //              each hyphenated module folder IS one lesson; e.g. the programming
-//              curriculum's age-band stages)
-export type CourseLayout = "nested" | "flat";
+//              curriculum's 11-18 age-band stages)
+//   "deep"   — <root>/module-NN-*/lesson-NN-*/<files>        (course → module → lesson;
+//              hyphenated module folders each holding multiple lesson folders;
+//              e.g. the programming curriculum's 5-7 and 8-10 age-band stages)
+export type CourseLayout = "nested" | "flat" | "deep";
 
 export interface CourseRoot {
   /** Course-root folder path within the repo. */
@@ -109,18 +112,25 @@ export interface CourseRoot {
 // Nested: a unit folder under <root>/modules/module_NN_*/. Keyed on the path
 // before `/modules/`.
 const NESTED_ROOT_RE = /^(.+?)\/modules\/module_[^/]+\//;
+// Deep: a lesson file inside a `lesson-NN` folder nested under a hyphenated
+// `module-NN` folder (no `modules/` wrapper, hyphenated `lesson-` level). Keyed
+// on the path before the module folder. Checked before flat — its extra
+// `lesson-NN` level is what distinguishes the two.
+const DEEP_LESSON_RE =
+  /^(.+?)\/module-\d+[^/]*\/lesson-[^/]+\/(?:handout|presentation|activity|quiz)(?:\.[a-z]{2})?\.md$/i;
 // Flat: a lesson file sitting DIRECTLY inside a hyphenated `module-NN` folder
-// (no `modules/` wrapper, no `unit_` level). Keyed on the path before the module
-// folder. The `module-` (hyphen) token is what keeps this disjoint from nested,
-// whose modules use `module_` (underscore).
+// (no `modules/` wrapper, no `lesson-`/`unit_` level). Keyed on the path before
+// the module folder. The `module-` (hyphen) token is what keeps this disjoint
+// from nested, whose modules use `module_` (underscore).
 const FLAT_LESSON_RE =
   /^(.+?)\/module-\d+[^/]*\/(?:handout|presentation|activity|quiz)(?:\.[a-z]{2})?\.md$/i;
 
 // Discover every course root in the tree, tagged with its layout. Empty subject
-// placeholder folders (just a .gitkeep) match neither pattern and are ignored.
-// A path that qualifies as nested is never also treated as flat.
+// placeholder folders (just a .gitkeep) match no pattern and are ignored. A path
+// is assigned at most one layout, in precedence order nested > deep > flat.
 export function findCourseRoots(tree: TreeEntry[]): CourseRoot[] {
   const nested = new Set<string>();
+  const deep = new Set<string>();
   const flat = new Set<string>();
 
   for (const entry of tree) {
@@ -130,14 +140,22 @@ export function findCourseRoots(tree: TreeEntry[]): CourseRoot[] {
       nested.add(n[1]);
       continue;
     }
+    const d = entry.path.match(DEEP_LESSON_RE);
+    if (d) {
+      deep.add(d[1]);
+      continue;
+    }
     const f = entry.path.match(FLAT_LESSON_RE);
     if (f) flat.add(f[1]);
   }
 
   const roots: CourseRoot[] = [];
   for (const path of nested) roots.push({ path, layout: "nested" });
+  for (const path of deep) {
+    if (!nested.has(path)) roots.push({ path, layout: "deep" });
+  }
   for (const path of flat) {
-    if (!nested.has(path)) roots.push({ path, layout: "flat" });
+    if (!nested.has(path) && !deep.has(path)) roots.push({ path, layout: "flat" });
   }
   return roots;
 }
@@ -151,7 +169,7 @@ export function numericPrefix(folder: string): number {
 
 export function prettifyFolder(folder: string): string {
   return folder
-    .replace(/^(module|unit)[_-]\d+[_-]?/i, "")
+    .replace(/^(module|unit|lesson)[_-]\d+[_-]?/i, "")
     .replace(/[_-]+/g, " ")
     .trim()
     .replace(/\b\w/g, (c) => c.toUpperCase());
