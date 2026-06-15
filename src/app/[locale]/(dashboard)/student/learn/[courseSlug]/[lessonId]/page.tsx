@@ -227,7 +227,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
               {lessonContent ? (
                 <ProtectedContent watermark={watermark}>
                   <div
-                    className="prose prose-sm max-w-none dark:prose-invert"
+                    className="prose max-w-none"
                     dangerouslySetInnerHTML={{
                       __html: sanitize(lessonContent),
                     }}
@@ -259,7 +259,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
               <div className="p-6">
                 <ProtectedContent watermark={watermark}>
                   <div
-                    className="prose prose-sm max-w-none dark:prose-invert"
+                    className="prose max-w-none"
                     dangerouslySetInnerHTML={{ __html: sanitize(lessonActivity) }}
                   />
                 </ProtectedContent>

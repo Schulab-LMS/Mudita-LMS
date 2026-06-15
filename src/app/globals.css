@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme inline {
   --color-background: var(--background);
@@ -803,5 +804,101 @@ body {
   50%      { box-shadow: 0 0 0 16px rgba(79, 63, 240, 0); }
 }
 .ring-pulse { animation: most-popular-pulse 2.4s ease-in-out infinite; }
+
+/* ------------------------------------------------------------------ *
+ * Lesson / article typography
+ *
+ * The @tailwindcss/typography plugin gives `prose` its baseline. These
+ * overrides bind it to the LaunchMind design tokens so synced curriculum
+ * (which leans heavily on GFM tables, headings, and checklists) reads richly
+ * in both light and dark — the tokens already flip with the theme, so no
+ * separate dark ruleset is needed.
+ * ------------------------------------------------------------------ */
+.prose {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--muted-foreground);
+  --tw-prose-links: var(--primary);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: var(--primary);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-quote-borders: var(--primary);
+  --tw-prose-captions: var(--muted-foreground);
+  --tw-prose-code: var(--primary);
+  --tw-prose-pre-code: var(--card-foreground);
+  --tw-prose-pre-bg: var(--muted);
+  --tw-prose-th-borders: var(--border);
+  --tw-prose-td-borders: var(--border);
+}
+
+/* Tables — the #1 readability win for curriculum content. Default prose
+   tables have no cell borders, so adjacent cells run together ("toothpaste"
+   + "Brush"). Give them full grid borders, padding, a header band, and a
+   horizontal scroll wrapper on narrow screens. */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  font-size: 0.9em;
+}
+.prose thead {
+  background: var(--muted);
+}
+.prose thead th {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.prose th,
+.prose td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: start;
+  vertical-align: top;
+}
+.prose tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+/* Inline code + pre blocks get a soft tinted chip so callouts pop for kids. */
+.prose :not(pre) > code {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  padding: 0.15em 0.4em;
+  border-radius: 0.375rem;
+  font-weight: 600;
+}
+.prose :not(pre) > code::before,
+.prose :not(pre) > code::after {
+  content: none; /* drop prose's backtick quotes around inline code */
+}
+
+/* GFM task lists rendered as real checkboxes (when the markdown uses "- [ ]"). */
+.prose ul:has(> li > input[type="checkbox"]) {
+  list-style: none;
+  padding-inline-start: 0;
+}
+.prose li > input[type="checkbox"] {
+  margin-inline-end: 0.5rem;
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--primary);
+  vertical-align: middle;
+}
+
+/* Blockquotes as friendly callouts rather than a thin bar. */
+.prose blockquote {
+  border-inline-start: 4px solid var(--primary);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  padding: 0.5rem 1rem;
+  font-style: normal;
+}
+.prose blockquote p:first-of-type::before,
+.prose blockquote p:last-of-type::after {
+  content: none;
+}
 
 /* Font imports loaded at top of file */
