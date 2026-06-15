@@ -801,7 +801,61 @@
     "noVideo": "Kein Video verfügbar",
     "accessPausedTitle": "Zugriff pausiert",
     "accessPausedWithdrawn": "Ein Elternteil oder Erziehungsberechtigter hat die Einwilligung widerrufen. Bitte wenden Sie sich an diese Person — oder an unser Support-Team — um den Zugriff wiederherzustellen.",
-    "accessPausedDobMissing": "Bitte fügen Sie Ihrem Profil das Geburtsdatum hinzu, bevor Sie fortfahren."
+    "accessPausedDobMissing": "Bitte fügen Sie Ihrem Profil das Geburtsdatum hinzu, bevor Sie fortfahren.",
+    "tabs": {
+      "overview": "Übersicht",
+      "notes": "Notizen",
+      "resources": "Ressourcen",
+      "qa": "Fragen & Antworten"
+    },
+    "overview": {
+      "slidesAbove": "Die Folien befinden sich oben. Nutze die Pfeiltasten, die Steuerung oder wische zum Navigieren.",
+      "noNotes": "Keine schriftlichen Notizen für diese Lektion. Sieh dir das Video oben an oder springe zur nächsten Lektion."
+    },
+    "notes": {
+      "label": "Deine privaten Notizen",
+      "placeholder": "Halte fest, was du lernst. Nur du kannst das sehen — es wird automatisch gespeichert.",
+      "previewPlaceholder": "Notizen sind in der Vorschau deaktiviert.",
+      "previewHint": "Melde dich als Schüler an, um private Notizen zu dieser Lektion zu speichern.",
+      "saved": "Gespeichert",
+      "saving": "Wird gespeichert…",
+      "saveError": "Speichern fehlgeschlagen — überprüfe deine Verbindung"
+    },
+    "resources": {
+      "emptyTitle": "Noch keine Ressourcen",
+      "emptyDescription": "Downloads und Referenzlinks für diese Lektion erscheinen hier, sobald dein Tutor sie hinzufügt.",
+      "types": {
+        "pdf": "PDF",
+        "doc": "Dokument",
+        "sheet": "Tabelle",
+        "slides": "Folien",
+        "image": "Bild",
+        "video": "Video",
+        "audio": "Audio",
+        "archive": "Archiv",
+        "code": "Code",
+        "link": "Link",
+        "file": "Datei"
+      }
+    },
+    "qa": {
+      "previewDisabled": "Fragen & Antworten sind in der Vorschau deaktiviert.",
+      "askLabel": "Eine Frage stellen",
+      "askPlaceholder": "Wo hängst du fest? Frag hier und ein Tutor antwortet.",
+      "postQuestion": "Frage absenden",
+      "emptyTitle": "Noch keine Fragen",
+      "emptyDescription": "Sei der Erste, der fragt — Fragen und Tutor-Antworten erscheinen hier für alle im Kurs.",
+      "answerPlaceholder": "Antwort schreiben…",
+      "answer": "Antworten",
+      "deleteQuestion": "Frage löschen",
+      "deleteAnswer": "Antwort löschen",
+      "tutorBadge": "Tutor",
+      "staffBadge": "Team",
+      "justNow": "gerade eben",
+      "minutesAgo": "vor {count} Min.",
+      "hoursAgo": "vor {count} Std.",
+      "daysAgo": "vor {count} T."
+    }
   },
   "notifications": {
     "title": "Benachrichtigungen",

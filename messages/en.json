@@ -801,7 +801,61 @@
     "noVideo": "No video available",
     "accessPausedTitle": "Access paused",
     "accessPausedWithdrawn": "A parent or guardian has withdrawn consent. Please contact them — or our support team — to restore access.",
-    "accessPausedDobMissing": "Please add your date of birth to your profile before continuing."
+    "accessPausedDobMissing": "Please add your date of birth to your profile before continuing.",
+    "tabs": {
+      "overview": "Overview",
+      "notes": "Notes",
+      "resources": "Resources",
+      "qa": "Q&A"
+    },
+    "overview": {
+      "slidesAbove": "Slide deck is above. Use the arrow keys, controls, or swipe to navigate.",
+      "noNotes": "No written notes for this lesson. Watch the video above or jump ahead to the next lesson."
+    },
+    "notes": {
+      "label": "Your private notes",
+      "placeholder": "Jot down what you're learning. Only you can see this — it saves automatically.",
+      "previewPlaceholder": "Notes are disabled while previewing.",
+      "previewHint": "Sign in as a student to keep private notes on this lesson.",
+      "saved": "Saved",
+      "saving": "Saving…",
+      "saveError": "Couldn’t save — check your connection"
+    },
+    "resources": {
+      "emptyTitle": "No resources yet",
+      "emptyDescription": "Downloads and reference links for this lesson will appear here when your tutor adds them.",
+      "types": {
+        "pdf": "PDF",
+        "doc": "Document",
+        "sheet": "Spreadsheet",
+        "slides": "Slides",
+        "image": "Image",
+        "video": "Video",
+        "audio": "Audio",
+        "archive": "Archive",
+        "code": "Code",
+        "link": "Link",
+        "file": "File"
+      }
+    },
+    "qa": {
+      "previewDisabled": "Q&A is disabled while previewing.",
+      "askLabel": "Ask a question",
+      "askPlaceholder": "Stuck on something? Ask here and a tutor will answer.",
+      "postQuestion": "Post question",
+      "emptyTitle": "No questions yet",
+      "emptyDescription": "Be the first to ask — questions and tutor answers show up here for everyone in the course.",
+      "answerPlaceholder": "Write an answer…",
+      "answer": "Answer",
+      "deleteQuestion": "Delete question",
+      "deleteAnswer": "Delete answer",
+      "tutorBadge": "Tutor",
+      "staffBadge": "Staff",
+      "justNow": "just now",
+      "minutesAgo": "{count}m ago",
+      "hoursAgo": "{count}h ago",
+      "daysAgo": "{count}d ago"
+    }
   },
   "notifications": {
     "title": "Notifications",

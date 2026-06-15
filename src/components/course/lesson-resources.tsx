@@ -11,6 +11,7 @@ import {
   Link2,
   Presentation,
 } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/shared/empty-state";
 import type { LessonResource } from "@/lib/curriculum-structure";
 
@@ -28,33 +29,21 @@ const ICONS: Record<LessonResource["type"], typeof FileText> = {
   file: Download,
 };
 
-const LABELS: Record<LessonResource["type"], string> = {
-  pdf: "PDF",
-  doc: "Document",
-  sheet: "Spreadsheet",
-  slides: "Slides",
-  image: "Image",
-  video: "Video",
-  audio: "Audio",
-  archive: "Archive",
-  code: "Code",
-  link: "Link",
-  file: "File",
-};
-
 // External links open in a new tab; proxied repo files (served under
 // /api/curriculum/media) are same-origin downloads.
 function isExternal(url: string): boolean {
   return /^([a-z]+:)?\/\//i.test(url) && !url.startsWith("/");
 }
 
-export function LessonResources({ resources }: { resources: LessonResource[] }) {
+export async function LessonResources({ resources }: { resources: LessonResource[] }) {
+  const t = await getTranslations("lesson.resources");
+
   if (resources.length === 0) {
     return (
       <EmptyState
         icon={<Download className="h-10 w-10" aria-hidden />}
-        title="No resources yet"
-        description="Downloads and reference links for this lesson will appear here when your tutor adds them."
+        title={t("emptyTitle")}
+        description={t("emptyDescription")}
         size="sm"
       />
     );
@@ -81,7 +70,7 @@ export function LessonResources({ resources }: { resources: LessonResource[] }) 
                   {r.title}
                 </p>
                 <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  {LABELS[r.type] ?? "File"}
+                  {t(`types.${r.type}`)}
                 </p>
               </div>
               {external ? (

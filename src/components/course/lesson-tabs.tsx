@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { BookOpen, FileText, MessageSquare, NotebookPen } from "lucide-react";
 
 type TabKey = "overview" | "notes" | "resources" | "qa";
@@ -25,20 +26,21 @@ export function LessonTabs({
   resourceCount,
   questionCount,
 }: LessonTabsProps) {
+  const t = useTranslations("lesson.tabs");
   const [active, setActive] = useState<TabKey>("overview");
 
   const tabs: { key: TabKey; label: string; icon: ReactNode; count?: number }[] = [
-    { key: "overview", label: "Overview", icon: <FileText className="h-3.5 w-3.5" /> },
-    { key: "notes", label: "Notes", icon: <NotebookPen className="h-3.5 w-3.5" /> },
+    { key: "overview", label: t("overview"), icon: <FileText className="h-3.5 w-3.5" /> },
+    { key: "notes", label: t("notes"), icon: <NotebookPen className="h-3.5 w-3.5" /> },
     {
       key: "resources",
-      label: "Resources",
+      label: t("resources"),
       icon: <BookOpen className="h-3.5 w-3.5" />,
       count: resourceCount,
     },
     {
       key: "qa",
-      label: "Q&A",
+      label: t("qa"),
       icon: <MessageSquare className="h-3.5 w-3.5" />,
       count: questionCount,
     },

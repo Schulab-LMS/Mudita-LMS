@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
   MessageSquare,
@@ -23,16 +24,18 @@ function isStaffRole(role: string): boolean {
   return STAFF_ROLES.has(role);
 }
 
-function timeAgo(date: Date): string {
+type Translator = ReturnType<typeof useTranslations<"lesson.qa">>;
+
+function timeAgo(date: Date, t: Translator, locale: string): string {
   const diff = Date.now() - new Date(date).getTime();
   const mins = Math.round(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t("justNow");
+  if (mins < 60) return t("minutesAgo", { count: mins });
   const hrs = Math.round(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return t("hoursAgo", { count: hrs });
   const days = Math.round(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(date).toLocaleDateString();
+  if (days < 30) return t("daysAgo", { count: days });
+  return new Date(date).toLocaleDateString(locale);
 }
 
 export function LessonQa({
@@ -50,6 +53,7 @@ export function LessonQa({
   isAdmin: boolean;
   readOnly?: boolean;
 }) {
+  const t = useTranslations("lesson.qa");
   const router = useRouter();
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -73,20 +77,20 @@ export function LessonQa({
       {/* Ask form */}
       {readOnly ? (
         <p className="rounded-lg border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-          Q&amp;A is disabled while previewing.
+          {t("previewDisabled")}
         </p>
       ) : (
         <div className="space-y-2">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
             <MessageSquare className="h-3.5 w-3.5" aria-hidden />
-            Ask a question
+            {t("askLabel")}
           </label>
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={3}
             disabled={pending}
-            placeholder="Stuck on something? Ask here and a tutor will answer."
+            placeholder={t("askPlaceholder")}
             className="input-pretty w-full rounded-lg border border-input bg-background p-3 text-sm focus-visible:outline-none"
           />
           <div className="flex items-center gap-3">
@@ -97,7 +101,7 @@ export function LessonQa({
               className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               <Send className="h-3.5 w-3.5" aria-hidden />
-              Post question
+              {t("postQuestion")}
             </button>
             {error && (
               <span className="text-xs text-red-600 dark:text-red-400" role="status">
@@ -112,8 +116,8 @@ export function LessonQa({
       {questions.length === 0 ? (
         <EmptyState
           icon={<MessageSquare className="h-10 w-10" aria-hidden />}
-          title="No questions yet"
-          description="Be the first to ask — questions and tutor answers show up here for everyone in the course."
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
           size="sm"
         />
       ) : (
@@ -150,6 +154,7 @@ function QuestionItem({
   readOnly: boolean;
   onChanged: () => void;
 }) {
+  const t = useTranslations("lesson.qa");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -191,7 +196,7 @@ function QuestionItem({
             type="button"
             onClick={onDeleteQuestion}
             disabled={pending}
-            aria-label="Delete question"
+            aria-label={t("deleteQuestion")}
             className="text-muted-foreground transition-colors hover:text-red-600 disabled:opacity-50"
           >
             <Trash2 className="h-3.5 w-3.5" aria-hidden />
@@ -231,7 +236,7 @@ function QuestionItem({
             onChange={(e) => setAnswer(e.target.value)}
             rows={2}
             disabled={pending}
-            placeholder="Write an answer…"
+            placeholder={t("answerPlaceholder")}
             className="input-pretty w-full rounded-lg border border-input bg-background p-2.5 text-sm focus-visible:outline-none"
           />
           <div className="flex items-center gap-3">
@@ -242,7 +247,7 @@ function QuestionItem({
               className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               <Send className="h-3 w-3" aria-hidden />
-              Answer
+              {t("answer")}
             </button>
             {error && (
               <span className="text-xs text-red-600 dark:text-red-400" role="status">
@@ -263,6 +268,7 @@ function DeleteAnswerButton({
   answerId: string;
   onChanged: () => void;
 }) {
+  const t = useTranslations("lesson.qa");
   const [pending, startTransition] = useTransition();
   return (
     <button
@@ -274,7 +280,7 @@ function DeleteAnswerButton({
         })
       }
       disabled={pending}
-      aria-label="Delete answer"
+      aria-label={t("deleteAnswer")}
       className="text-muted-foreground transition-colors hover:text-red-600 disabled:opacity-50"
     >
       <Trash2 className="h-3.5 w-3.5" aria-hidden />
@@ -295,6 +301,8 @@ function Author({
   when: Date;
   staff?: boolean;
 }) {
+  const t = useTranslations("lesson.qa");
+  const locale = useLocale();
   const showStaff = staff || isStaffRole(role);
   return (
     <div className="flex items-center gap-2">
@@ -312,11 +320,11 @@ function Author({
           {showStaff && (
             <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-primary">
               <ShieldCheck className="h-2.5 w-2.5" aria-hidden />
-              {role === "TUTOR" ? "Tutor" : "Staff"}
+              {role === "TUTOR" ? t("tutorBadge") : t("staffBadge")}
             </span>
           )}
         </span>
-        <span className="text-[11px] text-muted-foreground">{timeAgo(when)}</span>
+        <span className="text-[11px] text-muted-foreground">{timeAgo(when, t, locale)}</span>
       </div>
     </div>
   );

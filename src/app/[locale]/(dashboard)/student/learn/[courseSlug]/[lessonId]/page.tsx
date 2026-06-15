@@ -240,13 +240,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
                 </ProtectedContent>
               ) : hasPresentation ? (
                 <p className="text-sm text-muted-foreground">
-                  Slide deck is above. Use the arrow keys, controls, or swipe
-                  to navigate.
+                  {t("overview.slidesAbove")}
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  No written notes for this lesson. Watch the video above or
-                  jump ahead to the next lesson.
+                  {t("overview.noNotes")}
                 </p>
               )
             }

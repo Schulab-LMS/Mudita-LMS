@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, Loader2, NotebookPen } from "lucide-react";
 import { saveLessonNote } from "@/actions/lesson-engagement.actions";
 
@@ -17,6 +18,7 @@ export function LessonNotes({
   initialContent: string;
   readOnly?: boolean;
 }) {
+  const t = useTranslations("lesson.notes");
   const [content, setContent] = useState(initialContent);
   const [state, setState] = useState<SaveState>("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -60,12 +62,10 @@ export function LessonNotes({
           value={content}
           readOnly
           rows={8}
-          placeholder="Notes are disabled while previewing."
+          placeholder={t("previewPlaceholder")}
           className="input-pretty w-full rounded-lg border border-input bg-muted/40 p-3 text-sm focus-visible:outline-none"
         />
-        <p className="text-xs text-muted-foreground">
-          Sign in as a student to keep private notes on this lesson.
-        </p>
+        <p className="text-xs text-muted-foreground">{t("previewHint")}</p>
       </div>
     );
   }
@@ -75,7 +75,7 @@ export function LessonNotes({
       <div className="flex items-center justify-between">
         <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
           <NotebookPen className="h-3.5 w-3.5" aria-hidden />
-          Your private notes
+          {t("label")}
         </label>
         <SaveBadge state={state} />
       </div>
@@ -84,7 +84,7 @@ export function LessonNotes({
         onChange={(e) => onChange(e.target.value)}
         onBlur={() => void flush()}
         rows={8}
-        placeholder="Jot down what you're learning. Only you can see this — it saves automatically."
+        placeholder={t("placeholder")}
         className="input-pretty w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed focus-visible:outline-none"
       />
     </div>
@@ -92,24 +92,25 @@ export function LessonNotes({
 }
 
 function SaveBadge({ state }: { state: SaveState }) {
+  const t = useTranslations("lesson.notes");
   if (state === "saving") {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-muted-foreground" role="status">
-        <Loader2 className="h-3 w-3 animate-spin" aria-hidden /> Saving…
+        <Loader2 className="h-3 w-3 animate-spin" aria-hidden /> {t("saving")}
       </span>
     );
   }
   if (state === "saved") {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400" role="status">
-        <Check className="h-3 w-3" aria-hidden /> Saved
+        <Check className="h-3 w-3" aria-hidden /> {t("saved")}
       </span>
     );
   }
   if (state === "error") {
     return (
       <span className="text-xs text-red-600 dark:text-red-400" role="status">
-        Couldn’t save — check your connection
+        {t("saveError")}
       </span>
     );
   }
