@@ -92,30 +92,76 @@ export function resolvePlan(raw: string | undefined): PlanTier | null {
   return null;
 }
 
-// Find course-root folders: any directory containing a `modules/` subtree with
-// unit files. Keyed by the path before `/modules/`.
-export function findCourseRoots(tree: TreeEntry[]): Set<string> {
-  const roots = new Set<string>();
-  const re = /^(.+?)\/modules\/module_[^/]+\//;
+// The folder convention a syncable course follows. Two coexist in the repo:
+//   "nested" — <root>/modules/module_NN_*/unit_NN_*/<files>  (course → module → unit;
+//              e.g. space-science-children-8-12)
+//   "flat"   — <root>/module-NN-*/<files>                    (course → module, where
+//              each hyphenated module folder IS one lesson; e.g. the programming
+//              curriculum's age-band stages)
+export type CourseLayout = "nested" | "flat";
+
+export interface CourseRoot {
+  /** Course-root folder path within the repo. */
+  path: string;
+  layout: CourseLayout;
+}
+
+// Nested: a unit folder under <root>/modules/module_NN_*/. Keyed on the path
+// before `/modules/`.
+const NESTED_ROOT_RE = /^(.+?)\/modules\/module_[^/]+\//;
+// Flat: a lesson file sitting DIRECTLY inside a hyphenated `module-NN` folder
+// (no `modules/` wrapper, no `unit_` level). Keyed on the path before the module
+// folder. The `module-` (hyphen) token is what keeps this disjoint from nested,
+// whose modules use `module_` (underscore).
+const FLAT_LESSON_RE =
+  /^(.+?)\/module-\d+[^/]*\/(?:handout|presentation|activity|quiz)(?:\.[a-z]{2})?\.md$/i;
+
+// Discover every course root in the tree, tagged with its layout. Empty subject
+// placeholder folders (just a .gitkeep) match neither pattern and are ignored.
+// A path that qualifies as nested is never also treated as flat.
+export function findCourseRoots(tree: TreeEntry[]): CourseRoot[] {
+  const nested = new Set<string>();
+  const flat = new Set<string>();
+
   for (const entry of tree) {
     if (entry.type !== "blob") continue;
-    const m = entry.path.match(re);
-    if (m) roots.add(m[1]);
+    const n = entry.path.match(NESTED_ROOT_RE);
+    if (n) {
+      nested.add(n[1]);
+      continue;
+    }
+    const f = entry.path.match(FLAT_LESSON_RE);
+    if (f) flat.add(f[1]);
+  }
+
+  const roots: CourseRoot[] = [];
+  for (const path of nested) roots.push({ path, layout: "nested" });
+  for (const path of flat) {
+    if (!nested.has(path)) roots.push({ path, layout: "flat" });
   }
   return roots;
 }
 
+// Reads the order from a `module_NN_*` / `unit_NN_*` (underscore) or
+// `module-NN-*` (hyphen) folder name — the first separator-prefixed number.
 export function numericPrefix(folder: string): number {
-  const m = folder.match(/_(\d+)/);
+  const m = folder.match(/[_-](\d+)/);
   return m ? parseInt(m[1], 10) : 0;
 }
 
 export function prettifyFolder(folder: string): string {
   return folder
-    .replace(/^(module|unit)_\d+_?/i, "")
+    .replace(/^(module|unit)[_-]\d+[_-]?/i, "")
     .replace(/[_-]+/g, " ")
     .trim()
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// Human course title from a flat-layout stage folder, dropping a leading
+// age-range token: "11-13-programming-fundamentals" → "Programming Fundamentals",
+// "5-7-computational-thinking" → "Computational Thinking".
+export function prettifyCourseFolder(folder: string): string {
+  return prettifyFolder(folder.replace(/^\d+[-_]\d+[-_]?/, ""));
 }
 
 export function escapeRegExp(s: string): string {

@@ -31,6 +31,7 @@ import {
   findCourseRoots,
   firstHeading,
   numericPrefix,
+  prettifyCourseFolder,
   prettifyFolder,
   resolveAgeGroup,
   resolveLevel,
@@ -92,29 +93,25 @@ interface BuiltCourse {
   modules: BuiltModule[];
 }
 
-async function buildCourse(
-  root: string,
-  tree: TreeEntry[],
+const baseName = (p: string) => (p.includes("/") ? p.slice(p.lastIndexOf("/") + 1) : p);
+
+// Read an optional YAML manifest (meta.yml / meta.yaml) from a folder.
+async function readMeta(
+  dir: string,
   readText: (path: string) => Promise<string | null>
-): Promise<BuiltCourse> {
-  const folderName = root.includes("/") ? root.slice(root.lastIndexOf("/") + 1) : root;
-
-  // Optional course manifest.
-  const metaRaw =
-    (await readText(`${root}/meta.yml`)) ?? (await readText(`${root}/meta.yaml`));
-  let meta: CourseMeta = {};
-  if (metaRaw) {
-    try {
-      meta = (parseYaml(metaRaw) as CourseMeta) ?? {};
-    } catch (e) {
-      console.warn(`[curricula] failed to parse meta.yml for ${root}: ${String(e)}`);
-    }
+): Promise<CourseMeta> {
+  const metaRaw = (await readText(`${dir}/meta.yml`)) ?? (await readText(`${dir}/meta.yaml`));
+  if (!metaRaw) return {};
+  try {
+    return (parseYaml(metaRaw) as CourseMeta) ?? {};
+  } catch (e) {
+    console.warn(`[curricula] failed to parse meta.yml for ${dir}: ${String(e)}`);
+    return {};
   }
+}
 
-  const readme = await readText(`${root}/README.md`);
-  const slug = meta.slug ? slugify(meta.slug) : slugify(folderName);
-  const title = meta.title || firstHeading(readme) || folderName;
-  const description =
+function deriveDescription(meta: CourseMeta, readme: string | null, fallback: string): string {
+  return (
     meta.description ||
     (readme
       ? readme
@@ -123,7 +120,106 @@ async function buildCourse(
           .replace(/\s+/g, " ")
           .trim()
           .slice(0, 400)
-      : title);
+      : fallback)
+  );
+}
+
+// Build one lesson from a content folder holding handout/activity/quiz/presentation
+// files. Shared by both layouts: in "nested" the folder is a `unit_NN_*` dir; in
+// "flat" it is the `module-NN_*` dir itself. `moduleOverview` (nested only) is
+// prepended to the lesson's tutor notes.
+async function buildLesson(opts: {
+  dir: string;
+  order: number;
+  slug: string;
+  courseRoot: string;
+  moduleOverview: { markdown: string; path: string } | null;
+  readText: (path: string) => Promise<string | null>;
+}): Promise<BuiltLesson> {
+  const { dir, order, slug, courseRoot, moduleOverview, readText } = opts;
+  const folder = baseName(dir);
+
+  const handout = await readText(`${dir}/handout.md`);
+  const handoutAr = await readText(`${dir}/handout.ar.md`);
+  const handoutDe = await readText(`${dir}/handout.de.md`);
+  const activity = await readText(`${dir}/activity.md`);
+  const activityAr = await readText(`${dir}/activity.ar.md`);
+  const activityDe = await readText(`${dir}/activity.de.md`);
+  const quizMd = await readText(`${dir}/quiz.md`);
+  const presentationMd = await readText(`${dir}/presentation.md`);
+  const presentationArMd = await readText(`${dir}/presentation.ar.md`);
+  const presentationDeMd = await readText(`${dir}/presentation.de.md`);
+
+  const split = handout ? splitTutorContent(handout) : null;
+  const ctx = (file: string) => ({
+    courseSlug: slug,
+    courseRoot,
+    sourceFilePath: file,
+  });
+
+  // Reveal.js decks: pull frontmatter off the English variant only (it's
+  // the canonical config), keep raw markdown for all locales, and rewrite
+  // relative image paths to the authenticated media proxy.
+  let presentation: string | null = null;
+  let presentationAr: string | null = null;
+  let presentationDe: string | null = null;
+  let presentationConfig: PresentationConfig | null = null;
+  if (presentationMd) {
+    const parsed = parsePresentationMarkdown(presentationMd);
+    presentationConfig = parsed.config;
+    presentation = rewritePresentationMediaUrls(parsed.markdown, ctx(`${dir}/presentation.md`));
+  }
+  if (presentationArMd) {
+    const parsed = parsePresentationMarkdown(presentationArMd);
+    presentationAr = rewritePresentationMediaUrls(parsed.markdown, ctx(`${dir}/presentation.ar.md`));
+  }
+  if (presentationDeMd) {
+    const parsed = parsePresentationMarkdown(presentationDeMd);
+    presentationDe = rewritePresentationMediaUrls(parsed.markdown, ctx(`${dir}/presentation.de.md`));
+  }
+
+  // Tutor notes = module overview (pedagogy, nested only) + this unit's TUTOR_ONLY fences.
+  const tutorParts: string[] = [];
+  if (moduleOverview) {
+    tutorParts.push(renderCurriculumMarkdown(moduleOverview.markdown, ctx(moduleOverview.path)));
+  }
+  if (split?.tutorMarkdown) {
+    tutorParts.push(renderCurriculumMarkdown(split.tutorMarkdown, ctx(`${dir}/handout.md`)));
+  }
+
+  return {
+    sourcePath: dir,
+    order,
+    title: firstHeading(handout) || prettifyFolder(folder),
+    content: split
+      ? renderCurriculumMarkdown(split.studentMarkdown, ctx(`${dir}/handout.md`))
+      : null,
+    contentAr: handoutAr ? renderCurriculumMarkdown(handoutAr, ctx(`${dir}/handout.ar.md`)) : null,
+    contentDe: handoutDe ? renderCurriculumMarkdown(handoutDe, ctx(`${dir}/handout.de.md`)) : null,
+    activity: activity ? renderCurriculumMarkdown(activity, ctx(`${dir}/activity.md`)) : null,
+    activityAr: activityAr ? renderCurriculumMarkdown(activityAr, ctx(`${dir}/activity.ar.md`)) : null,
+    activityDe: activityDe ? renderCurriculumMarkdown(activityDe, ctx(`${dir}/activity.de.md`)) : null,
+    tutorNotes: tutorParts.length ? tutorParts.join("\n") : null,
+    presentation,
+    presentationAr,
+    presentationDe,
+    presentationConfig,
+    quiz: quizMd ? parseQuizMarkdown(quizMd) : null,
+  };
+}
+
+// Nested layout: <root>/modules/module_NN_*/unit_NN_*/ (course → module → unit).
+async function buildNestedCourse(
+  root: string,
+  tree: TreeEntry[],
+  readText: (path: string) => Promise<string | null>
+): Promise<BuiltCourse> {
+  const folderName = baseName(root);
+  const meta = await readMeta(root, readText);
+  const readme = await readText(`${root}/README.md`);
+  const slug = meta.slug ? slugify(meta.slug) : slugify(folderName);
+  const title = meta.title || firstHeading(readme) || folderName;
+  const description = deriveDescription(meta, readme, title);
 
   // Module folders directly under <root>/modules/.
   const moduleDirs = new Map<string, true>();
@@ -135,10 +231,10 @@ async function buildCourse(
 
   const modules: BuiltModule[] = [];
   for (const modulePath of [...moduleDirs.keys()].sort()) {
-    const moduleFolder = modulePath.slice(modulePath.lastIndexOf("/") + 1);
-    const moduleOrder = numericPrefix(moduleFolder);
+    const moduleFolder = baseName(modulePath);
     const overviewMd = await readText(`${modulePath}/overview.md`);
     const moduleTitle = firstHeading(overviewMd) || prettifyFolder(moduleFolder);
+    const overview = overviewMd ? { markdown: overviewMd, path: `${modulePath}/overview.md` } : null;
 
     // Unit folders under this module.
     const unitDirs = new Set<string>();
@@ -150,105 +246,88 @@ async function buildCourse(
 
     const lessons: BuiltLesson[] = [];
     for (const unitPath of [...unitDirs].sort()) {
-      const unitFolder = unitPath.slice(unitPath.lastIndexOf("/") + 1);
-      const handout = await readText(`${unitPath}/handout.md`);
-      const handoutAr = await readText(`${unitPath}/handout.ar.md`);
-      const handoutDe = await readText(`${unitPath}/handout.de.md`);
-      const activity = await readText(`${unitPath}/activity.md`);
-      const activityAr = await readText(`${unitPath}/activity.ar.md`);
-      const activityDe = await readText(`${unitPath}/activity.de.md`);
-      const quizMd = await readText(`${unitPath}/quiz.md`);
-      const presentationMd = await readText(`${unitPath}/presentation.md`);
-      const presentationArMd = await readText(`${unitPath}/presentation.ar.md`);
-      const presentationDeMd = await readText(`${unitPath}/presentation.de.md`);
-
-      const split = handout ? splitTutorContent(handout) : null;
-      const ctx = (file: string) => ({
-        courseSlug: slug,
-        courseRoot: root,
-        sourceFilePath: file,
-      });
-
-      // Reveal.js decks: pull frontmatter off the English variant only (it's
-      // the canonical config), keep raw markdown for all locales, and rewrite
-      // relative image paths to the authenticated media proxy.
-      let presentation: string | null = null;
-      let presentationAr: string | null = null;
-      let presentationDe: string | null = null;
-      let presentationConfig: PresentationConfig | null = null;
-      if (presentationMd) {
-        const parsed = parsePresentationMarkdown(presentationMd);
-        presentationConfig = parsed.config;
-        presentation = rewritePresentationMediaUrls(
-          parsed.markdown,
-          ctx(`${unitPath}/presentation.md`)
-        );
-      }
-      if (presentationArMd) {
-        const parsed = parsePresentationMarkdown(presentationArMd);
-        presentationAr = rewritePresentationMediaUrls(
-          parsed.markdown,
-          ctx(`${unitPath}/presentation.ar.md`)
-        );
-      }
-      if (presentationDeMd) {
-        const parsed = parsePresentationMarkdown(presentationDeMd);
-        presentationDe = rewritePresentationMediaUrls(
-          parsed.markdown,
-          ctx(`${unitPath}/presentation.de.md`)
-        );
-      }
-
-      // Tutor notes = module overview (pedagogy) + this unit's TUTOR_ONLY fences.
-      const tutorParts: string[] = [];
-      if (overviewMd) {
-        tutorParts.push(
-          renderCurriculumMarkdown(overviewMd, ctx(`${modulePath}/overview.md`))
-        );
-      }
-      if (split?.tutorMarkdown) {
-        tutorParts.push(
-          renderCurriculumMarkdown(split.tutorMarkdown, ctx(`${unitPath}/handout.md`))
-        );
-      }
-
-      lessons.push({
-        sourcePath: unitPath,
-        order: numericPrefix(unitFolder),
-        title: firstHeading(handout) || prettifyFolder(unitFolder),
-        content: split
-          ? renderCurriculumMarkdown(split.studentMarkdown, ctx(`${unitPath}/handout.md`))
-          : null,
-        contentAr: handoutAr
-          ? renderCurriculumMarkdown(handoutAr, ctx(`${unitPath}/handout.ar.md`))
-          : null,
-        contentDe: handoutDe
-          ? renderCurriculumMarkdown(handoutDe, ctx(`${unitPath}/handout.de.md`))
-          : null,
-        activity: activity
-          ? renderCurriculumMarkdown(activity, ctx(`${unitPath}/activity.md`))
-          : null,
-        activityAr: activityAr
-          ? renderCurriculumMarkdown(activityAr, ctx(`${unitPath}/activity.ar.md`))
-          : null,
-        activityDe: activityDe
-          ? renderCurriculumMarkdown(activityDe, ctx(`${unitPath}/activity.de.md`))
-          : null,
-        tutorNotes: tutorParts.length ? tutorParts.join("\n") : null,
-        presentation,
-        presentationAr,
-        presentationDe,
-        presentationConfig,
-        quiz: quizMd ? parseQuizMarkdown(quizMd) : null,
-      });
+      lessons.push(
+        await buildLesson({
+          dir: unitPath,
+          order: numericPrefix(baseName(unitPath)),
+          slug,
+          courseRoot: root,
+          moduleOverview: overview,
+          readText,
+        })
+      );
     }
 
     lessons.sort((a, b) => a.order - b.order);
     modules.push({
       sourcePath: modulePath,
-      order: moduleOrder,
+      order: numericPrefix(moduleFolder),
       title: moduleTitle,
       lessons,
+    });
+  }
+
+  modules.sort((a, b) => a.order - b.order);
+
+  return {
+    slug,
+    sourcePath: root,
+    title,
+    titleAr: meta.titleAr || null,
+    titleDe: meta.titleDe || null,
+    description,
+    ageGroup: resolveAgeGroup(meta.ageGroup, folderName),
+    level: resolveLevel(meta.level),
+    category: meta.category || "STEM",
+    requiredPlan: resolvePlan(meta.requiredPlan),
+    tags: Array.isArray(meta.tags) ? meta.tags : [],
+    status: resolveStatus(meta.status),
+    modules,
+  };
+}
+
+// Flat layout: <root>/module-NN-*/ (course → module, where each hyphenated module
+// folder is a single lesson with its own handout/presentation/quiz). The course
+// root is an age-band "stage" folder; an optional <root>/meta.yml supplies the
+// title/status (without it the course imports as DRAFT, hidden until published).
+async function buildFlatCourse(
+  root: string,
+  tree: TreeEntry[],
+  readText: (path: string) => Promise<string | null>
+): Promise<BuiltCourse> {
+  const folderName = baseName(root);
+  const meta = await readMeta(root, readText);
+  const readme = await readText(`${root}/README.md`);
+  const slug = meta.slug ? slugify(meta.slug) : slugify(folderName);
+  const title = meta.title || firstHeading(readme) || prettifyCourseFolder(folderName);
+  const description = deriveDescription(meta, readme, title);
+
+  // Module folders directly under <root>, hyphenated (module-NN-*).
+  const moduleDirs = new Set<string>();
+  const moduleRe = new RegExp(`^${escapeRegExp(root)}/(module-\\d+[^/]*)/`);
+  for (const entry of tree) {
+    const m = entry.path.match(moduleRe);
+    if (m) moduleDirs.add(`${root}/${m[1]}`);
+  }
+
+  const modules: BuiltModule[] = [];
+  for (const modulePath of [...moduleDirs].sort()) {
+    const moduleFolder = baseName(modulePath);
+    const moduleMeta = await readMeta(modulePath, readText);
+    // Each flat module folder maps to exactly one lesson.
+    const lesson = await buildLesson({
+      dir: modulePath,
+      order: 1,
+      slug,
+      courseRoot: root,
+      moduleOverview: null,
+      readText,
+    });
+    modules.push({
+      sourcePath: modulePath,
+      order: numericPrefix(moduleFolder),
+      title: moduleMeta.title || lesson.title || prettifyFolder(moduleFolder),
+      lessons: [lesson],
     });
   }
 
@@ -620,14 +699,17 @@ export async function runCurriculumSync(opts: {
     const seenSlugs: string[] = [];
     let hadError = false;
 
-    for (const root of [...roots].sort()) {
+    for (const root of [...roots].sort((a, b) => a.path.localeCompare(b.path))) {
       try {
-        const course = await buildCourse(root, tree, readText);
+        const course =
+          root.layout === "flat"
+            ? await buildFlatCourse(root.path, tree, readText)
+            : await buildNestedCourse(root.path, tree, readText);
         await persistCourse(course, commitSha, counts);
         seenSlugs.push(course.slug);
       } catch (e) {
         hadError = true;
-        console.error(`[curricula] failed to sync course at ${root}:`, e);
+        console.error(`[curricula] failed to sync course at ${root.path}:`, e);
       }
     }
 
