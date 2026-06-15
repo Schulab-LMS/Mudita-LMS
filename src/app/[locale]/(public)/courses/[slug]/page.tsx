@@ -3,7 +3,8 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { getCourseBySlug } from "@/services/course.service";
+import { getCourseBySlug, getLocalizedField } from "@/services/course.service";
+import { listApprovedReviews } from "@/services/review.service";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,24 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { EnrollButton } from "@/components/course/enroll-button";
 import { CategoryIcon } from "@/components/illustrations/category-icons";
+import {
+  analyzeContentMix,
+  collectHandsOnProjects,
+  lessonKind,
+  summarizeModule,
+} from "@/lib/course-preview";
+import {
+  ContentMixSection,
+  EngagementSection,
+  EnrollMotivationBanner,
+  HandsOnProjectsSection,
+  InstructorSection,
+  LessonKindIcon,
+  lessonKindLabel,
+  ReviewsSection,
+  type PreviewInstructor,
+  type PreviewReview,
+} from "@/components/course/preview-sections";
 import {
   BookOpen,
   Clock,
@@ -41,19 +60,19 @@ function daysSince(date: Date | string | number): number {
 export async function generateMetadata({
   params,
 }: CourseDetailPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const course = await getCourseBySlug(slug);
   if (!course) return { title: "Course Not Found" };
   return {
-    title: `${course.title} | Schulab`,
-    description: course.description,
+    title: `${getLocalizedField(course, "title", locale)} | Schulab`,
+    description: getLocalizedField(course, "description", locale),
   };
 }
 
 export default async function CourseDetailPage({
   params,
 }: CourseDetailPageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const [course, session, t, tAge, tLevel, tCat] = await Promise.all([
     getCourseBySlug(slug),
     auth(),
@@ -67,7 +86,22 @@ export default async function CourseDetailPage({
 
   const totalMinutes = Math.round((course.totalDuration ?? 0) / 60);
 
-  let relatedCourses: { id: string; title: string; slug: string; thumbnail: string | null; category: string | null }[] = [];
+  // Localized course copy + a localized view of the curriculum. Titles flow
+  // into the analysis helpers and every render site, so localize once here
+  // rather than at each call. Non-title lesson fields (type, activity, quiz…)
+  // are kept intact — they drive classification, not display.
+  const courseTitle = getLocalizedField(course, "title", locale);
+  const courseDescription = getLocalizedField(course, "description", locale);
+  const localizedModules = course.modules.map((mod) => ({
+    ...mod,
+    title: getLocalizedField(mod, "title", locale),
+    lessons: mod.lessons.map((lesson) => ({
+      ...lesson,
+      title: getLocalizedField(lesson, "title", locale),
+    })),
+  }));
+
+  let relatedCourses: { id: string; title: string; titleAr: string | null; titleDe: string | null; slug: string; thumbnail: string | null; category: string | null }[] = [];
   try {
     if (course.category) {
       relatedCourses = await db.course.findMany({
@@ -76,7 +110,7 @@ export default async function CourseDetailPage({
           status: "PUBLISHED",
           id: { not: course.id },
         },
-        select: { id: true, title: true, slug: true, thumbnail: true, category: true },
+        select: { id: true, title: true, titleAr: true, titleDe: true, slug: true, thumbnail: true, category: true },
         take: 6,
       });
     }
@@ -110,7 +144,57 @@ export default async function CourseDetailPage({
     }
   }
 
-  const allLessons = course.modules.flatMap((m) => m.lessons);
+  // Instructor + social proof — fetched once the course exists. Course has
+  // `createdById` but no Prisma relation, so the instructor is a separate
+  // lookup; both are best-effort and degrade to null/empty on failure.
+  let instructor: PreviewInstructor | null = null;
+  let reviews: PreviewReview[] = [];
+  try {
+    const [creator, approvedReviews] = await Promise.all([
+      db.user.findUnique({
+        where: { id: course.createdById },
+        select: {
+          name: true,
+          avatar: true,
+          tutorProfile: {
+            select: {
+              headline: true,
+              bio: true,
+              subjects: true,
+              rating: true,
+              isVerified: true,
+            },
+          },
+        },
+      }),
+      listApprovedReviews(course.id, { limit: 4 }),
+    ]);
+    if (creator) {
+      instructor = {
+        name: creator.name,
+        avatar: creator.avatar,
+        headline: creator.tutorProfile?.headline ?? null,
+        bio: creator.tutorProfile?.bio ?? null,
+        subjects: creator.tutorProfile?.subjects ?? [],
+        rating: Number(creator.tutorProfile?.rating ?? 0),
+        isVerified: creator.tutorProfile?.isVerified ?? false,
+      };
+    }
+    reviews = approvedReviews.slice(0, 4).map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      title: r.title,
+      body: r.body,
+      user: { name: r.user.name, avatar: r.user.avatar },
+    }));
+  } catch {
+    // graceful degradation — preview still renders without these blocks
+  }
+
+  const contentMix = analyzeContentMix(localizedModules);
+  const handsOnProjects = collectHandsOnProjects(localizedModules);
+
+  const allLessons = localizedModules.flatMap((m) => m.lessons);
   const firstLessonId = allLessons[0]?.id;
   const rating = Number(course.averageRating ?? 0);
   const reviewCount = course.reviewCount ?? 0;
@@ -137,7 +221,7 @@ export default async function CourseDetailPage({
           className="mb-5"
           items={[
             { label: t("breadcrumbCourses"), href: "/courses" },
-            { label: course.title },
+            { label: courseTitle },
           ]}
         />
 
@@ -162,10 +246,10 @@ export default async function CourseDetailPage({
             </div>
 
             <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-              {course.title}
+              {courseTitle}
             </h1>
 
-            <p className="mt-3 text-base text-muted-foreground sm:text-lg">{course.description}</p>
+            <p className="mt-3 text-base text-muted-foreground sm:text-lg">{courseDescription}</p>
 
             {/* Trust strip: rating + enrolled + certificate + language */}
             <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
@@ -218,7 +302,7 @@ export default async function CourseDetailPage({
                 <div className="relative aspect-video w-full overflow-hidden rounded-xl">
                   <Image
                     src={course.thumbnail}
-                    alt={course.title}
+                    alt={courseTitle}
                     fill
                     sizes="(min-width: 1024px) 33vw, 100vw"
                     className="object-cover"
@@ -288,7 +372,7 @@ export default async function CourseDetailPage({
             {t("whatYoullLearn")}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            {course.modules.slice(0, 6).map((mod) => (
+            {localizedModules.slice(0, 6).map((mod) => (
               <div key={mod.id} className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                 <span className="text-sm text-muted-foreground">
@@ -339,6 +423,12 @@ export default async function CourseDetailPage({
           </div>
         </section>
 
+        {/* What's inside — content mix */}
+        <ContentMixSection mix={contentMix} t={t} />
+
+        {/* Hands-on projects */}
+        <HandsOnProjectsSection projects={handsOnProjects} t={t} />
+
         {/* Curriculum */}
         <section className="mt-12">
           <h2 className="mb-4 text-xl font-bold">
@@ -351,41 +441,88 @@ export default async function CourseDetailPage({
             <p className="text-muted-foreground">{t("noContentYet")}</p>
           ) : (
             <div className="divide-y divide-border rounded-2xl border border-border bg-card">
-              {course.modules.map((mod, idx) => (
-                <details key={mod.id} className="group" open={idx < 2}>
-                  <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-semibold hover:bg-muted/40">
-                    <span className="truncate">{mod.title}</span>
-                    <div className="flex shrink-0 items-center gap-3 text-xs">
-                      <span className="text-muted-foreground">
-                        {t("lessonsCount", { count: mod.lessons.length })}
-                      </span>
-                      <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180 rtl:rotate-0 rtl:group-open:-rotate-180" />
-                    </div>
-                  </summary>
-                  <ul className="divide-y divide-border border-t border-border bg-muted/30">
-                    {mod.lessons.map((lesson) => (
-                      <li
-                        key={lesson.id}
-                        className="flex items-center gap-3 px-5 py-3 text-sm text-muted-foreground"
-                      >
-                        <Play className="h-3.5 w-3.5 shrink-0 rtl:rotate-180" />
-                        <span className="flex-1 truncate">{lesson.title}</span>
-                        {lesson.duration && (
-                          <span>{t("minutesShort", { count: Math.round(lesson.duration / 60) })}</span>
-                        )}
-                        {lesson.isFree && (
-                          <Badge variant="secondary" className="text-xs">
-                            {t("freePreview")}
-                          </Badge>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              ))}
+              {localizedModules.map((mod, idx) => {
+                const summary = summarizeModule(mod);
+                const chips = [
+                  summary.videos > 0 && t("chipVideos", { count: summary.videos }),
+                  summary.presentations > 0 && t("chipSlides", { count: summary.presentations }),
+                  summary.quizzes > 0 && t("chipQuizzes", { count: summary.quizzes }),
+                  summary.projects > 0 && t("chipProjects", { count: summary.projects }),
+                ].filter(Boolean) as string[];
+                return (
+                  <details key={mod.id} className="group" open={idx < 2}>
+                    <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-sm font-semibold hover:bg-muted/40">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-display text-xs font-bold text-primary">
+                          {idx + 1}
+                        </span>
+                        <span className="truncate">{mod.title}</span>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3 text-xs">
+                        <span className="hidden text-muted-foreground sm:inline">
+                          {t("lessonsCount", { count: mod.lessons.length })}
+                        </span>
+                        <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180 rtl:rotate-0 rtl:group-open:-rotate-180" />
+                      </div>
+                    </summary>
+                    {chips.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 px-5 pb-3">
+                        {chips.map((chip) => (
+                          <span key={chip} className="chip chip-neutral text-xs">
+                            {chip}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <ul className="divide-y divide-border border-t border-border bg-muted/30">
+                      {mod.lessons.map((lesson) => {
+                        const kind = lessonKind(lesson);
+                        return (
+                          <li
+                            key={lesson.id}
+                            className="flex items-center gap-3 px-5 py-3 text-sm text-muted-foreground"
+                          >
+                            <LessonKindIcon kind={kind} className="h-4 w-4" />
+                            <span className="flex-1 truncate text-foreground/90">{lesson.title}</span>
+                            <span className="hidden text-xs text-muted-foreground sm:inline">
+                              {kind === "quiz" && lesson.quiz?._count?.questions
+                                ? t("quizQuestionCount", { count: lesson.quiz._count.questions })
+                                : lessonKindLabel(kind, t)}
+                            </span>
+                            {lesson.duration ? (
+                              <span className="tabular-nums">
+                                {t("minutesShort", { count: Math.round(lesson.duration / 60) })}
+                              </span>
+                            ) : null}
+                            {lesson.isFree && (
+                              <Badge variant="secondary" className="text-xs">
+                                {t("freePreview")}
+                              </Badge>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </details>
+                );
+              })}
             </div>
           )}
         </section>
+
+        {/* Instructor */}
+        {instructor && <InstructorSection instructor={instructor} t={t} />}
+
+        {/* Student engagement features */}
+        <EngagementSection t={t} />
+
+        {/* Student reviews */}
+        <ReviewsSection
+          reviews={reviews}
+          averageRating={rating}
+          reviewCount={reviewCount}
+          t={t}
+        />
 
         {/* Related courses */}
         {relatedCourses.length > 0 && (
@@ -403,7 +540,7 @@ export default async function CourseDetailPage({
                       <div className="relative aspect-video w-full overflow-hidden rounded-xl">
                         <Image
                           src={related.thumbnail}
-                          alt={related.title}
+                          alt={getLocalizedField(related, "title", locale)}
                           fill
                           sizes="(min-width: 768px) 33vw, (min-width: 640px) 50vw, 80vw"
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -415,7 +552,7 @@ export default async function CourseDetailPage({
                       </div>
                     )}
                     <h3 className="mt-3 font-semibold leading-tight group-hover:text-primary transition-colors">
-                      {related.title}
+                      {getLocalizedField(related, "title", locale)}
                     </h3>
                     {related.category && (
                       <p className="mt-1 text-xs text-muted-foreground">
@@ -428,12 +565,20 @@ export default async function CourseDetailPage({
             </div>
           </section>
         )}
+
+        {/* Enrollment motivation */}
+        <EnrollMotivationBanner
+          isAuthed={Boolean(session?.user)}
+          ctaHref="/register"
+          ctaLabel={t("createAccountToEnroll")}
+          t={t}
+        />
       </div>
 
       {/* Mobile sticky bottom bar */}
       <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border bg-card/95 px-4 py-3 shadow-hero backdrop-blur-md lg:hidden">
         <div className="min-w-0">
-          <p className="truncate text-xs text-muted-foreground">{course.title}</p>
+          <p className="truncate text-xs text-muted-foreground">{courseTitle}</p>
           <p className="font-display text-xl font-bold leading-none">{priceDisplay}</p>
         </div>
         {session?.user ? (
