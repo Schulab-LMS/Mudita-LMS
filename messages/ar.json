@@ -854,7 +854,20 @@
       "justNow": "الآن",
       "minutesAgo": "منذ {count} د",
       "hoursAgo": "منذ {count} س",
-      "daysAgo": "منذ {count} ي"
+      "daysAgo": "منذ {count} ي",
+      "errors": {
+        "unauthenticated": "يرجى تسجيل الدخول للمتابعة.",
+        "previewBlocked": "التعديلات معطّلة أثناء المعاينة.",
+        "notEnrolled": "يجب أن تسجّل في الدورة للمشاركة.",
+        "lessonNotFound": "تعذّر العثور على هذا الدرس.",
+        "questionNotFound": "لم يعد هذا السؤال متاحًا.",
+        "answerNotFound": "لم تعد هذه الإجابة متاحة.",
+        "notStaff": "يمكن للمعلّمين والمشرفين فقط الإجابة.",
+        "notAllowedDelete": "لا يُسمح لك بحذف هذا.",
+        "emptyQuestion": "اكتب سؤالك أولاً.",
+        "emptyAnswer": "اكتب إجابة أولاً.",
+        "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+      }
     }
   },
   "notifications": {

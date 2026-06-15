@@ -854,7 +854,20 @@
       "justNow": "just now",
       "minutesAgo": "{count}m ago",
       "hoursAgo": "{count}h ago",
-      "daysAgo": "{count}d ago"
+      "daysAgo": "{count}d ago",
+      "errors": {
+        "unauthenticated": "Please sign in to continue.",
+        "previewBlocked": "Changes are disabled while previewing.",
+        "notEnrolled": "You need to enrol to take part.",
+        "lessonNotFound": "This lesson could not be found.",
+        "questionNotFound": "This question is no longer available.",
+        "answerNotFound": "This answer is no longer available.",
+        "notStaff": "Only tutors and admins can answer.",
+        "notAllowedDelete": "You’re not allowed to delete this.",
+        "emptyQuestion": "Write your question first.",
+        "emptyAnswer": "Write an answer first.",
+        "generic": "Something went wrong. Please try again."
+      }
     }
   },
   "notifications": {

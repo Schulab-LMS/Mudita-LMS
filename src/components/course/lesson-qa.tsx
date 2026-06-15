@@ -25,6 +25,13 @@ function isStaffRole(role: string): boolean {
 }
 
 type Translator = ReturnType<typeof useTranslations<"lesson.qa">>;
+type ErrorTranslator = ReturnType<typeof useTranslations<"lesson.qa.errors">>;
+
+// Map an action error code to a localized message, falling back to a generic
+// message for any code without an explicit translation.
+function errorMessage(tErr: ErrorTranslator, code: string): string {
+  return tErr.has(code) ? tErr(code) : tErr("generic");
+}
 
 function timeAgo(date: Date, t: Translator, locale: string): string {
   const diff = Date.now() - new Date(date).getTime();
@@ -54,6 +61,7 @@ export function LessonQa({
   readOnly?: boolean;
 }) {
   const t = useTranslations("lesson.qa");
+  const tErr = useTranslations("lesson.qa.errors");
   const router = useRouter();
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +113,7 @@ export function LessonQa({
             </button>
             {error && (
               <span className="text-xs text-red-600 dark:text-red-400" role="status">
-                {error}
+                {errorMessage(tErr, error)}
               </span>
             )}
           </div>
@@ -155,6 +163,7 @@ function QuestionItem({
   onChanged: () => void;
 }) {
   const t = useTranslations("lesson.qa");
+  const tErr = useTranslations("lesson.qa.errors");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -251,7 +260,7 @@ function QuestionItem({
             </button>
             {error && (
               <span className="text-xs text-red-600 dark:text-red-400" role="status">
-                {error}
+                {errorMessage(tErr, error)}
               </span>
             )}
           </div>

@@ -854,7 +854,20 @@
       "justNow": "gerade eben",
       "minutesAgo": "vor {count} Min.",
       "hoursAgo": "vor {count} Std.",
-      "daysAgo": "vor {count} T."
+      "daysAgo": "vor {count} T.",
+      "errors": {
+        "unauthenticated": "Bitte melde dich an, um fortzufahren.",
+        "previewBlocked": "Änderungen sind in der Vorschau deaktiviert.",
+        "notEnrolled": "Du musst eingeschrieben sein, um teilzunehmen.",
+        "lessonNotFound": "Diese Lektion konnte nicht gefunden werden.",
+        "questionNotFound": "Diese Frage ist nicht mehr verfügbar.",
+        "answerNotFound": "Diese Antwort ist nicht mehr verfügbar.",
+        "notStaff": "Nur Tutoren und Admins können antworten.",
+        "notAllowedDelete": "Du darfst dies nicht löschen.",
+        "emptyQuestion": "Schreibe zuerst deine Frage.",
+        "emptyAnswer": "Schreibe zuerst eine Antwort.",
+        "generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+      }
     }
   },
   "notifications": {
