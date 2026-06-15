@@ -14,6 +14,7 @@ import { getActivitySubmission } from "@/services/activity.service";
 import { sanitize } from "@/lib/sanitize";
 import type { PresentationConfig } from "@/lib/presentation";
 import { db } from "@/lib/db";
+import { siteConfig } from "@/config/site";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { EmptyState } from "@/components/shared/empty-state";
 import {
@@ -118,7 +119,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
       : "";
   const hasPresentation =
     lesson.type === "PRESENTATION" && Boolean(presentationMarkdown);
-  const watermark = session.user.email ?? session.user.name ?? undefined;
+  const watermark = siteConfig.domain;
   const submission = lessonActivity
     ? await getActivitySubmission(lesson.id, session.user.id)
     : null;

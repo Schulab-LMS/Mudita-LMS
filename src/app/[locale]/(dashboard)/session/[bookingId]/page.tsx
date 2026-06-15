@@ -9,6 +9,7 @@ import {
 import { listPolls } from "@/services/classroom-poll.service";
 import { isLiveKitConfigured } from "@/lib/livekit";
 import { sanitize } from "@/lib/sanitize";
+import { siteConfig } from "@/config/site";
 import { ProtectedContent } from "@/components/shared/protected-content";
 import { PageHeader } from "@/components/ui/page-header";
 import { Link } from "@/i18n/navigation";
@@ -52,7 +53,7 @@ export default async function SessionPage({
 
   const { booking, role, tutorNotes, submission } = view;
   const isTutor = role === "TUTOR";
-  const watermark = session.user.email ?? session.user.name ?? undefined;
+  const watermark = siteConfig.domain;
 
   const courses = isTutor ? await getAssignableLessons() : [];
 
