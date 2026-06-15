@@ -128,3 +128,30 @@ export function rewritePresentationMediaUrls(
     return `${prefix}${mediaProxyUrl(ctx.courseSlug, within)}${suffix}`;
   });
 }
+
+/**
+ * Rewrite a single resource URL (from resources.md) to the authenticated media
+ * proxy when it points at a repo-relative file, so resource downloads honour
+ * enrolment the same way presentation images do. Absolute URLs and site-root
+ * paths are returned unchanged; paths that escape the course root are dropped
+ * (returns null) so we never proxy outside the course folder.
+ */
+export function rewriteResourceUrl(url: string, ctx: RewriteContext): string | null {
+  if (isAbsoluteUrl(url) || url.startsWith("/") || url.startsWith("mailto:")) {
+    return url;
+  }
+  const baseDir = ctx.sourceFilePath.includes("/")
+    ? ctx.sourceFilePath.slice(0, ctx.sourceFilePath.lastIndexOf("/"))
+    : "";
+  const courseRootPrefix = ctx.courseRoot.endsWith("/")
+    ? ctx.courseRoot
+    : `${ctx.courseRoot}/`;
+  const abs = resolveRepoPath(baseDir, url);
+  if (!abs || !abs.startsWith(courseRootPrefix)) {
+    console.warn(
+      `[curricula] resource "${url}" in ${ctx.sourceFilePath} resolves outside the course root — dropped`
+    );
+    return null;
+  }
+  return mediaProxyUrl(ctx.courseSlug, abs.slice(courseRootPrefix.length));
+}

@@ -1,5 +1,6 @@
 import { parse as parseYaml } from "yaml";
 import { db } from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
 import type {
   AgeGroup,
   CourseLevel,
@@ -7,7 +8,6 @@ import type {
   LessonType,
   PlanTier,
   PresentationFormat,
-  Prisma,
   SyncTrigger,
 } from "@/generated/prisma/client";
 import {
@@ -22,15 +22,18 @@ import { parseQuizMarkdown, type ParsedQuiz } from "@/lib/curriculum-quiz-parser
 import {
   parsePresentationMarkdown,
   rewritePresentationMediaUrls,
+  rewriteResourceUrl,
   type PresentationConfig,
 } from "@/lib/presentation";
 import { sendCurriculumSyncAlert } from "@/lib/email";
 import {
   type CourseMeta,
+  type LessonResource,
   escapeRegExp,
   findCourseRoots,
   firstHeading,
   numericPrefix,
+  parseResources,
   prettifyCourseFolder,
   prettifyFolder,
   resolveAgeGroup,
@@ -67,6 +70,9 @@ interface BuiltLesson {
   presentationAr: string | null;
   presentationDe: string | null;
   presentationConfig: PresentationConfig | null;
+  // Downloadable resources / reference links parsed from resources.md, with
+  // repo-relative URLs rewritten to the media proxy. Empty array when absent.
+  resources: LessonResource[];
   quiz: ParsedQuiz | null;
 }
 
@@ -178,6 +184,7 @@ async function buildLesson(opts: {
     presentationMd,
     presentationArMd,
     presentationDeMd,
+    resourcesMd,
   ] = await Promise.all([
     readText(`${dir}/handout.md`),
     readText(`${dir}/handout.ar.md`),
@@ -189,6 +196,7 @@ async function buildLesson(opts: {
     readText(`${dir}/presentation.md`),
     readText(`${dir}/presentation.ar.md`),
     readText(`${dir}/presentation.de.md`),
+    readText(`${dir}/resources.md`),
   ]);
 
   const split = handout ? splitTutorContent(handout) : null;
@@ -219,6 +227,16 @@ async function buildLesson(opts: {
     presentationDe = rewritePresentationMediaUrls(parsed.markdown, ctx(`${dir}/presentation.de.md`));
   }
 
+  // Resources: parse the markdown link list, then rewrite repo-relative file
+  // links to the authenticated media proxy (absolute links pass through).
+  // Links escaping the course root are dropped by rewriteResourceUrl.
+  const resources: LessonResource[] = parseResources(resourcesMd)
+    .map((r) => {
+      const url = rewriteResourceUrl(r.url, ctx(`${dir}/resources.md`));
+      return url ? { ...r, url } : null;
+    })
+    .filter((r): r is LessonResource => r !== null);
+
   // Tutor notes = module overview (pedagogy, nested only) + this unit's TUTOR_ONLY fences.
   const tutorParts: string[] = [];
   if (moduleOverview) {
@@ -245,6 +263,7 @@ async function buildLesson(opts: {
     presentationAr,
     presentationDe,
     presentationConfig,
+    resources,
     quiz: quizMd ? parseQuizMarkdown(quizMd) : null,
   };
 }
@@ -595,6 +614,11 @@ async function persistLesson(moduleId: string, lesson: BuiltLesson): Promise<boo
     // construction (parsed from YAML) so the cast is sound.
     presentationConfig: (lesson.presentationConfig ??
       undefined) as Prisma.InputJsonValue | undefined,
+    // Stored as a JSON array; cleared to DB NULL when the lesson has no
+    // resources so removing the list in source actually wipes the column.
+    resources: lesson.resources.length
+      ? (lesson.resources as unknown as Prisma.InputJsonValue)
+      : Prisma.DbNull,
     order: lesson.order,
     type: lessonType,
     duration: DEFAULT_LESSON_SECONDS,
@@ -618,6 +642,7 @@ async function persistLesson(moduleId: string, lesson: BuiltLesson): Promise<boo
       presentationContentAr: true,
       presentationContentDe: true,
       presentationConfig: true,
+      resources: true,
       type: true,
       order: true,
       syncStatus: true,
@@ -649,6 +674,7 @@ async function persistLesson(moduleId: string, lesson: BuiltLesson): Promise<boo
       existing.presentationContentAr === data.presentationContentAr &&
       existing.presentationContentDe === data.presentationContentDe &&
       jsonEqual(existing.presentationConfig, lesson.presentationConfig) &&
+      jsonEqual(existing.resources, lesson.resources.length ? lesson.resources : null) &&
       existing.type === data.type &&
       existing.order === data.order &&
       existing.syncStatus === "ACTIVE";

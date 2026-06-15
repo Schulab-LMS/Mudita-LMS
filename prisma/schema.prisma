@@ -92,6 +92,9 @@ model User {
   dripStates        DripState[]
   activitySubmissions ActivitySubmission[] @relation("StudentSubmissions")
   studentAvailability StudentAvailability[]
+  lessonNotes         LessonNote[]         @relation("LessonNotes")
+  lessonQuestions     LessonQuestion[]     @relation("LessonQuestionsAsked")
+  lessonAnswers       LessonAnswer[]       @relation("LessonAnswersGiven")
 
   accounts Account[]
   sessions Session[]
@@ -316,6 +319,11 @@ model Lesson {
   presentationContentAr String?              @db.Text
   presentationContentDe String?              @db.Text
   presentationConfig    Json?
+  // Downloadable resources / reference links, synced from the lesson folder's
+  // resources.md. Stored as a JSON array of { title, url, type } (see
+  // LessonResource in src/lib/curriculum-structure.ts). Locale-agnostic: the
+  // links are shared across languages, titles are authored in the source file.
+  resources    Json?
   videoUrl     String?
   videoAssetId String?
   thumbnail    String?
@@ -330,6 +338,8 @@ model Lesson {
   progress     LessonProgress[]
   sessions     Booking[]
   submissions  ActivitySubmission[]
+  notes        LessonNote[]
+  questions    LessonQuestion[]
 
   // Stable upsert key for Git-synced lessons (NULL for admin-created ones).
   @@unique([moduleId, sourcePath])
@@ -479,6 +489,57 @@ model ActivitySubmission {
   @@unique([studentId, lessonId])
   @@index([lessonId])
   @@index([bookingId])
+}
+
+// A learner's private, personal note for a lesson. One row per (user, lesson);
+// the Notes tab autosaves into it. Never shown to anyone but the author.
+model LessonNote {
+  id        String   @id @default(cuid())
+  lessonId  String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user   User   @relation("LessonNotes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([lessonId])
+}
+
+// A learner's public question on a lesson (the Q&A tab). Visible to everyone
+// enrolled in the course; answered by tutors / admins.
+model LessonQuestion {
+  id        String           @id @default(cuid())
+  lessonId  String
+  authorId  String
+  body      String           @db.Text
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  lesson  Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  author  User             @relation("LessonQuestionsAsked", fields: [authorId], references: [id], onDelete: Cascade)
+  answers LessonAnswer[]
+
+  @@index([lessonId, createdAt])
+  @@index([authorId])
+}
+
+// A staff (tutor / admin) reply to a lesson question. Single-level threads.
+model LessonAnswer {
+  id         String         @id @default(cuid())
+  questionId String
+  authorId   String
+  body       String         @db.Text
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  question LessonQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  author   User           @relation("LessonAnswersGiven", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, createdAt])
+  @@index([authorId])
 }
 
 // ========== CURRICULUM SYNC (Git) ==========

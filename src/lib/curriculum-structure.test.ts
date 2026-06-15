@@ -7,6 +7,8 @@ import {
   numericPrefix,
   prettifyFolder,
   prettifyCourseFolder,
+  parseResources,
+  resourceTypeFromUrl,
 } from "./curriculum-structure";
 import type { TreeEntry } from "./github-curricula";
 
@@ -194,5 +196,63 @@ describe("prettifyCourseFolder", () => {
     expect(prettifyCourseFolder("17-18-advanced-computer-science")).toBe(
       "Advanced Computer Science"
     );
+  });
+});
+
+describe("resourceTypeFromUrl", () => {
+  it("classifies by file extension", () => {
+    expect(resourceTypeFromUrl("./worksheet.pdf")).toBe("pdf");
+    expect(resourceTypeFromUrl("notes.docx")).toBe("doc");
+    expect(resourceTypeFromUrl("data.xlsx")).toBe("sheet");
+    expect(resourceTypeFromUrl("deck.pptx")).toBe("slides");
+    expect(resourceTypeFromUrl("diagram.png")).toBe("image");
+    expect(resourceTypeFromUrl("starter.sb3")).toBe("code");
+    expect(resourceTypeFromUrl("bundle.zip")).toBe("archive");
+  });
+
+  it("ignores query strings and hashes when reading the extension", () => {
+    expect(resourceTypeFromUrl("https://x.com/a.pdf?token=1#page=2")).toBe("pdf");
+  });
+
+  it("detects well-known video hosts", () => {
+    expect(resourceTypeFromUrl("https://youtu.be/abc123")).toBe("video");
+    expect(resourceTypeFromUrl("https://vimeo.com/12345")).toBe("video");
+  });
+
+  it("falls back to link for absolute URLs and file for relative paths", () => {
+    expect(resourceTypeFromUrl("https://scratch.mit.edu/projects/1")).toBe("link");
+    expect(resourceTypeFromUrl("./some-folder/thing")).toBe("file");
+  });
+});
+
+describe("parseResources", () => {
+  it("returns an empty list for null or link-free markdown", () => {
+    expect(parseResources(null)).toEqual([]);
+    expect(parseResources("# Resources\n\nNothing here yet.")).toEqual([]);
+  });
+
+  it("extracts markdown link bullets and classifies each", () => {
+    const md = [
+      "# Resources",
+      "",
+      "- [Worksheet](./worksheet.pdf)",
+      "- [Scratch starter](https://scratch.mit.edu/projects/123)",
+      "* [Intro video](https://youtu.be/abc)",
+    ].join("\n");
+    expect(parseResources(md)).toEqual([
+      { title: "Worksheet", url: "./worksheet.pdf", type: "pdf" },
+      { title: "Scratch starter", url: "https://scratch.mit.edu/projects/123", type: "link" },
+      { title: "Intro video", url: "https://youtu.be/abc", type: "video" },
+    ]);
+  });
+
+  it("strips inline markdown from titles and drops duplicate URLs", () => {
+    const md = [
+      "- [**Bold** worksheet](./w.pdf)",
+      "- [Same file again](./w.pdf)",
+    ].join("\n");
+    expect(parseResources(md)).toEqual([
+      { title: "Bold worksheet", url: "./w.pdf", type: "pdf" },
+    ]);
   });
 });

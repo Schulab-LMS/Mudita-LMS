@@ -10,9 +10,19 @@ import { RevealPresentation } from "@/components/course/reveal-presentation";
 import { MarkCompleteButton } from "@/components/course/mark-complete-button";
 import { ProtectedContent } from "@/components/shared/protected-content";
 import { ActivitySubmission } from "@/components/course/activity-submission";
+import { LessonTabs } from "@/components/course/lesson-tabs";
+import { LessonNotes } from "@/components/course/lesson-notes";
+import { LessonResources } from "@/components/course/lesson-resources";
+import { LessonQa } from "@/components/course/lesson-qa";
 import { getActivitySubmission } from "@/services/activity.service";
+import {
+  getLessonNote,
+  getLessonQuestions,
+} from "@/services/lesson-engagement.service";
+import { isAdminRole } from "@/lib/auth-helpers";
 import { sanitize } from "@/lib/sanitize";
 import type { PresentationConfig } from "@/lib/presentation";
+import type { LessonResource } from "@/lib/curriculum-structure";
 import { db } from "@/lib/db";
 import { siteConfig } from "@/config/site";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -21,8 +31,6 @@ import {
   BookOpen,
   Clock,
   ArrowRight,
-  MessageSquare,
-  FileText,
   NotebookPen,
   ChevronLeft,
   ClipboardList,
@@ -124,6 +132,19 @@ export default async function LessonPage({ params }: LessonPageProps) {
     ? await getActivitySubmission(lesson.id, session.user.id)
     : null;
 
+  // Interactive tab data: the learner's private note, the public Q&A thread,
+  // and the synced resource list. Loaded in parallel — independent of each other.
+  const [lessonNote, questions] = await Promise.all([
+    getLessonNote(session.user.id, lesson.id),
+    getLessonQuestions(lesson.id),
+  ]);
+  const resources = Array.isArray(lesson.resources)
+    ? (lesson.resources as unknown as LessonResource[])
+    : [];
+  const role = session.user.role;
+  const isAdmin = isAdminRole(role);
+  const canAnswer = isAdmin || role === "TUTOR";
+
   const t = await getTranslations("lesson");
 
   return (
@@ -202,30 +223,13 @@ export default async function LessonPage({ params }: LessonPageProps) {
             </div>
           )}
 
-          {/* Content tabs — Overview is the live surface; Notes / Resources /
-              Discussion are placeholders until the backing data lands. */}
-          <div className="card-premium overflow-hidden">
-            <div className="flex items-center gap-1 border-b border-border px-2">
-              <TabPill label="Overview" icon={<FileText className="h-3.5 w-3.5" />} active />
-              <TabPill
-                label="Notes"
-                icon={<NotebookPen className="h-3.5 w-3.5" />}
-                soon
-              />
-              <TabPill
-                label="Resources"
-                icon={<BookOpen className="h-3.5 w-3.5" />}
-                soon
-              />
-              <TabPill
-                label="Q&A"
-                icon={<MessageSquare className="h-3.5 w-3.5" />}
-                soon
-              />
-            </div>
-
-            <div className="p-6">
-              {lessonContent ? (
+          {/* Content tabs — Overview, the learner's private Notes, synced
+              Resources, and the public Q&A thread. */}
+          <LessonTabs
+            resourceCount={resources.length}
+            questionCount={questions.length}
+            overview={
+              lessonContent ? (
                 <ProtectedContent watermark={watermark}>
                   <div
                     className="prose max-w-none"
@@ -244,9 +248,27 @@ export default async function LessonPage({ params }: LessonPageProps) {
                   No written notes for this lesson. Watch the video above or
                   jump ahead to the next lesson.
                 </p>
-              )}
-            </div>
-          </div>
+              )
+            }
+            notes={
+              <LessonNotes
+                lessonId={lesson.id}
+                initialContent={lessonNote ?? ""}
+                readOnly={isPreviewing}
+              />
+            }
+            resources={<LessonResources resources={resources} />}
+            qa={
+              <LessonQa
+                lessonId={lesson.id}
+                questions={questions}
+                currentUserId={session.user.id}
+                canAnswer={canAnswer}
+                isAdmin={isAdmin}
+                readOnly={isPreviewing}
+              />
+            }
+          />
 
           {/* Hands-on activity (synced from the curriculum's activity.md) */}
           {lessonActivity && (
@@ -361,37 +383,5 @@ export default async function LessonPage({ params }: LessonPageProps) {
         />
       </div>
     </div>
-  );
-}
-
-function TabPill({
-  label,
-  icon,
-  active,
-  soon,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  active?: boolean;
-  soon?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={soon}
-      className={`relative inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
-        active
-          ? "border-primary text-foreground"
-          : "border-transparent text-muted-foreground hover:text-foreground"
-      } ${soon ? "cursor-not-allowed opacity-60" : ""}`}
-    >
-      {icon}
-      {label}
-      {soon && (
-        <span className="chip chip-neutral ms-1 px-1.5 py-0 text-[9px]">
-          Soon
-        </span>
-      )}
-    </button>
   );
 }

@@ -185,3 +185,99 @@ export function prettifyCourseFolder(folder: string): string {
 export function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+// ── Lesson resources (resources.md) ──────────────────────────────────────
+
+// One downloadable file or reference link attached to a lesson. `type` drives
+// the icon shown in the Resources tab; `url` may be an absolute link or a
+// repo-relative path (rewritten to the media proxy at sync time).
+export interface LessonResource {
+  title: string;
+  url: string;
+  type:
+    | "pdf"
+    | "doc"
+    | "sheet"
+    | "slides"
+    | "image"
+    | "video"
+    | "archive"
+    | "audio"
+    | "code"
+    | "link"
+    | "file";
+}
+
+const EXT_TYPE: Record<string, LessonResource["type"]> = {
+  pdf: "pdf",
+  doc: "doc",
+  docx: "doc",
+  odt: "doc",
+  rtf: "doc",
+  txt: "doc",
+  md: "doc",
+  xls: "sheet",
+  xlsx: "sheet",
+  csv: "sheet",
+  ods: "sheet",
+  ppt: "slides",
+  pptx: "slides",
+  odp: "slides",
+  key: "slides",
+  png: "image",
+  jpg: "image",
+  jpeg: "image",
+  gif: "image",
+  svg: "image",
+  webp: "image",
+  mp4: "video",
+  webm: "video",
+  mov: "video",
+  mp3: "audio",
+  wav: "audio",
+  m4a: "audio",
+  zip: "archive",
+  rar: "archive",
+  "7z": "archive",
+  tar: "archive",
+  gz: "archive",
+  py: "code",
+  js: "code",
+  ts: "code",
+  ipynb: "code",
+  sb3: "code",
+  ino: "code",
+};
+
+// Classify a resource by its URL — extension first, then a few well-known video
+// hosts, falling back to a generic external link or repo file.
+export function resourceTypeFromUrl(url: string): LessonResource["type"] {
+  const clean = url.split(/[?#]/)[0];
+  const ext = clean.includes(".") ? clean.slice(clean.lastIndexOf(".") + 1).toLowerCase() : "";
+  if (ext && EXT_TYPE[ext]) return EXT_TYPE[ext];
+  if (/(?:youtube\.com|youtu\.be|vimeo\.com|wistia\.com)/i.test(url)) return "video";
+  const isAbsolute = /^([a-z]+:)?\/\//i.test(url) || url.startsWith("mailto:");
+  return isAbsolute ? "link" : "file";
+}
+
+const RESOURCE_LINK_RE = /^\s*[-*+]\s+\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/;
+
+// Parse a resources.md file into a list of resources. Each bullet of the form
+// `- [Title](url)` becomes one entry; lines that aren't markdown links are
+// ignored so authors can add headings/prose around the list. Pure & db-free so
+// it can be unit-tested without the sync pipeline.
+export function parseResources(markdown: string | null): LessonResource[] {
+  if (!markdown) return [];
+  const out: LessonResource[] = [];
+  const seen = new Set<string>();
+  for (const line of markdown.split(/\r?\n/)) {
+    const m = line.match(RESOURCE_LINK_RE);
+    if (!m) continue;
+    const title = m[1].replace(/[*_`]/g, "").trim();
+    const url = m[2].trim();
+    if (!title || !url || seen.has(url)) continue;
+    seen.add(url);
+    out.push({ title, url, type: resourceTypeFromUrl(url) });
+  }
+  return out;
+}
