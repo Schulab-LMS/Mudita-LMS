@@ -61,7 +61,7 @@ export default async function AdminCurriculumPage() {
         title="Curriculum (Git)"
         description="Curriculum content is owned by the STEM-Curricula repository and synced into the platform. It is read-only here — edit it in Git."
         breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Curriculum" }]}
-        actions={<ResyncButton disabled={!configured} />}
+        actions={<ResyncButton disabled={!configured} currentRunId={lastRun?.id ?? null} />}
       />
 
       {!configured && (

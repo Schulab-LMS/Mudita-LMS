@@ -95,6 +95,33 @@ interface BuiltCourse {
 
 const baseName = (p: string) => (p.includes("/") ? p.slice(p.lastIndexOf("/") + 1) : p);
 
+// How many lessons/modules to build at once. Building is read-only and every
+// file is its own GitHub REST round-trip, so the sync is network-latency-bound;
+// a small worker pool turns hundreds of serial requests into a few parallel
+// batches. Each lesson itself fans out ~10 file reads, so peak in-flight
+// requests is roughly this × 10 — kept modest to stay clear of GitHub's
+// secondary rate limits.
+const READ_CONCURRENCY = 4;
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < items.length) {
+      const i = cursor++;
+      results[i] = await fn(items[i]);
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, () => worker())
+  );
+  return results;
+}
+
 // Read an optional YAML manifest (meta.yml / meta.yaml) from a folder.
 async function readMeta(
   dir: string,
@@ -139,16 +166,30 @@ async function buildLesson(opts: {
   const { dir, order, slug, courseRoot, moduleOverview, readText } = opts;
   const folder = baseName(dir);
 
-  const handout = await readText(`${dir}/handout.md`);
-  const handoutAr = await readText(`${dir}/handout.ar.md`);
-  const handoutDe = await readText(`${dir}/handout.de.md`);
-  const activity = await readText(`${dir}/activity.md`);
-  const activityAr = await readText(`${dir}/activity.ar.md`);
-  const activityDe = await readText(`${dir}/activity.de.md`);
-  const quizMd = await readText(`${dir}/quiz.md`);
-  const presentationMd = await readText(`${dir}/presentation.md`);
-  const presentationArMd = await readText(`${dir}/presentation.ar.md`);
-  const presentationDeMd = await readText(`${dir}/presentation.de.md`);
+  // These reads are independent — fetch them together rather than serially.
+  const [
+    handout,
+    handoutAr,
+    handoutDe,
+    activity,
+    activityAr,
+    activityDe,
+    quizMd,
+    presentationMd,
+    presentationArMd,
+    presentationDeMd,
+  ] = await Promise.all([
+    readText(`${dir}/handout.md`),
+    readText(`${dir}/handout.ar.md`),
+    readText(`${dir}/handout.de.md`),
+    readText(`${dir}/activity.md`),
+    readText(`${dir}/activity.ar.md`),
+    readText(`${dir}/activity.de.md`),
+    readText(`${dir}/quiz.md`),
+    readText(`${dir}/presentation.md`),
+    readText(`${dir}/presentation.ar.md`),
+    readText(`${dir}/presentation.de.md`),
+  ]);
 
   const split = handout ? splitTutorContent(handout) : null;
   const ctx = (file: string) => ({
@@ -244,10 +285,11 @@ async function buildNestedCourse(
       if (m) unitDirs.add(`${modulePath}/${m[1]}`);
     }
 
-    const lessons: BuiltLesson[] = [];
-    for (const unitPath of [...unitDirs].sort()) {
-      lessons.push(
-        await buildLesson({
+    const lessons = await mapWithConcurrency(
+      [...unitDirs].sort(),
+      READ_CONCURRENCY,
+      (unitPath) =>
+        buildLesson({
           dir: unitPath,
           order: numericPrefix(baseName(unitPath)),
           slug,
@@ -255,8 +297,7 @@ async function buildNestedCourse(
           moduleOverview: overview,
           readText,
         })
-      );
-    }
+    );
 
     lessons.sort((a, b) => a.order - b.order);
     modules.push({
@@ -310,26 +351,29 @@ async function buildFlatCourse(
     if (m) moduleDirs.add(`${root}/${m[1]}`);
   }
 
-  const modules: BuiltModule[] = [];
-  for (const modulePath of [...moduleDirs].sort()) {
-    const moduleFolder = baseName(modulePath);
-    const moduleMeta = await readMeta(modulePath, readText);
-    // Each flat module folder maps to exactly one lesson.
-    const lesson = await buildLesson({
-      dir: modulePath,
-      order: 1,
-      slug,
-      courseRoot: root,
-      moduleOverview: null,
-      readText,
-    });
-    modules.push({
-      sourcePath: modulePath,
-      order: numericPrefix(moduleFolder),
-      title: moduleMeta.title || lesson.title || prettifyFolder(moduleFolder),
-      lessons: [lesson],
-    });
-  }
+  const modules = await mapWithConcurrency(
+    [...moduleDirs].sort(),
+    READ_CONCURRENCY,
+    async (modulePath): Promise<BuiltModule> => {
+      const moduleFolder = baseName(modulePath);
+      const moduleMeta = await readMeta(modulePath, readText);
+      // Each flat module folder maps to exactly one lesson.
+      const lesson = await buildLesson({
+        dir: modulePath,
+        order: 1,
+        slug,
+        courseRoot: root,
+        moduleOverview: null,
+        readText,
+      });
+      return {
+        sourcePath: modulePath,
+        order: numericPrefix(moduleFolder),
+        title: moduleMeta.title || lesson.title || prettifyFolder(moduleFolder),
+        lessons: [lesson],
+      };
+    }
+  );
 
   modules.sort((a, b) => a.order - b.order);
 
