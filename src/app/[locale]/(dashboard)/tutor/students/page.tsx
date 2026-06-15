@@ -15,7 +15,6 @@ export const metadata = { title: "My Students | Schulab" };
 export default async function TutorStudentsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
-  if (session.user.role !== "TUTOR") redirect("/dashboard");
 
   const tutor = await getTutorByUserId(session.user.id);
   if (!tutor) redirect("/tutor");

@@ -25,7 +25,6 @@ type ChildWithEnrollments = Awaited<ReturnType<typeof getChildren>>[number];
 export default async function ParentDashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
-  if (session.user.role !== "PARENT") redirect("/dashboard");
 
   const [t, children] = await Promise.all([
     getTranslations("parentDashboard"),

@@ -10,7 +10,6 @@ export const metadata = { title: "Availability | Schulab" };
 export default async function TutorAvailabilityPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
-  if (session.user.role !== "TUTOR") redirect("/dashboard");
 
   const tutor = await getTutorByUserId(session.user.id);
 

@@ -1,5 +1,5 @@
 import { redirect } from "@/i18n/navigation";
-import { auth } from "@/lib/auth";
+import { getViewContext } from "@/lib/view-as.server";
 import type { Role } from "@/config/navigation";
 
 const roleRedirectMap: Record<Role, string> = {
@@ -17,13 +17,14 @@ export default async function DashboardPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const session = await auth();
+  // Route on the EFFECTIVE role so an admin previewing as a role lands on that
+  // role's dashboard.
+  const { session, effectiveRole } = await getViewContext();
 
   if (!session?.user) {
     redirect({ href: "/login", locale });
   }
 
-  const role = (session!.user as { role?: Role }).role;
-  const target = role ? roleRedirectMap[role] : undefined;
+  const target = effectiveRole ? roleRedirectMap[effectiveRole as Role] : undefined;
   redirect({ href: target ?? "/onboarding", locale });
 }

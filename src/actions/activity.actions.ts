@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isAdminRole } from "@/lib/auth-helpers";
+import { isInPreviewMode, PREVIEW_WRITE_BLOCKED_MESSAGE } from "@/lib/view-as.server";
 import { sanitizeText } from "@/lib/sanitize";
 
 const MAX_LEN = 5000;
@@ -18,6 +19,10 @@ export async function submitActivity(data: {
 }) {
   const session = await auth();
   if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+
+  if (await isInPreviewMode()) {
+    return { success: false, error: PREVIEW_WRITE_BLOCKED_MESSAGE };
+  }
 
   const content = sanitizeText(data.content).slice(0, MAX_LEN);
   if (!content) return { success: false, error: "Write something before submitting" };

@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
 import { ModuleList } from "./module-list";
 import { EnrollmentList } from "./enrollment-list";
+import { PreviewCourseButton } from "@/components/admin/preview-course-button";
 import { PageHeader } from "@/components/ui/page-header";
 import { CategoryIcon } from "@/components/illustrations/category-icons";
 import {
@@ -86,6 +87,11 @@ export default async function CourseDetailPage({
 
   if (!course) notFound();
 
+  // First lesson for the "Preview as student" deep-link (null when the course
+  // has no lessons yet).
+  const firstLessonId =
+    course.modules.find((m) => m.lessons.length > 0)?.lessons[0]?.id ?? null;
+
   const totalLessons = course.modules.reduce(
     (sum, m) => sum + m.lessons.length,
     0
@@ -132,6 +138,12 @@ export default async function CourseDetailPage({
               {course.status.charAt(0) +
                 course.status.slice(1).toLowerCase()}
             </span>
+            {firstLessonId && (
+              <PreviewCourseButton
+                courseSlug={course.slug}
+                firstLessonId={firstLessonId}
+              />
+            )}
             {course.status === "PUBLISHED" && (
               <Link
                 href={`/courses/${course.slug}`}

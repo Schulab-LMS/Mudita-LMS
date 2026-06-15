@@ -1,4 +1,14 @@
 {
+  "preview": {
+    "previewingAs": "Vorschau als {role}",
+    "readOnly": "schreibgeschützt",
+    "exit": "Vorschau beenden",
+    "switch": "Vorschau als",
+    "student": "Schüler",
+    "tutor": "Tutor",
+    "parent": "Elternteil",
+    "courseButton": "Als Schüler ansehen"
+  },
   "common": {
     "appName": "Schulab",
     "tagline": "Junge Köpfe starten durch.",

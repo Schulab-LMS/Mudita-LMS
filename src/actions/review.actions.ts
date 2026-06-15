@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { assertEmailVerified, requireAdmin } from "@/lib/auth-helpers";
+import { isInPreviewMode, PREVIEW_WRITE_BLOCKED_MESSAGE } from "@/lib/view-as.server";
 import { audit } from "@/lib/audit";
 import {
   moderateReview,
@@ -30,6 +31,10 @@ export async function submitReview(input: {
 }): Promise<ActionResult<{ id: string; status: string }>> {
   const session = await auth();
   if (!session?.user?.id) return { success: false, error: "Not authenticated" };
+
+  if (await isInPreviewMode()) {
+    return { success: false, error: PREVIEW_WRITE_BLOCKED_MESSAGE };
+  }
 
   const emailCheck = await assertEmailVerified(session.user.id);
   if (!emailCheck.ok) return { success: false, error: emailCheck.error };

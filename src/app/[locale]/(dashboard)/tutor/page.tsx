@@ -38,7 +38,6 @@ function startOfThisMonth(): Date {
 export default async function TutorDashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
-  if (session.user.role !== "TUTOR") redirect("/dashboard");
 
   const [t, locale, tutor] = await Promise.all([
     getTranslations("tutorDashboard"),
