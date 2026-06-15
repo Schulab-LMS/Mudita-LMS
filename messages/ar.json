@@ -1,4 +1,14 @@
 {
+  "preview": {
+    "previewingAs": "معاينة بصفة {role}",
+    "readOnly": "للقراءة فقط",
+    "exit": "إنهاء المعاينة",
+    "switch": "معاينة بصفة",
+    "student": "طالب",
+    "tutor": "معلّم",
+    "parent": "وليّ أمر",
+    "courseButton": "معاينة بصفة طالب"
+  },
   "common": {
     "appName": "Schulab",
     "tagline": "أطلِق عقول الصغار.",

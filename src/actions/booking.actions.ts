@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { isInPreviewMode, PREVIEW_WRITE_BLOCKED_MESSAGE } from "@/lib/view-as.server";
 import { createBooking as createBookingService, cancelBooking as cancelBookingService } from "@/services/booking.service";
 import { createBookingSchema, cancelBookingSchema } from "@/validators/action.schemas";
 
@@ -13,6 +14,10 @@ export async function createBooking(data: {
 }) {
   const session = await auth();
   if (!session?.user) return { error: "Unauthorized" };
+
+  if (await isInPreviewMode()) {
+    return { error: PREVIEW_WRITE_BLOCKED_MESSAGE };
+  }
 
   const parsed = createBookingSchema.safeParse(data);
   if (!parsed.success) return { error: parsed.error.issues[0].message };

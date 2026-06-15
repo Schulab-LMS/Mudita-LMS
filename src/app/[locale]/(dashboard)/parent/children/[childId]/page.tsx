@@ -39,7 +39,6 @@ export default async function ChildDetailPage({
   const { childId } = await params;
   const session = await auth();
   if (!session?.user) redirect("/login");
-  if (session.user.role !== "PARENT") redirect("/dashboard");
 
   const children = await getChildren(session.user.id);
   const child = children.find((c) => c.id === childId);

@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { isInPreviewMode, PREVIEW_WRITE_BLOCKED_MESSAGE } from "@/lib/view-as.server";
 import { submitAttempt } from "@/services/quiz.service";
 import { submitQuizAttemptSchema } from "@/validators/action.schemas";
 import { rateLimit } from "@/lib/rate-limit";
@@ -17,6 +18,10 @@ export async function submitQuizAttempt(
     const session = await auth();
     if (!session?.user?.id) {
       return { success: false, error: "Not authenticated" };
+    }
+
+    if (await isInPreviewMode()) {
+      return { success: false, error: PREVIEW_WRITE_BLOCKED_MESSAGE };
     }
 
     const parsed = submitQuizAttemptSchema.safeParse({ quizId, answers });

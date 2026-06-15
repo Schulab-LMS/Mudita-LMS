@@ -1,4 +1,14 @@
 {
+  "preview": {
+    "previewingAs": "Previewing as {role}",
+    "readOnly": "read-only",
+    "exit": "Exit preview",
+    "switch": "Preview as",
+    "student": "Student",
+    "tutor": "Tutor",
+    "parent": "Parent",
+    "courseButton": "Preview as student"
+  },
   "common": {
     "appName": "Schulab",
     "tagline": "Launch Young Minds.",

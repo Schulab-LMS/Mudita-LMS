@@ -23,6 +23,9 @@ vi.mock("@/lib/auth-helpers", () => ({
   // Email is verified — we want the flow to reach the consent gate, not stop early.
   assertEmailVerified: vi.fn().mockResolvedValue({ ok: true }),
   requireAdmin: vi.fn(),
+  // Pulled in transitively via the read-only preview guard (view-as.server).
+  // These sessions are never an admin previewing, so the guard is a no-op.
+  isAdminRole: vi.fn().mockReturnValue(false),
 }));
 
 vi.mock("@/lib/tenant", () => ({

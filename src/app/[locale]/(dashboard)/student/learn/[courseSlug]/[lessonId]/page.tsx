@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { auth } from "@/lib/auth";
+import { getViewContext } from "@/lib/view-as.server";
 import { getCourseBySlug, getLocalizedField } from "@/services/course.service";
 import { getLessonProgress } from "@/services/progress.service";
 import { assertMinorConsent } from "@/lib/compliance";
@@ -36,13 +36,19 @@ interface LessonPageProps {
 
 export default async function LessonPage({ params }: LessonPageProps) {
   const { courseSlug, lessonId, locale } = await params;
-  const session = await auth();
+  // An admin previewing as a student should be able to read any course's
+  // content, so the consent + enrolment gates below are skipped while
+  // previewing (preview is read-only).
+  const { session, isPreviewing } = await getViewContext();
   if (!session?.user) redirect("/login");
 
   // Consent gate at lesson load: a parent withdrawal must take effect for
   // already-enrolled children, not only at the next enrolment. Adults and
-  // children with a current active consent pass through unchanged.
-  const consent = await assertMinorConsent(session.user.id);
+  // children with a current active consent pass through unchanged. Skipped
+  // while an admin is previewing.
+  const consent = isPreviewing
+    ? ({ ok: true } as const)
+    : await assertMinorConsent(session.user.id);
   if (!consent.ok) {
     const tLesson = await getTranslations("lesson");
     return (
@@ -66,8 +72,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const course = await getCourseBySlug(courseSlug);
   if (!course) notFound();
 
-  // Verify user is enrolled (or course is free)
-  if (!course.isFree) {
+  // Verify user is enrolled (or course is free). Skipped while previewing so an
+  // admin can open any course's learner view without an enrolment.
+  if (!isPreviewing && !course.isFree) {
     const enrollment = await db.enrollment.findUnique({
       where: {
         userId_courseId: {

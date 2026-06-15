@@ -30,6 +30,8 @@ import {
   GitBranch,
 } from "lucide-react";
 import { SchulabLogo } from "@/components/brand/schulab-logo";
+import { PreviewSwitcher } from "@/components/layout/preview-switcher";
+import type { PreviewableRole } from "@/lib/view-as";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard,
@@ -57,14 +59,31 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
+  /** Effective role from the server (preview role when previewing). Falls back
+   *  to the client session role if not provided. */
+  effectiveRole?: string | null;
+  /** Admins see the preview switcher. */
+  canPreview?: boolean;
+  /** The role currently being previewed, if any. */
+  previewRole?: PreviewableRole | null;
 }
 
-export function Sidebar({ open, onClose }: SidebarProps) {
+export function Sidebar({
+  open,
+  onClose,
+  effectiveRole = null,
+  canPreview = false,
+  previewRole = null,
+}: SidebarProps) {
   const { data: session } = useSession();
   const t = useTranslations("nav");
   const pathname = usePathname();
 
-  const role = (session?.user as { role?: Role } | undefined)?.role;
+  // Prefer the server-resolved effective role so the nav reflects the previewed
+  // role; fall back to the client session role on first paint.
+  const role =
+    (effectiveRole as Role | null) ??
+    (session?.user as { role?: Role } | undefined)?.role;
   const navItems = role ? dashboardNavItems[role] ?? [] : [];
 
   const sidebarContent = (
@@ -90,6 +109,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <p className="mt-0.5 text-sm font-semibold capitalize text-foreground">{role.replace(/_/g, " ").toLowerCase()}</p>
         </div>
       )}
+
+      {/* Admin role-preview switcher */}
+      {canPreview && <PreviewSwitcher current={previewRole} />}
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Dashboard navigation">

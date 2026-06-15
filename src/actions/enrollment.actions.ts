@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { assertEmailVerified, requireAdmin } from "@/lib/auth-helpers";
+import { isInPreviewMode, PREVIEW_WRITE_BLOCKED_MESSAGE } from "@/lib/view-as.server";
 import { enrollUser, unenroll } from "@/services/enrollment.service";
 import {
   markLessonComplete,
@@ -25,6 +26,10 @@ export async function enrollInCourse(courseId: string) {
     const session = await auth();
     if (!session?.user?.id) {
       return { success: false, error: "Not authenticated" };
+    }
+
+    if (await isInPreviewMode()) {
+      return { success: false, error: PREVIEW_WRITE_BLOCKED_MESSAGE };
     }
 
     const parsed = enrollInCourseSchema.safeParse({ courseId });
@@ -128,6 +133,10 @@ export async function markLessonDone(lessonId: string, courseId: string) {
     const session = await auth();
     if (!session?.user?.id) {
       return { success: false, error: "Not authenticated" };
+    }
+
+    if (await isInPreviewMode()) {
+      return { success: false, error: PREVIEW_WRITE_BLOCKED_MESSAGE };
     }
 
     const parsed = markLessonDoneSchema.safeParse({ lessonId, courseId });
