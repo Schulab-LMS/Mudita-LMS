@@ -90,7 +90,7 @@ export function Sidebar({
     <div className="flex h-full w-full flex-col border-e border-border bg-card">
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center gap-2 border-b border-border px-6">
-        <SchulabLogo size={28} className="text-primary" />
+        <SchulabLogo variant="tile" size={32} />
         <span className="font-display text-xl font-bold tracking-tight">Schulab</span>
         {/* Close button on mobile */}
         <button
