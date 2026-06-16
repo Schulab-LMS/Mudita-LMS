@@ -53,3 +53,38 @@ describe("renderCurriculumMarkdown image rewriting", () => {
     expect(html).toMatch(/<td>1<\/td>/);
   });
 });
+
+describe("renderCurriculumMarkdown shared subject-level media", () => {
+  // Space-science courses nest under `age-groups/<course>`, but share a single
+  // `_media` tree at the subject root — so unit images resolve ABOVE the course
+  // root and must still reach the proxy.
+  const ctx = {
+    courseSlug: "11-13-middle-explorers-s2",
+    courseRoot: "space-science/age-groups/11-13-middle-explorers-s2",
+    sourceFilePath:
+      "space-science/age-groups/11-13-middle-explorers-s2/modules/module_01/unit_01_el_nino/activity.md",
+  };
+
+  it("rewrites media at the subject root, above the course folder", () => {
+    const md = `![thumbnail of template](../../../../../_media/source_images/foo/image_002.png)`;
+    const html = renderCurriculumMarkdown(md, ctx);
+    expect(html).toContain(
+      "/api/curriculum/media/11-13-middle-explorers-s2/space-science/_media/source_images/foo/image_002.png"
+    );
+    expect(html).not.toContain("../../../");
+  });
+
+  it("leaves a non-_media escape untouched (never proxies raw markdown)", () => {
+    const md = `![pedagogy](../../../../../overview.md)`;
+    const html = renderCurriculumMarkdown(md, ctx);
+    expect(html).toContain("../../../../../overview.md");
+    expect(html).not.toContain("/api/curriculum/media");
+  });
+
+  it("does not rewrite shared media from a different subject", () => {
+    const md = `![x](../../../../../../programming/_media/img.png)`;
+    const html = renderCurriculumMarkdown(md, ctx);
+    expect(html).toContain("programming/_media/img.png");
+    expect(html).not.toContain("/api/curriculum/media");
+  });
+});

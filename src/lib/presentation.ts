@@ -1,4 +1,5 @@
 import { parse as parseYaml } from "yaml";
+import { hasMediaSegment, subjectRoot } from "@/lib/curriculum-structure";
 
 // Sync-time helpers for Reveal.js presentations authored in the curriculum
 // repo. Unlike handout markdown — which is rendered to HTML at sync time and
@@ -118,14 +119,20 @@ export function rewritePresentationMediaUrls(
   return markdown.replace(IMAGE_RE, (match, prefix, src, suffix) => {
     if (isAbsoluteUrl(src) || src.startsWith("/")) return match;
     const abs = resolveRepoPath(baseDir, src);
-    if (!abs || !abs.startsWith(courseRootPrefix)) {
-      console.warn(
-        `[curricula] presentation image "${src}" in ${ctx.sourceFilePath} resolves outside the course root — left as-is`
-      );
-      return match;
+    if (abs && abs.startsWith(courseRootPrefix)) {
+      const within = abs.slice(courseRootPrefix.length);
+      return `${prefix}${mediaProxyUrl(ctx.courseSlug, within)}${suffix}`;
     }
-    const within = abs.slice(courseRootPrefix.length);
-    return `${prefix}${mediaProxyUrl(ctx.courseSlug, within)}${suffix}`;
+    // Shared subject-level media (e.g. space-science/_media) lives above the
+    // per-course folder. Emit a repo-root-relative proxy path scoped to this
+    // subject; the proxy serves it under the same enrolment gate.
+    if (abs && hasMediaSegment(abs) && subjectRoot(abs) === subjectRoot(ctx.courseRoot)) {
+      return `${prefix}${mediaProxyUrl(ctx.courseSlug, abs)}${suffix}`;
+    }
+    console.warn(
+      `[curricula] presentation image "${src}" in ${ctx.sourceFilePath} resolves outside the course root — left as-is`
+    );
+    return match;
   });
 }
 
@@ -147,11 +154,16 @@ export function rewriteResourceUrl(url: string, ctx: RewriteContext): string | n
     ? ctx.courseRoot
     : `${ctx.courseRoot}/`;
   const abs = resolveRepoPath(baseDir, url);
-  if (!abs || !abs.startsWith(courseRootPrefix)) {
-    console.warn(
-      `[curricula] resource "${url}" in ${ctx.sourceFilePath} resolves outside the course root — dropped`
-    );
-    return null;
+  if (abs && abs.startsWith(courseRootPrefix)) {
+    return mediaProxyUrl(ctx.courseSlug, abs.slice(courseRootPrefix.length));
   }
-  return mediaProxyUrl(ctx.courseSlug, abs.slice(courseRootPrefix.length));
+  // Shared subject-level media (e.g. space-science/_media) lives above the
+  // per-course folder — serve it through the proxy, scoped to this subject.
+  if (abs && hasMediaSegment(abs) && subjectRoot(abs) === subjectRoot(ctx.courseRoot)) {
+    return mediaProxyUrl(ctx.courseSlug, abs);
+  }
+  console.warn(
+    `[curricula] resource "${url}" in ${ctx.sourceFilePath} resolves outside the course root — dropped`
+  );
+  return null;
 }

@@ -186,6 +186,35 @@ export function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// ── Shared media paths ────────────────────────────────────────────────────
+
+// Curriculum images live under `_media` directories. Some subjects keep a
+// single `_media` tree at the SUBJECT root (e.g. `space-science/_media`) that
+// is shared across every age-group course beneath it
+// (`space-science/age-groups/<course>/…`). An image referenced from a deeply
+// nested unit therefore resolves to a path ABOVE its own course root, which the
+// per-course media rewriter alone can't express. These helpers let the rewriter
+// and the media proxy agree on serving such shared assets — but only files that
+// sit beneath a `_media` directory, so raw markdown (overview/quiz/handout
+// pedagogy) is never streamed to students.
+
+/** True when `_media` appears as a path segment with an asset beneath it. */
+export function hasMediaSegment(repoPath: string): boolean {
+  const segs = repoPath.split("/").filter(Boolean);
+  const i = segs.indexOf("_media");
+  return i >= 0 && i < segs.length - 1;
+}
+
+/**
+ * Top-level subject folder of a repo path (its first path segment). Media is
+ * shared per-subject, so media access is scoped to a course's own subject —
+ * an enrolment can't reach into another subject's `_media` tree.
+ */
+export function subjectRoot(repoPath: string): string {
+  const i = repoPath.indexOf("/");
+  return i >= 0 ? repoPath.slice(0, i) : repoPath;
+}
+
 // ── Lesson resources (resources.md) ──────────────────────────────────────
 
 // One downloadable file or reference link attached to a lesson. `type` drives

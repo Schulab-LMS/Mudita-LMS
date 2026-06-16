@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   parsePresentationMarkdown,
   rewritePresentationMediaUrls,
+  rewriteResourceUrl,
 } from "./presentation";
 
 describe("parsePresentationMarkdown", () => {
@@ -103,5 +104,57 @@ describe("rewritePresentationMediaUrls", () => {
     const out = rewritePresentationMediaUrls(md, ctx);
     expect(out).toContain("/api/curriculum/media/intro-to-ai/modules/module_01/unit_02/a.png");
     expect(out).toContain("/api/curriculum/media/intro-to-ai/modules/module_01/unit_02/b.png");
+  });
+});
+
+describe("rewritePresentationMediaUrls — shared subject-level media", () => {
+  // Mirrors the real space-science layout: the deck lives several levels under
+  // `age-groups/<course>` but its images sit in the shared `space-science/_media`
+  // tree, above the course root.
+  const ctx = {
+    courseSlug: "11-13-middle-explorers-s2",
+    courseRoot: "space-science/age-groups/11-13-middle-explorers-s2",
+    sourceFilePath:
+      "space-science/age-groups/11-13-middle-explorers-s2/modules/module_01/unit_01_el_nino/presentation.md",
+  };
+
+  it("rewrites media that resolves to the subject-root _media tree", () => {
+    const md =
+      "![la nina](../../../../../_media/source_images/spaceplace_nasa_gov_la-nina/image_003.jpg)";
+    const out = rewritePresentationMediaUrls(md, ctx);
+    expect(out).toBe(
+      "![la nina](/api/curriculum/media/11-13-middle-explorers-s2/space-science/_media/source_images/spaceplace_nasa_gov_la-nina/image_003.jpg)"
+    );
+  });
+
+  it("leaves a non-_media escape untouched", () => {
+    const md = "![x](../../../../../overview.md)";
+    const out = rewritePresentationMediaUrls(md, ctx);
+    expect(out).toBe(md);
+  });
+});
+
+describe("rewriteResourceUrl", () => {
+  const ctx = {
+    courseSlug: "11-13-middle-explorers-s2",
+    courseRoot: "space-science/age-groups/11-13-middle-explorers-s2",
+    sourceFilePath:
+      "space-science/age-groups/11-13-middle-explorers-s2/modules/module_01/unit_01_el_nino/resources.md",
+  };
+
+  it("rewrites a shared subject-level resource to the media proxy", () => {
+    const url = "../../../../../_media/docs/worksheet.pdf";
+    expect(rewriteResourceUrl(url, ctx)).toBe(
+      "/api/curriculum/media/11-13-middle-explorers-s2/space-science/_media/docs/worksheet.pdf"
+    );
+  });
+
+  it("passes absolute and root-relative URLs through unchanged", () => {
+    expect(rewriteResourceUrl("https://x.com/a.pdf", ctx)).toBe("https://x.com/a.pdf");
+    expect(rewriteResourceUrl("/brand/a.pdf", ctx)).toBe("/brand/a.pdf");
+  });
+
+  it("drops a non-_media path that escapes the course root", () => {
+    expect(rewriteResourceUrl("../../../../../overview.md", ctx)).toBeNull();
   });
 });
