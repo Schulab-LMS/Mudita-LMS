@@ -9,8 +9,30 @@ import {
   prettifyCourseFolder,
   parseResources,
   resourceTypeFromUrl,
+  hasMediaSegment,
+  subjectRoot,
 } from "./curriculum-structure";
 import type { TreeEntry } from "./github-curricula";
+
+describe("hasMediaSegment", () => {
+  it("is true when an asset sits beneath a _media directory", () => {
+    expect(hasMediaSegment("space-science/_media/source_images/a/img.png")).toBe(true);
+    expect(hasMediaSegment("course/modules/m1/u1/_media/x.jpg")).toBe(true);
+  });
+  it("is false without a _media segment, or when _media is the leaf", () => {
+    expect(hasMediaSegment("space-science/age-groups/c/modules/m1/u1/overview.md")).toBe(false);
+    expect(hasMediaSegment("space-science/_media")).toBe(false);
+    expect(hasMediaSegment("")).toBe(false);
+  });
+});
+
+describe("subjectRoot", () => {
+  it("returns the first path segment", () => {
+    expect(subjectRoot("space-science/_media/x.png")).toBe("space-science");
+    expect(subjectRoot("space-science/age-groups/11-13-middle-explorers-s2")).toBe("space-science");
+    expect(subjectRoot("solo")).toBe("solo");
+  });
+});
 
 describe("slugify", () => {
   it("kebab-cases and strips unsafe characters", () => {

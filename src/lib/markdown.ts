@@ -1,5 +1,6 @@
 import MarkdownIt from "markdown-it";
 import { sanitize } from "@/lib/sanitize";
+import { hasMediaSegment, subjectRoot } from "@/lib/curriculum-structure";
 
 // Markdown → sanitized HTML pipeline for Git-synced curriculum. Rendering
 // happens at SYNC time and the HTML is stored in the DB, so the read path
@@ -96,6 +97,16 @@ function rendererWithImageRewrite(ctx: RenderContext): MarkdownIt {
         if (abs && abs.startsWith(courseRootPrefix)) {
           const within = abs.slice(courseRootPrefix.length);
           tok.attrs![srcIdx][1] = mediaProxyUrl(ctx.courseSlug, within);
+        } else if (
+          abs &&
+          hasMediaSegment(abs) &&
+          subjectRoot(abs) === subjectRoot(ctx.courseRoot)
+        ) {
+          // Shared subject-level media (e.g. space-science/_media) lives above
+          // the per-course folder. Emit a repo-root-relative proxy path — the
+          // proxy serves it under the same enrolment gate, scoped to this
+          // subject.
+          tok.attrs![srcIdx][1] = mediaProxyUrl(ctx.courseSlug, abs);
         } else {
           console.warn(
             `[curricula] image "${src}" in ${ctx.sourceFilePath} resolves outside the course root — left as-is`
