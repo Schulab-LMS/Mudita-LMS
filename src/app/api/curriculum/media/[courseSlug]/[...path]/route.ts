@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getRawFile, curriculaBranch } from "@/lib/github-curricula";
 import { hasMediaSegment, subjectRoot } from "@/lib/curriculum-structure";
+import { isAdminRole } from "@/lib/auth-helpers";
 
 // Authenticated proxy for curriculum media (images). Keeps assets inside the
 // platform: only signed-in users enrolled in the course (or a free course) can
@@ -31,8 +32,12 @@ export async function GET(
 
   // Access gate (free courses are open to any signed-in user). Enrolled
   // learners pass; so do session participants — students with a booking for a
-  // lesson in this course — mirroring the quiz-attempt gate.
-  if (!course.isFree) {
+  // lesson in this course — mirroring the quiz-attempt gate. Platform admins
+  // pass too: the learner-view page lets an admin preview any course's lessons
+  // (view-as), so the images embedded in those lessons must load for them —
+  // otherwise a previewed deck/handout shows broken media. Mirrors the admin
+  // bypass in getCourseBySlug and the learn page's enrolment skip.
+  if (!course.isFree && !isAdminRole(session.user.role)) {
     const enrollment = await db.enrollment.findUnique({
       where: { userId_courseId: { userId: session.user.id, courseId: course.id } },
       select: { id: true },
