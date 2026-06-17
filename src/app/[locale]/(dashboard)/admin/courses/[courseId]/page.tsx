@@ -61,12 +61,17 @@ export default async function CourseDetailPage({
           },
         },
         modules: {
+          // Hide soft-archived (REMOVED) modules/lessons — stale duplicates
+          // left behind when curriculum folders are renamed in Git. Without
+          // this filter the admin sees both the live and the superseded copy.
+          where: { syncStatus: "ACTIVE" },
           orderBy: { order: "asc" },
           select: {
             id: true,
             title: true,
             order: true,
             lessons: {
+              where: { syncStatus: "ACTIVE" },
               orderBy: { order: "asc" },
               select: {
                 id: true,

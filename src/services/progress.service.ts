@@ -35,7 +35,18 @@ export async function recalculateProgress(userId: string, courseId: string) {
         const course = await tx.course.findUnique({
           where: { id: courseId },
           select: {
-            modules: { select: { lessons: { select: { id: true } } } },
+            // Count only ACTIVE content — REMOVED rows left by curriculum
+            // folder renames would inflate the denominator and make 100%
+            // completion (and the certificate) unreachable.
+            modules: {
+              where: { syncStatus: "ACTIVE" },
+              select: {
+                lessons: {
+                  where: { syncStatus: "ACTIVE" },
+                  select: { id: true },
+                },
+              },
+            },
           },
         });
         if (!course) return { progressPercent: null, becameComplete: false };
@@ -102,8 +113,9 @@ export async function getLessonProgress(userId: string, courseId: string) {
       where: { id: courseId },
       include: {
         modules: {
+          where: { syncStatus: "ACTIVE" },
           include: {
-            lessons: true,
+            lessons: { where: { syncStatus: "ACTIVE" } },
           },
         },
       },

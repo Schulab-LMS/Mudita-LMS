@@ -47,9 +47,12 @@ export async function getUserEnrollments(userId: string) {
       include: {
         course: {
           include: {
+            // Exclude soft-archived (REMOVED) modules/lessons left by
+            // curriculum folder renames so dashboard counts stay correct.
             modules: {
+              where: { syncStatus: "ACTIVE" },
               include: {
-                lessons: true,
+                lessons: { where: { syncStatus: "ACTIVE" } },
               },
             },
           },

@@ -75,9 +75,13 @@ export async function getCourses(filters: CourseFilters = {}) {
       where,
       include: {
         modules: {
+          // Skip soft-archived (REMOVED) modules/lessons left behind by
+          // curriculum folder renames — only ACTIVE content counts. Mirrors
+          // the filter session.service applies to live-classroom content.
+          where: { syncStatus: "ACTIVE" },
           include: {
             _count: {
-              select: { lessons: true },
+              select: { lessons: { where: { syncStatus: "ACTIVE" } } },
             },
           },
         },
@@ -134,9 +138,13 @@ export async function getCourseBySlug(
       where: { slug },
       include: {
         modules: {
+          // Soft-archived (REMOVED) modules/lessons — stale rows left by
+          // curriculum folder renames — must never reach student/public pages.
+          where: { syncStatus: "ACTIVE" },
           orderBy: { order: "asc" },
           include: {
             lessons: {
+              where: { syncStatus: "ACTIVE" },
               orderBy: { order: "asc" },
               // Tutor-only fields must never reach student/public pages — omit
               // them by construction so they're not serialized to the client.
@@ -211,9 +219,13 @@ export async function getFeaturedCourses(
       where: { status: "PUBLISHED", ...tenantScope(viewer) },
       include: {
         modules: {
+          // Skip soft-archived (REMOVED) modules/lessons left behind by
+          // curriculum folder renames — only ACTIVE content counts. Mirrors
+          // the filter session.service applies to live-classroom content.
+          where: { syncStatus: "ACTIVE" },
           include: {
             _count: {
-              select: { lessons: true },
+              select: { lessons: { where: { syncStatus: "ACTIVE" } } },
             },
           },
         },
