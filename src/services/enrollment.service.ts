@@ -47,9 +47,16 @@ export async function getUserEnrollments(userId: string) {
       include: {
         course: {
           include: {
+            // Active set only. Git-removed modules/lessons are soft-archived
+            // (syncStatus REMOVED), not deleted, so enrollment FKs survive —
+            // but the dashboard "my courses" lesson counts must match the
+            // course page (getCourseBySlug) and not tally hidden lessons.
+            // Module-level filter is required: removing a whole module leaves
+            // its lessons ACTIVE.
             modules: {
+              where: { syncStatus: "ACTIVE" },
               include: {
-                lessons: true,
+                lessons: { where: { syncStatus: "ACTIVE" } },
               },
             },
           },
