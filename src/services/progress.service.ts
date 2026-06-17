@@ -35,7 +35,16 @@ export async function recalculateProgress(userId: string, courseId: string) {
         const course = await tx.course.findUnique({
           where: { id: courseId },
           select: {
-            modules: { select: { lessons: { select: { id: true } } } },
+            // Count only the active set students actually see (matches
+            // getCourseBySlug). Git-removed lessons are soft-archived, not
+            // deleted; including them here would inflate the denominator so a
+            // course with removed lessons could never reach 100% / certify.
+            modules: {
+              where: { syncStatus: "ACTIVE" },
+              select: {
+                lessons: { where: { syncStatus: "ACTIVE" }, select: { id: true } },
+              },
+            },
           },
         });
         if (!course) return { progressPercent: null, becameComplete: false };
@@ -101,9 +110,13 @@ export async function getLessonProgress(userId: string, courseId: string) {
     const course = await db.course.findUnique({
       where: { id: courseId },
       include: {
+        // Active set only, so completed counts align with the visible sidebar
+        // (getCourseBySlug) and the progress ring can't exceed 100% when a
+        // completed lesson is later removed from Git.
         modules: {
+          where: { syncStatus: "ACTIVE" },
           include: {
-            lessons: true,
+            lessons: { where: { syncStatus: "ACTIVE" } },
           },
         },
       },
