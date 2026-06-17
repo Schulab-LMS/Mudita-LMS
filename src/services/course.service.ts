@@ -75,9 +75,13 @@ export async function getCourses(filters: CourseFilters = {}) {
       where,
       include: {
         modules: {
+          // Exclude Git-removed modules and count only active lessons so the
+          // catalog lesson-count badge matches the course page (see
+          // getCourseBySlug for why these rows linger as soft-archived).
+          where: { syncStatus: "ACTIVE" },
           include: {
             _count: {
-              select: { lessons: true },
+              select: { lessons: { where: { syncStatus: "ACTIVE" } } },
             },
           },
         },
@@ -134,9 +138,17 @@ export async function getCourseBySlug(
       where: { slug },
       include: {
         modules: {
+          // Git-removed modules/lessons are soft-archived (syncStatus REMOVED),
+          // not deleted, so enrollment/progress FKs survive. Exclude them here so
+          // the course detail + learn-page sidebar reflect the current repo 1:1
+          // mapping. Mirrors the filter in session.service.ts. Note: removing a
+          // whole module leaves its lessons ACTIVE (the sync's per-module lesson
+          // sweep skips absent modules), so the module-level filter is required.
+          where: { syncStatus: "ACTIVE" },
           orderBy: { order: "asc" },
           include: {
             lessons: {
+              where: { syncStatus: "ACTIVE" },
               orderBy: { order: "asc" },
               // Tutor-only fields must never reach student/public pages — omit
               // them by construction so they're not serialized to the client.
@@ -211,9 +223,13 @@ export async function getFeaturedCourses(
       where: { status: "PUBLISHED", ...tenantScope(viewer) },
       include: {
         modules: {
+          // Exclude Git-removed modules and count only active lessons so the
+          // catalog lesson-count badge matches the course page (see
+          // getCourseBySlug for why these rows linger as soft-archived).
+          where: { syncStatus: "ACTIVE" },
           include: {
             _count: {
-              select: { lessons: true },
+              select: { lessons: { where: { syncStatus: "ACTIVE" } } },
             },
           },
         },
