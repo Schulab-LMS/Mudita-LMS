@@ -26,6 +26,7 @@ import {
   type PresentationConfig,
 } from "@/lib/presentation";
 import { sendCurriculumSyncAlert } from "@/lib/email";
+import { reapRemovedCurriculum } from "@/services/curriculum-cleanup.service";
 import {
   type CourseMeta,
   type LessonResource,
@@ -874,6 +875,23 @@ export async function runCurriculumSync(opts: {
       data: { syncStatus: "REMOVED", status: "ARCHIVED" },
     });
     counts.coursesArchived = archived.count;
+
+    // Reap soft-archived modules/lessons that carry no learner data, so a
+    // folder rename doesn't leave duplicate rows lingering in the DB. The
+    // readers hide REMOVED rows; this stops them accumulating across renames.
+    // Best-effort: a cleanup failure must never fail an otherwise-good sync.
+    try {
+      const reaped = await reapRemovedCurriculum(db);
+      if (reaped.modulesDeleted || reaped.lessonsDeleted) {
+        console.log(
+          `[curricula] reaped ${reaped.modulesDeleted} module(s) and ` +
+            `${reaped.lessonsDeleted} lesson(s) with no learner data ` +
+            `(kept ${reaped.lessonsKept} still-referenced)`
+        );
+      }
+    } catch (e) {
+      console.warn(`[curricula] reap step failed (non-fatal): ${String(e)}`);
+    }
 
     const status = hadError ? "PARTIAL" : "SUCCESS";
     const partialError = "One or more courses failed to sync — see server logs";
