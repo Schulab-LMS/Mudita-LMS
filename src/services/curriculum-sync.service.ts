@@ -572,15 +572,31 @@ async function persistCourse(
     });
   }
 
-  // Soft-archive modules no longer present in this course.
-  await db.module.updateMany({
+  // Soft-archive modules no longer present in this course, and cascade the
+  // archive to their lessons. The per-module lesson sweep above only runs for
+  // modules still present in the repo, so a module that disappears entirely
+  // (e.g. a layout/path refactor) would otherwise leave its lessons ACTIVE and
+  // orphaned under a REMOVED module — surfacing as duplicates in unfiltered
+  // (admin) views.
+  const removedModules = await db.module.findMany({
     where: {
       courseId,
       sourcePath: { notIn: seenModulePaths },
       syncStatus: "ACTIVE",
     },
-    data: { syncStatus: "REMOVED" },
+    select: { id: true },
   });
+  if (removedModules.length > 0) {
+    const removedModuleIds = removedModules.map((m) => m.id);
+    await db.module.updateMany({
+      where: { id: { in: removedModuleIds } },
+      data: { syncStatus: "REMOVED" },
+    });
+    await db.lesson.updateMany({
+      where: { moduleId: { in: removedModuleIds }, syncStatus: "ACTIVE" },
+      data: { syncStatus: "REMOVED" },
+    });
+  }
 }
 
 // True when two JSON-serialisable values are deep-equal. Used to compare the

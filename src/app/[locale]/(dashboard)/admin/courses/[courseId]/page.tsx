@@ -61,12 +61,20 @@ export default async function CourseDetailPage({
           },
         },
         modules: {
+          // Show only live content. Git-removed modules/lessons are
+          // soft-archived (syncStatus REMOVED), not deleted; a layout/path
+          // refactor in the repo can leave a stale REMOVED copy alongside the
+          // live one, which would otherwise render here as a duplicate. Mirrors
+          // getCourseBySlug and session.service. Sync status is surfaced
+          // separately on the Curriculum (Git) admin page.
+          where: { syncStatus: "ACTIVE" },
           orderBy: { order: "asc" },
           select: {
             id: true,
             title: true,
             order: true,
             lessons: {
+              where: { syncStatus: "ACTIVE" },
               orderBy: { order: "asc" },
               select: {
                 id: true,
