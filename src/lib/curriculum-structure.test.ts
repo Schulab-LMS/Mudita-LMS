@@ -9,6 +9,7 @@ import {
   prettifyCourseFolder,
   parseResources,
   resourceTypeFromUrl,
+  titleFromUrl,
   hasMediaSegment,
   subjectRoot,
 } from "./curriculum-structure";
@@ -276,5 +277,113 @@ describe("parseResources", () => {
     expect(parseResources(md)).toEqual([
       { title: "Bold worksheet", url: "./w.pdf", type: "pdf" },
     ]);
+  });
+
+  it("extracts bare URLs from markdown table rows, deriving titles from the URL", () => {
+    const md = [
+      "## Source Pages",
+      "",
+      "| Source | Original Page |",
+      "|---|---|",
+      "| `spaceplace_nasa_gov_spaceweather` | https://spaceplace.nasa.gov/spaceweather/en/ |",
+      "| `spaceplace_nasa_gov_all-about-earth` | https://spaceplace.nasa.gov/all-about-earth/en/ |",
+    ].join("\n");
+    expect(parseResources(md)).toEqual([
+      { title: "Spaceweather", url: "https://spaceplace.nasa.gov/spaceweather/en/", type: "link" },
+      {
+        title: "All About Earth",
+        url: "https://spaceplace.nasa.gov/all-about-earth/en/",
+        type: "link",
+      },
+    ]);
+  });
+
+  it("ignores table header and separator rows", () => {
+    const md = ["| Source | Original Page |", "|---|---|", "| :--- | ---: |"].join("\n");
+    expect(parseResources(md)).toEqual([]);
+  });
+
+  it("keeps a human label from a table cell when it isn't a machine slug", () => {
+    const md = "| NASA Earth Observatory | https://earthobservatory.nasa.gov/ |";
+    expect(parseResources(md)).toEqual([
+      { title: "NASA Earth Observatory", url: "https://earthobservatory.nasa.gov/", type: "link" },
+    ]);
+  });
+
+  it("uses the link text when a table cell carries a markdown link", () => {
+    const md = "| Worksheet | [Download PDF](./worksheet.pdf) |";
+    expect(parseResources(md)).toEqual([
+      { title: "Download PDF", url: "./worksheet.pdf", type: "pdf" },
+    ]);
+  });
+
+  it("ignores inline links in prose so an attribution footer never becomes a resource", () => {
+    // Mirrors the real resources.md footer — a link repeated on every lesson that
+    // must not surface as a per-lesson resource (it would duplicate platform-wide).
+    const md = [
+      "| `spaceplace_nasa_gov_aurora` | https://spaceplace.nasa.gov/aurora/en/ |",
+      "",
+      "---",
+      "",
+      "*Content sourced from [NASA Space Place](https://spaceplace.nasa.gov) under NASA's policy.*",
+    ].join("\n");
+    expect(parseResources(md)).toEqual([
+      { title: "Aurora", url: "https://spaceplace.nasa.gov/aurora/en/", type: "link" },
+    ]);
+  });
+
+  it("de-dupes a URL shared between two tables in the same file", () => {
+    const md = [
+      "## Source Pages",
+      "| `s` | https://spaceplace.nasa.gov/ion-balloons/en/ |",
+      "## Activity Source",
+      "| `a` | https://spaceplace.nasa.gov/ion-balloons/en/ |",
+    ].join("\n");
+    expect(parseResources(md)).toEqual([
+      { title: "Ion Balloons", url: "https://spaceplace.nasa.gov/ion-balloons/en/", type: "link" },
+    ]);
+  });
+
+  it("parses the real curriculum resources.md shape end-to-end", () => {
+    const md = [
+      "﻿# Resources: Space Weather and Earth's Magnetic Shield",
+      "",
+      "## Source Pages",
+      "",
+      "The handout content for this unit was assembled from the following NASA pages.",
+      "",
+      "| Source | Original Page |",
+      "|---|---|",
+      "| `spaceplace_nasa_gov_spaceweather` | https://spaceplace.nasa.gov/spaceweather/en/ |",
+      "| `spaceplace_nasa_gov_pigeons` | https://spaceplace.nasa.gov/pigeons/en/ |",
+      "",
+      "## Activity Source",
+      "",
+      "| Activity | Original Page |",
+      "|---|---|",
+      "| `spaceplace_nasa_gov_ion-balloons` | https://spaceplace.nasa.gov/ion-balloons/en/ |",
+      "",
+      "---",
+      "",
+      "*Content sourced from [NASA Space Place](https://spaceplace.nasa.gov).*",
+    ].join("\n");
+    expect(parseResources(md)).toEqual([
+      { title: "Spaceweather", url: "https://spaceplace.nasa.gov/spaceweather/en/", type: "link" },
+      { title: "Pigeons", url: "https://spaceplace.nasa.gov/pigeons/en/", type: "link" },
+      { title: "Ion Balloons", url: "https://spaceplace.nasa.gov/ion-balloons/en/", type: "link" },
+    ]);
+  });
+});
+
+describe("titleFromUrl", () => {
+  it("derives a title from the last meaningful path segment, dropping locale tails", () => {
+    expect(titleFromUrl("https://spaceplace.nasa.gov/all-about-earth/en/")).toBe("All About Earth");
+    expect(titleFromUrl("https://spaceplace.nasa.gov/spaceweather/en/")).toBe("Spaceweather");
+    expect(titleFromUrl("https://example.com/a/b/cool_thing.pdf")).toBe("Cool Thing");
+  });
+
+  it("falls back to the host's main label for a bare domain", () => {
+    expect(titleFromUrl("https://spaceplace.nasa.gov/")).toBe("Nasa");
+    expect(titleFromUrl("https://spaceplace.nasa.gov")).toBe("Nasa");
   });
 });

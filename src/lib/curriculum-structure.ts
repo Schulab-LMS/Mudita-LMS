@@ -289,24 +289,136 @@ export function resourceTypeFromUrl(url: string): LessonResource["type"] {
   return isAbsolute ? "link" : "file";
 }
 
+// Bullet list item carrying a markdown link: `- [Title](url)` (also * / +).
 const RESOURCE_LINK_RE = /^\s*[-*+]\s+\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/;
+// An inline markdown link `[Title](url)` anywhere (used inside table cells).
+const INLINE_LINK_RE = /\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+// A bare absolute URL (http/https/mailto) inside a table cell. Stops at the cell
+// boundary and other markdown delimiters so it never swallows a trailing pipe.
+const BARE_URL_RE = /(?:https?:\/\/|mailto:)[^\s|)<>\]]+/i;
 
-// Parse a resources.md file into a list of resources. Each bullet of the form
-// `- [Title](url)` becomes one entry; lines that aren't markdown links are
-// ignored so authors can add headings/prose around the list. Pure & db-free so
-// it can be unit-tested without the sync pipeline.
+// Strip markdown emphasis / code ticks and surrounding whitespace from a label.
+function cleanResourceTitle(raw: string): string {
+  return raw.replace(/[*_`]/g, "").trim();
+}
+
+// Humanise a slug or path segment into a readable title:
+// "all-about-earth" → "All About Earth", "cloud_mobile.pdf" → "Cloud Mobile".
+function humanizeToken(token: string): string {
+  return token
+    .replace(/\.[a-z0-9]{1,6}$/i, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/%20/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// Trailing URL path segments that carry no title signal (locale / index files).
+const URL_BORING_SEGMENTS = new Set(["en", "ar", "de", "index", "index.html", "index.htm"]);
+
+// Derive a human-readable title from a URL when a resource has no explicit label
+// (e.g. a table row that only carries a bare link). Uses the last meaningful path
+// segment, falling back to the host's main label for a bare domain.
+export function titleFromUrl(url: string): string {
+  const clean = url.split(/[?#]/)[0].replace(/^mailto:/i, "");
+  const afterScheme = clean.replace(/^[a-z]+:\/\//i, "");
+  const slashIdx = afterScheme.indexOf("/");
+  const host = slashIdx >= 0 ? afterScheme.slice(0, slashIdx) : afterScheme;
+  const path = slashIdx >= 0 ? afterScheme.slice(slashIdx) : "";
+  const segments = path.split("/").filter((s) => s && s !== ".");
+  while (segments.length && URL_BORING_SEGMENTS.has(segments[segments.length - 1].toLowerCase())) {
+    segments.pop();
+  }
+  if (segments.length) return humanizeToken(segments[segments.length - 1]);
+  // Bare domain — use the second-level label (spaceplace.nasa.gov → "Spaceplace").
+  const labels = host.split(".").filter(Boolean);
+  const main = labels.length >= 2 ? labels[labels.length - 2] : host;
+  return humanizeToken(main) || url;
+}
+
+// A cell value that's a machine identifier rather than a human label — lowercase
+// tokens joined by _ or - with no spaces (e.g. a media-folder slug like
+// `spaceplace_nasa_gov_spaceweather`). For these we prefer a URL-derived title.
+function isMachineSlug(s: string): boolean {
+  return s.length > 0 && /^[a-z0-9]+(?:[_-][a-z0-9]+)*$/.test(s);
+}
+
+// Parse a resources.md file into a list of resources. Two structured shapes are
+// recognised, so curriculum authors can use whichever reads best:
+//   1. Bullet links — `- [Title](url)`.
+//   2. Markdown table rows — `| Label | https://… |` (or a linked cell). The
+//      curriculum repo authors resource lists as tables (Source Pages / Activity
+//      Source), so this is what actually populates the Resources tab today. When
+//      the label cell is just a machine slug, the title is derived from the URL.
+// Header rows ("| Source | Original Page |") and separators ("|---|---|") carry
+// no URL and are skipped naturally. Parsing is deliberately limited to these two
+// constructs — arbitrary inline links in prose (e.g. an attribution footer that
+// repeats on every lesson) are ignored, which keeps the same link from being
+// duplicated across the platform. Pure & db-free so it can be unit-tested
+// without the sync pipeline.
 export function parseResources(markdown: string | null): LessonResource[] {
   if (!markdown) return [];
   const out: LessonResource[] = [];
   const seen = new Set<string>();
+
+  // Add a resource, de-duping by URL and deriving a title from the URL when the
+  // caller has none (or only a machine slug, passed through as empty).
+  const add = (title: string, url: string): void => {
+    const finalUrl = url.trim();
+    if (!finalUrl || seen.has(finalUrl)) return;
+    seen.add(finalUrl);
+    out.push({
+      title: cleanResourceTitle(title) || titleFromUrl(finalUrl),
+      url: finalUrl,
+      type: resourceTypeFromUrl(finalUrl),
+    });
+  };
+
   for (const line of markdown.split(/\r?\n/)) {
-    const m = line.match(RESOURCE_LINK_RE);
-    if (!m) continue;
-    const title = m[1].replace(/[*_`]/g, "").trim();
-    const url = m[2].trim();
-    if (!title || !url || seen.has(url)) continue;
-    seen.add(url);
-    out.push({ title, url, type: resourceTypeFromUrl(url) });
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // 1) Bullet list link.
+    const bullet = line.match(RESOURCE_LINK_RE);
+    if (bullet) {
+      add(bullet[1], bullet[2]);
+      continue;
+    }
+
+    // 2) Markdown table row.
+    if (!trimmed.startsWith("|")) continue;
+    const cells = trimmed
+      .replace(/^\|/, "")
+      .replace(/\|$/, "")
+      .split("|")
+      .map((c) => c.trim());
+    // Separator row (---, :--, --:) — no content.
+    if (cells.every((c) => c === "" || /^:?-+:?$/.test(c))) continue;
+
+    // Prefer an explicit markdown link in any cell (uses the link text as title).
+    let linked = false;
+    for (const cell of cells) {
+      INLINE_LINK_RE.lastIndex = 0;
+      const m = INLINE_LINK_RE.exec(cell);
+      if (m) {
+        add(m[1], m[2]);
+        linked = true;
+        break;
+      }
+    }
+    if (linked) continue;
+
+    // Otherwise pull a bare URL from one cell and label it from a sibling cell.
+    const urlIdx = cells.findIndex((c) => BARE_URL_RE.test(c));
+    if (urlIdx === -1) continue;
+    const urlMatch = cells[urlIdx].match(BARE_URL_RE);
+    if (!urlMatch) continue;
+    const url = urlMatch[0].replace(/[.,;]+$/, "");
+    const labelCell = cells.find((c, i) => i !== urlIdx && cleanResourceTitle(c).length > 0);
+    const label = labelCell ? cleanResourceTitle(labelCell) : "";
+    add(isMachineSlug(label) ? "" : label, url);
   }
+
   return out;
 }
