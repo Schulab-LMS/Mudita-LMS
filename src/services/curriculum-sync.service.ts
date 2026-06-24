@@ -28,17 +28,18 @@ import {
 import { sendCurriculumSyncAlert } from "@/lib/email";
 import {
   type CourseMeta,
+  type LessonMeta,
   type LessonResource,
   escapeRegExp,
   findCourseRoots,
   firstHeading,
   numericPrefix,
-  parseResources,
   prettifyCourseFolder,
   prettifyFolder,
   resolveAgeGroup,
   resolveLevel,
   resolvePlan,
+  resolveResources,
   resolveStatus,
   slugify,
 } from "@/lib/curriculum-structure";
@@ -70,8 +71,9 @@ interface BuiltLesson {
   presentationAr: string | null;
   presentationDe: string | null;
   presentationConfig: PresentationConfig | null;
-  // Downloadable resources / reference links parsed from resources.md, with
-  // repo-relative URLs rewritten to the media proxy. Empty array when absent.
+  // Downloadable resources / reference links resolved from resources.md, the
+  // meta.yml source fields, or a handout reference section (see resolveResources),
+  // with repo-relative URLs rewritten to the media proxy. Empty when none exist.
   resources: LessonResource[];
   quiz: ParsedQuiz | null;
 }
@@ -185,6 +187,8 @@ async function buildLesson(opts: {
     presentationArMd,
     presentationDeMd,
     resourcesMd,
+    metaYmlRaw,
+    metaYamlRaw,
   ] = await Promise.all([
     readText(`${dir}/handout.md`),
     readText(`${dir}/handout.ar.md`),
@@ -197,7 +201,25 @@ async function buildLesson(opts: {
     readText(`${dir}/presentation.ar.md`),
     readText(`${dir}/presentation.de.md`),
     readText(`${dir}/resources.md`),
+    readText(`${dir}/meta.yml`),
+    readText(`${dir}/meta.yaml`),
   ]);
+
+  // Optional per-lesson manifest. Carries structured `source` / `secondarySources`
+  // used to derive resources when there's no resources.md (e.g. the programming
+  // curriculum). Other meta fields are not consumed here.
+  let lessonMeta: LessonMeta | null = null;
+  const metaRaw = metaYmlRaw ?? metaYamlRaw;
+  if (metaRaw) {
+    try {
+      const parsed = parseYaml(metaRaw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        lessonMeta = parsed as LessonMeta;
+      }
+    } catch (e) {
+      console.warn(`[curricula] failed to parse lesson meta.yml for ${dir}: ${String(e)}`);
+    }
+  }
 
   const split = handout ? splitTutorContent(handout) : null;
   const ctx = (file: string) => ({
@@ -227,12 +249,24 @@ async function buildLesson(opts: {
     presentationDe = rewritePresentationMediaUrls(parsed.markdown, ctx(`${dir}/presentation.de.md`));
   }
 
-  // Resources: parse the markdown link list, then rewrite repo-relative file
-  // links to the authenticated media proxy (absolute links pass through).
-  // Links escaping the course root are dropped by rewriteResourceUrl.
-  const resources: LessonResource[] = parseResources(resourcesMd)
+  // Resources: take the first available of resources.md → meta.yml sources →
+  // a handout reference section (see resolveResources), then rewrite any
+  // repo-relative links to the authenticated media proxy (absolute links pass
+  // through). Links escaping the course root are dropped by rewriteResourceUrl.
+  const RESOURCE_SOURCE_FILE = {
+    resources: "resources.md",
+    meta: "meta.yml",
+    handout: "handout.md",
+  } as const;
+  const resolved = resolveResources({
+    resourcesMd,
+    meta: lessonMeta,
+    handout: split?.studentMarkdown ?? handout,
+  });
+  const resourceSourcePath = `${dir}/${RESOURCE_SOURCE_FILE[resolved.origin]}`;
+  const resources: LessonResource[] = resolved.resources
     .map((r) => {
-      const url = rewriteResourceUrl(r.url, ctx(`${dir}/resources.md`));
+      const url = rewriteResourceUrl(r.url, ctx(resourceSourcePath));
       return url ? { ...r, url } : null;
     })
     .filter((r): r is LessonResource => r !== null);

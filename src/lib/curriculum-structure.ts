@@ -422,3 +422,148 @@ export function parseResources(markdown: string | null): LessonResource[] {
 
   return out;
 }
+
+// ── Resources from a lesson's meta.yml ────────────────────────────────────
+
+// One provider/source reference inside a lesson meta.yml. Not every field is
+// present on every entry: the primary `source` carries `course`, secondary
+// entries carry `item`. Only `url` is required to surface a resource.
+export interface MetaSourceRef {
+  provider?: string;
+  course?: string;
+  item?: string;
+  unit?: string;
+  url?: string;
+  license?: string;
+}
+
+// The slice of a lesson meta.yml we read for resources. Kept loose (index
+// signature) because meta.yml carries many other fields we don't touch here.
+export interface LessonMeta {
+  source?: MetaSourceRef;
+  secondarySources?: MetaSourceRef[];
+  [key: string]: unknown;
+}
+
+// Build resources from a lesson meta.yml's `source` + `secondarySources`. Used
+// by curricula (e.g. the programming strand) that record per-lesson provenance
+// as structured metadata rather than a resources.md list. The most descriptive
+// label wins for the title — the course/item name, then the provider, then a
+// title derived from the URL. De-duped by URL.
+export function resourcesFromMeta(meta: LessonMeta | null | undefined): LessonResource[] {
+  if (!meta || typeof meta !== "object") return [];
+  const out: LessonResource[] = [];
+  const seen = new Set<string>();
+  const push = (ref: MetaSourceRef | undefined, label: string | undefined): void => {
+    if (!ref || typeof ref !== "object") return;
+    const url = typeof ref.url === "string" ? ref.url.trim() : "";
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    out.push({
+      title: cleanResourceTitle(label ?? "") || titleFromUrl(url),
+      url,
+      type: resourceTypeFromUrl(url),
+    });
+  };
+  push(meta.source, meta.source?.course || meta.source?.provider);
+  if (Array.isArray(meta.secondarySources)) {
+    for (const s of meta.secondarySources) {
+      push(s, s?.item || s?.course || s?.provider);
+    }
+  }
+  return out;
+}
+
+// ── Resources from a handout's reference section ──────────────────────────
+
+// A heading that introduces a list of references / links in a handout.
+const RESOURCE_SECTION_RE =
+  /\b(resources?|sources?|further reading|references?|read more|watch|useful links|links to explore|explore (?:more|at home|together))\b/i;
+// A bullet of the form `- Label: https://url` (label, separator, then a bare URL).
+const LABELLED_URL_BULLET_RE =
+  /^\s*[-*+]\s+(.+?)\s*[:–-]\s+((?:https?:\/\/|mailto:)\S+)/;
+// A bullet that is just a bare URL: `- https://url`.
+const BARE_URL_BULLET_RE = /^\s*[-*+]\s+((?:https?:\/\/|mailto:)\S+)/;
+
+// Extract resources from a "Resources / Sources / Further reading" section of a
+// student handout. Some curricula (e.g. space-science-children) list reference
+// links inline at the foot of the handout rather than in a resources.md or a
+// meta.yml. We only read bullets *inside* a resource-titled section, so prose
+// links elsewhere in the lesson aren't surfaced. Supports `- [Title](url)`,
+// `- Label: url`, and bare `- url` bullets. De-duped by URL.
+export function parseHandoutResources(markdown: string | null): LessonResource[] {
+  if (!markdown) return [];
+  const out: LessonResource[] = [];
+  const seen = new Set<string>();
+  const add = (title: string, url: string): void => {
+    const finalUrl = url.trim().replace(/[.,;]+$/, "");
+    if (!finalUrl || seen.has(finalUrl)) return;
+    seen.add(finalUrl);
+    out.push({
+      title: cleanResourceTitle(title) || titleFromUrl(finalUrl),
+      url: finalUrl,
+      type: resourceTypeFromUrl(finalUrl),
+    });
+  };
+
+  let inSection = false;
+  let sectionDepth = 0;
+  for (const line of markdown.split(/\r?\n/)) {
+    const heading = line.match(/^(#{1,6})\s+(.*\S)\s*$/);
+    if (heading) {
+      const depth = heading[1].length;
+      // A heading at the same or higher level closes the current section.
+      if (inSection && depth <= sectionDepth) inSection = false;
+      if (RESOURCE_SECTION_RE.test(heading[2])) {
+        inSection = true;
+        sectionDepth = depth;
+      }
+      continue;
+    }
+    if (!inSection) continue;
+    const linkBullet = line.match(RESOURCE_LINK_RE);
+    if (linkBullet) {
+      add(linkBullet[1], linkBullet[2]);
+      continue;
+    }
+    const labelled = line.match(LABELLED_URL_BULLET_RE);
+    if (labelled) {
+      add(labelled[1], labelled[2]);
+      continue;
+    }
+    const bare = line.match(BARE_URL_BULLET_RE);
+    if (bare) add("", bare[1]);
+  }
+  return out;
+}
+
+// ── Unified per-lesson resource resolution ────────────────────────────────
+
+export type ResourceOrigin = "resources" | "meta" | "handout";
+
+export interface ResolvedResources {
+  resources: LessonResource[];
+  // Which input the resources came from — selects the source file path the sync
+  // uses when rewriting repo-relative URLs to the authenticated media proxy.
+  origin: ResourceOrigin;
+}
+
+// Resolve a lesson's resources from the first input that yields any, in priority
+// order, so every lesson surfaces references regardless of how its curriculum
+// recorded them:
+//   1. resources.md            — an explicit author-curated list (space-science)
+//   2. meta.yml source fields  — structured per-lesson provenance (programming)
+//   3. handout reference block — a "Resources / Sources" section in the handout
+//                                (space-science-children)
+// A single, pure precedence rule the sync can follow and tests can pin.
+export function resolveResources(input: {
+  resourcesMd: string | null;
+  meta: LessonMeta | null | undefined;
+  handout: string | null;
+}): ResolvedResources {
+  const fromMd = parseResources(input.resourcesMd);
+  if (fromMd.length > 0) return { resources: fromMd, origin: "resources" };
+  const fromMeta = resourcesFromMeta(input.meta);
+  if (fromMeta.length > 0) return { resources: fromMeta, origin: "meta" };
+  return { resources: parseHandoutResources(input.handout), origin: "handout" };
+}
