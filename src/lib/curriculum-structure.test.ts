@@ -8,6 +8,9 @@ import {
   prettifyFolder,
   prettifyCourseFolder,
   parseResources,
+  parseHandoutResources,
+  resourcesFromMeta,
+  resolveResources,
   resourceTypeFromUrl,
   titleFromUrl,
   hasMediaSegment,
@@ -385,5 +388,123 @@ describe("titleFromUrl", () => {
   it("falls back to the host's main label for a bare domain", () => {
     expect(titleFromUrl("https://spaceplace.nasa.gov/")).toBe("Nasa");
     expect(titleFromUrl("https://spaceplace.nasa.gov")).toBe("Nasa");
+  });
+});
+
+describe("resourcesFromMeta", () => {
+  it("builds resources from source + secondarySources, titled by course/item", () => {
+    const meta = {
+      source: {
+        provider: "Scratch Foundation / Harvard ScratchEd",
+        course: "Creative Computing Curriculum",
+        url: "https://creativecomputing.gse.harvard.edu/",
+        license: "CC BY-SA 4.0",
+      },
+      secondarySources: [
+        { provider: "Scratch", item: "Scratch editor & starter projects", url: "https://scratch.mit.edu/" },
+        { provider: "Code.org", item: "CS Fundamentals — Course C / D", url: "https://code.org/curriculum/csf" },
+      ],
+    };
+    expect(resourcesFromMeta(meta)).toEqual([
+      {
+        title: "Creative Computing Curriculum",
+        url: "https://creativecomputing.gse.harvard.edu/",
+        type: "link",
+      },
+      { title: "Scratch editor & starter projects", url: "https://scratch.mit.edu/", type: "link" },
+      { title: "CS Fundamentals — Course C / D", url: "https://code.org/curriculum/csf", type: "link" },
+    ]);
+  });
+
+  it("falls back to provider then URL for the title, and de-dupes URLs", () => {
+    const meta = {
+      source: { provider: "Raspberry Pi Foundation", url: "https://projects.raspberrypi.org/" },
+      secondarySources: [
+        { url: "https://projects.raspberrypi.org/" }, // duplicate of primary
+        { provider: "Microsoft MakeCode", url: "https://makecode.microbit.org/" },
+      ],
+    };
+    expect(resourcesFromMeta(meta)).toEqual([
+      { title: "Raspberry Pi Foundation", url: "https://projects.raspberrypi.org/", type: "link" },
+      { title: "Microsoft MakeCode", url: "https://makecode.microbit.org/", type: "link" },
+    ]);
+  });
+
+  it("returns [] for missing meta or sources without a URL", () => {
+    expect(resourcesFromMeta(null)).toEqual([]);
+    expect(resourcesFromMeta({})).toEqual([]);
+    expect(resourcesFromMeta({ source: { provider: "X" } })).toEqual([]);
+  });
+});
+
+describe("parseHandoutResources", () => {
+  it("extracts '- Label: url' bullets only inside a Resources section", () => {
+    const md = [
+      "# Earth's Shape and Structure",
+      "",
+      "Prose mentioning https://example.com/not-a-resource must be ignored.",
+      "",
+      '## NASA Resources (To Explore Together or at Home)',
+      "",
+      "- All About Earth: https://spaceplace.nasa.gov/all-about-earth/en/",
+      '- Earth images from space: https://images.nasa.gov/ (search "earth")',
+      "- Aurora (what causes it): https://spaceplace.nasa.gov/aurora/en/",
+    ].join("\n");
+    expect(parseHandoutResources(md)).toEqual([
+      { title: "All About Earth", url: "https://spaceplace.nasa.gov/all-about-earth/en/", type: "link" },
+      { title: "Earth images from space", url: "https://images.nasa.gov/", type: "link" },
+      { title: "Aurora (what causes it)", url: "https://spaceplace.nasa.gov/aurora/en/", type: "link" },
+    ]);
+  });
+
+  it("stops at the next same-or-higher-level heading", () => {
+    const md = [
+      "## Further Reading",
+      "- A: https://a.example/",
+      "## Next Section",
+      "- B: https://b.example/",
+    ].join("\n");
+    expect(parseHandoutResources(md)).toEqual([
+      { title: "A", url: "https://a.example/", type: "link" },
+    ]);
+  });
+
+  it("supports markdown-link and bare-URL bullets; returns [] without a section", () => {
+    const md = ["## Sources", "- [Scratch](https://scratch.mit.edu/)", "- https://code.org/"].join("\n");
+    expect(parseHandoutResources(md)).toEqual([
+      { title: "Scratch", url: "https://scratch.mit.edu/", type: "link" },
+      { title: "Code", url: "https://code.org/", type: "link" },
+    ]);
+    expect(parseHandoutResources("# Lesson\n\nNo resources section here.")).toEqual([]);
+  });
+});
+
+describe("resolveResources", () => {
+  it("prefers resources.md, then meta.yml sources, then the handout section", () => {
+    const md = "| s | https://a.example/ |";
+    const meta = { source: { course: "Course X", url: "https://b.example/" } };
+    const handout = "## Resources\n- C: https://c.example/";
+
+    const a = resolveResources({ resourcesMd: md, meta, handout });
+    expect(a.origin).toBe("resources");
+    expect(a.resources.map((r) => r.url)).toEqual(["https://a.example/"]);
+
+    const b = resolveResources({ resourcesMd: null, meta, handout });
+    expect(b.origin).toBe("meta");
+    expect(b.resources).toEqual([{ title: "Course X", url: "https://b.example/", type: "link" }]);
+
+    const c = resolveResources({ resourcesMd: null, meta: null, handout });
+    expect(c.origin).toBe("handout");
+    expect(c.resources).toEqual([{ title: "C", url: "https://c.example/", type: "link" }]);
+  });
+
+  it("falls through empty inputs to the next available source", () => {
+    const r = resolveResources({
+      resourcesMd: "# Resources\n\n(none yet)",
+      meta: { source: { provider: "P" } }, // no URL → no meta resources
+      handout: "## Sources\n- Home: https://home.example/",
+    });
+    expect(r.origin).toBe("handout");
+    expect(r.resources).toEqual([{ title: "Home", url: "https://home.example/", type: "link" }]);
   });
 });

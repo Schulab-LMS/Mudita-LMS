@@ -319,10 +319,11 @@ model Lesson {
   presentationContentAr String?              @db.Text
   presentationContentDe String?              @db.Text
   presentationConfig    Json?
-  // Downloadable resources / reference links, synced from the lesson folder's
-  // resources.md. Stored as a JSON array of { title, url, type } (see
-  // LessonResource in src/lib/curriculum-structure.ts). Locale-agnostic: the
-  // links are shared across languages, titles are authored in the source file.
+  // Downloadable resources / reference links, synced from the lesson folder:
+  // a resources.md list, else the meta.yml source fields, else a "Resources"
+  // section in the handout (see resolveResources in curriculum-structure.ts).
+  // Stored as a JSON array of { title, url, type } (LessonResource).
+  // Locale-agnostic: the links are shared across languages.
   resources    Json?
   videoUrl     String?
   videoAssetId String?
