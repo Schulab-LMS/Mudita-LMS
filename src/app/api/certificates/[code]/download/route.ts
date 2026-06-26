@@ -39,13 +39,15 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const course = await db.course.findUnique({
-    where: { id: cert.courseId },
-    select: { title: true },
-  });
+  // A certificate is for a course OR a bundle — resolve whichever it carries.
+  const subject = cert.bundleId
+    ? await db.bundle.findUnique({ where: { id: cert.bundleId }, select: { title: true } })
+    : cert.courseId
+      ? await db.course.findUnique({ where: { id: cert.courseId }, select: { title: true } })
+      : null;
 
   const studentName = cert.user.name || cert.user.email || "Student";
-  const courseTitle = course?.title ?? "Course";
+  const courseTitle = subject?.title ?? (cert.bundleId ? "Bundle" : "Course");
 
   // Build an absolute verification URL so the printed PDF is useful on its
   // own. Prefer the configured public origin; fall back to the request host

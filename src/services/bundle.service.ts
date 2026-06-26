@@ -213,4 +213,44 @@ export async function getBundleProgress(
   }
 }
 
+// PUBLISHED bundles that contain `courseId` and whose required courses are now
+// all COMPLETED for this user. Called after a course completes to decide which
+// bundle certificates to issue. (An all-optional bundle is gated on all its
+// courses, mirroring getBundleProgress.)
+export async function getNewlyCompletedBundleIds(
+  userId: string,
+  courseId: string
+): Promise<string[]> {
+  try {
+    const links = await db.bundleCourse.findMany({
+      where: { courseId, bundle: { status: "PUBLISHED" } },
+      select: { bundleId: true },
+    });
+    const bundleIds = [...new Set(links.map((l) => l.bundleId))];
+
+    const done: string[] = [];
+    for (const bundleId of bundleIds) {
+      const courses = await db.bundleCourse.findMany({
+        where: { bundleId },
+        select: { courseId: true, isRequired: true },
+      });
+      const required = courses.filter((c) => c.isRequired);
+      const gate = required.length > 0 ? required : courses;
+      if (gate.length === 0) continue;
+
+      const completed = await db.enrollment.count({
+        where: {
+          userId,
+          status: "COMPLETED",
+          courseId: { in: gate.map((c) => c.courseId) },
+        },
+      });
+      if (completed === gate.length) done.push(bundleId);
+    }
+    return done;
+  } catch {
+    return [];
+  }
+}
+
 export { getLocalizedField };

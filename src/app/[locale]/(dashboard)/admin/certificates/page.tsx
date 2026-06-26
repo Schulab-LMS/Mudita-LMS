@@ -33,15 +33,21 @@ export default async function AdminCertificatesPage() {
     })
     .catch(() => []);
 
-  // Fetch course info separately since Certificate model doesn't have a course relation
-  const courseIds = [...new Set(certificates.map((c) => c.courseId))];
-  const courses = await db.course
-    .findMany({
-      where: { id: { in: courseIds } },
-      select: { id: true, title: true, slug: true },
-    })
-    .catch(() => []);
+  // A certificate is for a course OR a bundle — resolve both, since Certificate
+  // has no course relation (courseId is a plain string) and a bundle relation.
+  const courseIds = [...new Set(certificates.map((c) => c.courseId).filter((id): id is string => !!id))];
+  const bundleIds = [...new Set(certificates.map((c) => c.bundleId).filter((id): id is string => !!id))];
+  const [courses, bundles] = await Promise.all([
+    db.course.findMany({ where: { id: { in: courseIds } }, select: { id: true, title: true } }).catch(() => []),
+    db.bundle.findMany({ where: { id: { in: bundleIds } }, select: { id: true, title: true } }).catch(() => []),
+  ]);
   const courseMap = new Map(courses.map((c) => [c.id, c]));
+  const bundleMap = new Map(bundles.map((b) => [b.id, b]));
+
+  const subjectFor = (cert: { courseId: string | null; bundleId: string | null }) =>
+    cert.bundleId
+      ? { kind: "Bundle", title: bundleMap.get(cert.bundleId)?.title }
+      : { kind: "Course", title: cert.courseId ? courseMap.get(cert.courseId)?.title : undefined };
 
   const dateFmt = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
@@ -51,7 +57,7 @@ export default async function AdminCertificatesPage() {
 
   // Metrics
   const uniqueStudents = new Set(certificates.map((c) => c.user.id)).size;
-  const uniqueCourses = courseIds.length;
+  const uniqueCourses = courseIds.length + bundleIds.length;
 
   return (
     <div className="space-y-6">
@@ -61,7 +67,7 @@ export default async function AdminCertificatesPage() {
           certificates.length === 1 ? "" : "s"
         } issued · ${uniqueStudents} student${
           uniqueStudents === 1 ? "" : "s"
-        } · ${uniqueCourses} course${uniqueCourses === 1 ? "" : "s"}`}
+        } · ${uniqueCourses} subject${uniqueCourses === 1 ? "" : "s"}`}
         breadcrumbs={[
           { label: "Admin", href: "/admin" },
           { label: "Certificates" },
@@ -83,7 +89,7 @@ export default async function AdminCertificatesPage() {
           tone="secondary"
         />
         <SummaryTile
-          label="Courses"
+          label="Subjects"
           value={uniqueCourses}
           icon={<ShieldCheck className="h-4 w-4" />}
           tone="success"
@@ -128,7 +134,7 @@ export default async function AdminCertificatesPage() {
                     Student
                   </th>
                   <th className="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Course
+                    Subject
                   </th>
                   <th className="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Code
@@ -146,7 +152,7 @@ export default async function AdminCertificatesPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {certificates.map((cert) => {
-                  const course = courseMap.get(cert.courseId);
+                  const subject = subjectFor(cert);
                   return (
                     <tr
                       key={cert.id}
@@ -161,9 +167,12 @@ export default async function AdminCertificatesPage() {
                         </p>
                       </td>
                       <td className="px-5 py-3 text-sm text-foreground">
-                        {course?.title || (
+                        <span className="me-2 inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          {subject.kind}
+                        </span>
+                        {subject.title || (
                           <span className="text-muted-foreground italic">
-                            Unknown course
+                            Unknown {subject.kind.toLowerCase()}
                           </span>
                         )}
                       </td>

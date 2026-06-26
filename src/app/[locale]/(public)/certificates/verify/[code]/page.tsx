@@ -137,7 +137,7 @@ export default async function VerifyCertificatePage({
                 {t("courseLabel")}
               </dt>
               <dd className="mt-1 font-display text-lg font-semibold text-foreground">
-                {cert.course?.title ?? "—"}
+                {cert.title ?? "—"}
               </dd>
             </div>
 

@@ -438,6 +438,7 @@ model Bundle {
 
   courses       BundleCourse[]
   pathwayStages PathwayStage[]
+  certificates  Certificate[]
 
   @@index([slug])
   @@index([themeCategory])
@@ -621,17 +622,28 @@ model LessonProgress {
   @@index([userId])
 }
 
+// A certificate is issued for EXACTLY ONE of a course or a bundle. courseId is
+// nullable now that bundle certificates exist; a DB CHECK (added in the
+// migration) enforces the XOR. courseId stays a plain string (no FK) to match
+// the historical model; bundleId carries a real FK to Bundle.
 model Certificate {
   id       String   @id @default(cuid())
   userId   String
-  courseId String
+  courseId String?
+  bundleId String?
   code     String   @unique
   issuedAt DateTime @default(now())
   pdfUrl   String?
   user     User     @relation(fields: [userId], references: [id])
+  bundle   Bundle?  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
 
+  // Backstops the bundle-certificate dedup race: one cert per (user, bundle).
+  // Harmless for course certs — their bundleId is NULL and Postgres treats
+  // NULLs as distinct, so it imposes no constraint on the course path.
+  @@unique([userId, bundleId])
   @@index([userId])
   @@index([code])
+  @@index([bundleId])
 }
 
 enum ActivitySubmissionStatus {

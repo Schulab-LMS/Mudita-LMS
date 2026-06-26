@@ -14,6 +14,8 @@ interface BundleGridProps {
     themeCategory: string;
     courseCount: number;
     recommendedDurationWeeks?: number | null;
+    requiredPlan?: string | null;
+    isFree?: boolean;
   }>;
 }
 

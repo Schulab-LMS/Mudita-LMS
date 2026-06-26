@@ -69,8 +69,11 @@ export default async function StudentCertificatesPage() {
               </div>
 
               <div className="space-y-3 p-5">
+                <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {cert.kind === "bundle" ? "Bundle" : "Course"}
+                </span>
                 <h3 className="line-clamp-2 font-display font-semibold leading-tight text-foreground">
-                  {cert.course.title}
+                  {cert.title}
                 </h3>
 
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

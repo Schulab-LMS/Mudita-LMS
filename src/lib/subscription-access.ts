@@ -61,3 +61,17 @@ export async function hasActivePlanAtLeast(
   if (!tier) return false;
   return tierSatisfies(tier, required);
 }
+
+// Whether a viewer may access a bundle. Free bundles (or those with no
+// requiredPlan) are open to everyone; otherwise the viewer must be signed in
+// with a subscription at or above the bundle's tier. Mirrors the course gate
+// in enrollment.actions.ts, surfaced on the bundle page rather than enforced
+// per-enrolment (the constituent courses still gate at enrolment time).
+export async function hasBundleAccess(
+  userId: string | null,
+  bundle: { isFree: boolean; requiredPlan: PlanTier | null }
+): Promise<boolean> {
+  if (bundle.isFree || !bundle.requiredPlan) return true;
+  if (!userId) return false;
+  return hasActivePlanAtLeast(userId, bundle.requiredPlan);
+}

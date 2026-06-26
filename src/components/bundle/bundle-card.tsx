@@ -1,7 +1,7 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
-import { Layers, BookOpen } from "lucide-react";
+import { Layers, BookOpen, Lock } from "lucide-react";
 import { CategoryIllustration } from "@/components/course/category-illustration";
 import {
   categoryGradients,
@@ -23,6 +23,8 @@ interface BundleCardProps {
     themeCategory: string;
     courseCount: number;
     recommendedDurationWeeks?: number | null;
+    requiredPlan?: string | null;
+    isFree?: boolean;
   };
 }
 
@@ -48,7 +50,13 @@ export function BundleCard({ bundle }: BundleCardProps) {
             <CategoryIllustration category={bundle.themeCategory} gradient={gradient} />
           )}
 
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 right-3 flex items-center gap-1.5">
+            {bundle.requiredPlan && !bundle.isFree && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/90 px-2 py-1 text-xs font-bold text-white shadow-sm backdrop-blur-sm">
+                <Lock className="h-3 w-3" />
+                {bundle.requiredPlan.charAt(0) + bundle.requiredPlan.slice(1).toLowerCase()}
+              </span>
+            )}
             <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-gray-800 shadow-sm backdrop-blur-sm">
               <Layers className="h-3.5 w-3.5" />
               Bundle

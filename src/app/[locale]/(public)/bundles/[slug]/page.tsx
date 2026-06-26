@@ -7,10 +7,12 @@ import {
   getLocalizedList,
 } from "@/services/bundle.service";
 import { auth } from "@/lib/auth";
+import { hasBundleAccess } from "@/lib/subscription-access";
+import { Link } from "@/i18n/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { CourseCard } from "@/components/course/course-card";
 import { ageGroupLabels, levelLabels } from "@/components/course/catalog-labels";
-import { BookOpen, CheckCircle2, Layers, Target, Trophy } from "lucide-react";
+import { BookOpen, CheckCircle2, Layers, Lock, Sparkles, Target, Trophy } from "lucide-react";
 
 interface BundleDetailPageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -48,6 +50,11 @@ export default async function BundleDetailPage({ params }: BundleDetailPageProps
   const progress = session?.user?.id
     ? await getBundleProgress(session.user.id, bundle)
     : null;
+
+  // Subscription-first gate: bundles surface their access requirement here;
+  // the constituent courses still enforce at enrolment time.
+  const hasAccess = await hasBundleAccess(session?.user?.id ?? null, bundle);
+  const locked = !hasAccess;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -106,6 +113,40 @@ export default async function BundleDetailPage({ params }: BundleDetailPageProps
           </div>
         )}
       </div>
+
+      {/* Access banner */}
+      {locked ? (
+        <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
+            <div>
+              <p className="font-semibold text-amber-900">
+                {bundle.requiredPlan
+                  ? `Included with a ${bundle.requiredPlan.charAt(0) + bundle.requiredPlan.slice(1).toLowerCase()} plan or higher`
+                  : "Subscription required"}
+              </p>
+              <p className="text-sm text-amber-800">
+                {session?.user
+                  ? "Upgrade your plan to unlock every course in this bundle."
+                  : "Sign in and subscribe to unlock every course in this bundle."}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/pricing"
+            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-launch-gradient px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-transform hover:-translate-y-0.5"
+          >
+            <Sparkles className="h-4 w-4" /> View plans
+          </Link>
+        </div>
+      ) : (
+        bundle.requiredPlan &&
+        !bundle.isFree && (
+          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-sm font-medium text-green-800">
+            <CheckCircle2 className="h-4 w-4" /> Included in your plan
+          </div>
+        )
+      )}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
         {/* Courses */}

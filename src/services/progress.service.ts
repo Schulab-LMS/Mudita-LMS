@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { generateCertificate } from "./certificate.service";
+import { generateCertificate, generateBundleCertificate } from "./certificate.service";
+import { getNewlyCompletedBundleIds } from "./bundle.service";
 
 export async function markLessonComplete(userId: string, lessonId: string) {
   try {
@@ -96,6 +97,18 @@ export async function recalculateProgress(userId: string, courseId: string) {
     // COMPLETE transition (generateCertificate is itself idempotent).
     if (becameComplete) {
       await generateCertificate(userId, courseId).catch(() => null);
+
+      // Completing this course may also finish a bundle it belongs to —
+      // issue a bundle certificate for each newly-completed bundle. Both the
+      // detection and generation are idempotent, so re-runs are safe.
+      // Known limitation: completion is event-driven off this course's
+      // transition, so if an admin later shrinks a bundle's required set to a
+      // subset the learner already finished, no fresh event fires and the
+      // bundle cert isn't auto-issued — it can still be granted manually.
+      const bundleIds = await getNewlyCompletedBundleIds(userId, courseId).catch(() => []);
+      for (const bundleId of bundleIds) {
+        await generateBundleCertificate(userId, bundleId).catch(() => null);
+      }
     }
 
     return progressPercent;
