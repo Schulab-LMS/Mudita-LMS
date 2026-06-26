@@ -6,9 +6,12 @@ import {
   getBundleProgress,
   getLocalizedField,
   getLocalizedList,
+  isEnrolledInBundle,
 } from "@/services/bundle.service";
 import { auth } from "@/lib/auth";
 import { hasBundleAccess } from "@/lib/subscription-access";
+import { getBundleSubmission } from "@/services/activity.service";
+import { BundleProjectSubmission } from "@/components/bundle/bundle-project-submission";
 import { getEventRecommendationsForBundle } from "@/services/event.service";
 import { CompletionEventCard } from "@/components/events/completion-event-card";
 import { Link } from "@/i18n/navigation";
@@ -63,6 +66,16 @@ export default async function BundleDetailPage({ params }: BundleDetailPageProps
   // Subscription-first gate: bundles surface their access requirement here;
   // the constituent courses still enforce at enrolment time.
   const hasAccess = await hasBundleAccess(session?.user?.id ?? null, bundle);
+
+  // Capstone submission (only when there's a final project and a signed-in
+  // user enrolled in the bundle — matches the server gate in submitBundleProject).
+  const canSubmitCapstone =
+    Boolean(session?.user?.id && finalProjectTitle) &&
+    (await isEnrolledInBundle(session!.user!.id, bundle.id));
+  const capstoneSubmission =
+    canSubmitCapstone && session?.user?.id
+      ? await getBundleSubmission(bundle.id, session.user.id)
+      : null;
   const locked = !hasAccess;
 
   const t = await getTranslations("referenceSources");
@@ -221,6 +234,22 @@ export default async function BundleDetailPage({ params }: BundleDetailPageProps
               {finalProjectDescription && (
                 <p className="mt-1 text-sm text-muted-foreground">
                   {finalProjectDescription}
+                </p>
+              )}
+              {!session?.user ? (
+                <p className="mt-4 border-t border-primary/15 pt-4 text-sm text-muted-foreground">
+                  <Link href="/register" className="font-semibold text-primary hover:underline">
+                    Sign in
+                  </Link>{" "}
+                  to submit your project for this bundle.
+                </p>
+              ) : canSubmitCapstone ? (
+                <div className="mt-4 border-t border-primary/15 pt-4">
+                  <BundleProjectSubmission bundleId={bundle.id} existing={capstoneSubmission} />
+                </div>
+              ) : (
+                <p className="mt-4 border-t border-primary/15 pt-4 text-sm text-muted-foreground">
+                  Enrol in one of this bundle&apos;s courses to submit your final project.
                 </p>
               )}
             </div>

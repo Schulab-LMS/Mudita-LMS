@@ -22,6 +22,7 @@ import {
 import { hasActivePlanAtLeast } from "@/lib/subscription-access";
 import { assertSameTenant } from "@/lib/tenant";
 import { enrollUser } from "@/services/enrollment.service";
+import { getUnmetPrerequisites } from "@/services/prerequisite.service";
 import { sendEnrollmentConfirmation } from "@/lib/email";
 
 export async function addChildAccount(data: {
@@ -396,6 +397,17 @@ export async function enrollChildInCourse(input: {
               ? "Please add the child's date of birth before enrolling"
               : "Please grant parental consent for this child before enrolling",
       };
+    }
+
+    // Prerequisite gate, checked against the CHILD's completed courses.
+    const unmet = await getUnmetPrerequisites(parsed.data.childId, parsed.data.courseId);
+    if (unmet.length > 0) {
+      const titles = unmet.map((c) => c.title);
+      const list =
+        titles.length === 1
+          ? `"${titles[0]}"`
+          : `${titles.slice(0, -1).map((t) => `"${t}"`).join(", ")} and "${titles[titles.length - 1]}"`;
+      return { success: false, error: `Your child must complete ${list} before enrolling in this course` };
     }
 
     const enrollment = await enrollUser(parsed.data.childId, parsed.data.courseId);

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getCourseBySlug, getLocalizedField } from "@/services/course.service";
+import { getCompletedCourseIds } from "@/services/prerequisite.service";
 import { listApprovedReviews } from "@/services/review.service";
 import { getEventRecommendationsForCourse } from "@/services/event.service";
 import { CompletionEventCard } from "@/components/events/completion-event-card";
@@ -44,6 +45,7 @@ import {
   ChevronDown,
   Play,
   CheckCircle2,
+  Lock,
   GraduationCap,
   Globe,
   Shield,
@@ -150,6 +152,20 @@ export default async function CourseDetailPage({
       // graceful degradation
     }
   }
+
+  // Prerequisites (only PUBLISHED ones are shown/enforced). Compute the
+  // viewer's completion so the section can show met/unmet ticks and the enrol
+  // button can be gated. Mirrors the server gate in enrollInCourse.
+  const prereqCourses = course.prerequisites
+    .map((p) => p.prerequisite)
+    .filter((p) => p.status === "PUBLISHED");
+  const completedPrereqIds =
+    session?.user && prereqCourses.length > 0
+      ? await getCompletedCourseIds(session.user.id, prereqCourses.map((p) => p.id))
+      : new Set<string>();
+  const unmetPrereqCount = session?.user
+    ? prereqCourses.filter((p) => !completedPrereqIds.has(p.id)).length
+    : prereqCourses.length;
 
   // Events this course helps prepare a learner for (completion-page surface).
   const eventRecs = await getEventRecommendationsForCourse(course.id);
@@ -410,6 +426,7 @@ export default async function CourseDetailPage({
                   firstLessonId={firstLessonId}
                   isFree={isFreeCourse}
                   enrollmentStatus={enrollmentStatus}
+                  unmetPrerequisiteCount={unmetPrereqCount}
                 />
               ) : (
                 <Link
@@ -590,6 +607,42 @@ export default async function CourseDetailPage({
           t={t}
         />
 
+        {/* Prerequisites — courses to finish before enrolling. */}
+        {prereqCourses.length > 0 && (
+          <section className="mt-12">
+            <h2 className="mb-4 text-xl font-bold">Before you start</h2>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Complete {prereqCourses.length === 1 ? "this course" : "these courses"} first to unlock this one.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {prereqCourses.map((p) => {
+                const done = completedPrereqIds.has(p.id);
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/courses/${p.slug}`}
+                    className="group flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-elev"
+                  >
+                    {done ? (
+                      <CheckCircle2 className="h-5 w-5 shrink-0 text-green-500" aria-hidden />
+                    ) : (
+                      <Lock className="h-5 w-5 shrink-0 text-amber-500" aria-hidden />
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold leading-tight transition-colors group-hover:text-primary">
+                        {getLocalizedField(p, "title", locale)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {done ? "Completed" : "Not completed yet"}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Next recommended course — the admin-set linear progression. */}
         {course.nextCourse && (
           <section className="mt-12">
@@ -693,6 +746,7 @@ export default async function CourseDetailPage({
             firstLessonId={firstLessonId}
             isFree={isFreeCourse}
             enrollmentStatus={enrollmentStatus}
+            unmetPrerequisiteCount={unmetPrereqCount}
           />
         ) : (
           <Link

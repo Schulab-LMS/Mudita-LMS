@@ -257,4 +257,21 @@ export async function getNewlyCompletedBundleIds(
   }
 }
 
+// True if the user is enrolled in at least one of the bundle's courses. Used
+// to gate capstone submission — a portfolio project is for a learner actually
+// working through the bundle, not any logged-in visitor.
+export async function isEnrolledInBundle(
+  userId: string,
+  bundleId: string
+): Promise<boolean> {
+  try {
+    const count = await db.enrollment.count({
+      where: { userId, course: { bundleLinks: { some: { bundleId } } } },
+    });
+    return count > 0;
+  } catch {
+    return false;
+  }
+}
+
 export { getLocalizedField };

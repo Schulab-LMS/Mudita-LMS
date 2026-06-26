@@ -31,6 +31,8 @@ import {
   Layers,
   Map,
   Sparkles,
+  Briefcase,
+  Inbox,
 } from "lucide-react";
 import { SchulabLogo } from "@/components/brand/schulab-logo";
 import { PreviewSwitcher } from "@/components/layout/preview-switcher";
@@ -60,6 +62,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Layers,
   Map,
   Sparkles,
+  Briefcase,
+  Inbox,
 };
 
 interface SidebarProps {

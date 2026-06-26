@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { isInPreviewMode, PREVIEW_WRITE_BLOCKED_MESSAGE } from "@/lib/view-as.server";
 import { sanitizeText } from "@/lib/sanitize";
+import { isEnrolledInBundle } from "@/services/bundle.service";
+import { submitBundleProjectSchema } from "@/validators/action.schemas";
 
 const MAX_LEN = 5000;
 
@@ -56,6 +58,55 @@ export async function submitActivity(data: {
   return { success: true };
 }
 
+// Student submits (or updates) their capstone/portfolio project for a bundle.
+// One submission per (student, bundle); resubmitting resets it to SUBMITTED.
+export async function submitBundleProject(data: { bundleId: string; content: string }) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+
+  if (await isInPreviewMode()) {
+    return { success: false, error: PREVIEW_WRITE_BLOCKED_MESSAGE };
+  }
+
+  const parsed = submitBundleProjectSchema.safeParse(data);
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+  const content = sanitizeText(parsed.data.content).slice(0, MAX_LEN);
+  if (!content) return { success: false, error: "Write something before submitting" };
+
+  const bundle = await db.bundle.findUnique({
+    where: { id: parsed.data.bundleId },
+    select: { id: true },
+  });
+  if (!bundle) return { success: false, error: "Bundle not found" };
+
+  // Capstones are for learners working through the bundle — require enrolment
+  // in at least one of its courses.
+  if (!(await isEnrolledInBundle(session.user.id, parsed.data.bundleId))) {
+    return { success: false, error: "Enrol in this bundle's courses before submitting its project" };
+  }
+
+  await db.activitySubmission.upsert({
+    where: { studentId_bundleId: { studentId: session.user.id, bundleId: parsed.data.bundleId } },
+    create: {
+      bundleId: parsed.data.bundleId,
+      studentId: session.user.id,
+      content,
+      status: "SUBMITTED",
+    },
+    update: {
+      content,
+      status: "SUBMITTED",
+      feedback: null,
+      feedbackById: null,
+      feedbackAt: null,
+    },
+  });
+
+  revalidatePath("/student/portfolio");
+  return { success: true };
+}
+
 // Tutor (with a booking for this student+lesson) or admin leaves feedback.
 export async function giveActivityFeedback(submissionId: string, feedback: string) {
   const session = await auth();
@@ -71,8 +122,10 @@ export async function giveActivityFeedback(submissionId: string, feedback: strin
   if (!submission) return { success: false, error: "Submission not found" };
 
   let authorized = isAdminRole(session.user.role);
-  if (!authorized) {
-    // Must be a tutor with a booking for this student on this lesson.
+  if (!authorized && submission.lessonId) {
+    // Lesson submissions: a tutor with a booking for this student on this
+    // lesson may review. Bundle capstone submissions (lessonId null) have no
+    // lesson booking, so they're admin-review-only.
     const booking = await db.booking.findFirst({
       where: {
         studentId: submission.studentId,

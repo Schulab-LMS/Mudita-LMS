@@ -82,7 +82,9 @@
     "quizzes": "Quizze",
     "learn": "Lernen",
     "language": "Sprache",
-    "account": "Konto"
+    "account": "Konto",
+    "portfolio": "Portfolio",
+    "bundleSubmissions": "Abschlussprojekte"
   },
   "help": {
     "title": "Hilfezentrum",

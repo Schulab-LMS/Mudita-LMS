@@ -163,6 +163,13 @@ export default async function CourseDetailPage({
               </Link>
             )}
             <Link
+              href={`/admin/courses/${course.id}/prerequisites`}
+              className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-input px-3 text-xs font-semibold transition-colors hover:bg-muted"
+            >
+              <GitBranch className="h-3.5 w-3.5" aria-hidden />
+              Prerequisites
+            </Link>
+            <Link
               href={`/admin/courses/${course.id}/edit`}
               className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
             >

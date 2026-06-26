@@ -662,3 +662,25 @@ export const reorderPathwayStagesSchema = z.object({
   pathwayId: cuidSchema,
   stageIds: z.array(cuidSchema),
 });
+
+// ── Course prerequisites ─────────────────────────────────────────────────
+
+export const addPrerequisiteSchema = z
+  .object({
+    courseId: cuidSchema,
+    prerequisiteId: cuidSchema,
+  })
+  .refine((d) => d.courseId !== d.prerequisiteId, {
+    message: "A course can't be its own prerequisite",
+  });
+
+export const removePrerequisiteSchema = z.object({
+  prerequisiteRowId: cuidSchema,
+});
+
+// ── Bundle capstone submissions ──────────────────────────────────────────
+
+export const submitBundleProjectSchema = z.object({
+  bundleId: cuidSchema,
+  content: z.string().min(1, "Write something before submitting").max(5000),
+});

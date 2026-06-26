@@ -28,6 +28,7 @@ const adminItems: NavItem[] = [
   { href: "/admin/events", labelKey: "nav.events", icon: "Sparkles" },
   { href: "/admin/competitions", labelKey: "nav.competitions", icon: "Trophy" },
   { href: "/admin/certificates", labelKey: "nav.certificates", icon: "GraduationCap" },
+  { href: "/admin/bundle-submissions", labelKey: "nav.bundleSubmissions", icon: "Inbox" },
   { href: "/admin/badges", labelKey: "nav.badges", icon: "Award" },
   { href: "/admin/pages", labelKey: "nav.pages", icon: "FileText" },
   { href: "/admin/help", labelKey: "nav.helpArticles", icon: "HelpCircle" },
@@ -41,6 +42,7 @@ export const dashboardNavItems: Record<Role, NavItem[]> = {
   STUDENT: [
     { href: "/student", labelKey: "nav.dashboard", icon: "LayoutDashboard" },
     { href: "/student/courses", labelKey: "nav.myCourses", icon: "BookOpen" },
+    { href: "/student/portfolio", labelKey: "nav.portfolio", icon: "Briefcase" },
     { href: "/student/badges", labelKey: "nav.badges", icon: "Award" },
     { href: "/student/certificates", labelKey: "nav.certificates", icon: "GraduationCap" },
     { href: "/student/bookings", labelKey: "nav.bookings", icon: "Calendar" },

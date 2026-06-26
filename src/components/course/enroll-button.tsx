@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { enrollInCourse } from "@/actions/enrollment.actions";
-import { Loader2, Play, CheckCircle2, Sparkles } from "lucide-react";
+import { Loader2, Play, CheckCircle2, Sparkles, Lock } from "lucide-react";
 
 interface EnrollButtonProps {
   courseId: string;
@@ -11,6 +11,9 @@ interface EnrollButtonProps {
   firstLessonId?: string;
   isFree: boolean;
   enrollmentStatus?: "ACTIVE" | "COMPLETED" | null;
+  // Number of unmet prerequisites; when > 0 (and not already enrolled) the
+  // enrol button is locked and points the learner to the prerequisites.
+  unmetPrerequisiteCount?: number;
 }
 
 export function EnrollButton({
@@ -19,6 +22,7 @@ export function EnrollButton({
   firstLessonId,
   isFree,
   enrollmentStatus,
+  unmetPrerequisiteCount = 0,
 }: EnrollButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +66,22 @@ export function EnrollButton({
             Review Course
           </button>
         )}
+      </div>
+    );
+  }
+
+  // Not enrolled, but prerequisites are unmet — lock enrolment and direct the
+  // learner to finish the prerequisites first (the server enforces this too).
+  if (unmetPrerequisiteCount > 0) {
+    return (
+      <div className="space-y-2">
+        <div className="flex w-full items-center justify-center gap-2 rounded-lg bg-amber-100 px-4 py-2.5 text-sm font-medium text-amber-800">
+          <Lock className="h-4 w-4" />
+          Complete {unmetPrerequisiteCount} prerequisite{unmetPrerequisiteCount === 1 ? "" : "s"} first
+        </div>
+        <p className="text-center text-xs text-muted-foreground">
+          See the prerequisites below to unlock this course.
+        </p>
       </div>
     );
   }

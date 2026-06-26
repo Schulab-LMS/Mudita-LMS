@@ -211,6 +211,15 @@ export async function getCourseBySlug(
             category: true,
           },
         },
+        // Prerequisite courses (must be completed before enrolling). Minimal
+        // projection for the "Prerequisites" section + enrol gating.
+        prerequisites: {
+          include: {
+            prerequisite: {
+              select: { id: true, slug: true, title: true, titleAr: true, titleDe: true, thumbnail: true, status: true },
+            },
+          },
+        },
         // Credited external reference sources, ordered for badge display.
         referenceSources: {
           orderBy: { order: "asc" },

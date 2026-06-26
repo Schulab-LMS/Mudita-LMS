@@ -20,6 +20,16 @@ import { db } from "@/lib/db";
 import { assertMinorConsent } from "@/lib/compliance";
 import { hasActivePlanAtLeast } from "@/lib/subscription-access";
 import { assertSameTenant } from "@/lib/tenant";
+import { getUnmetPrerequisites } from "@/services/prerequisite.service";
+
+// Builds the "complete X and Y first" message for an unmet-prerequisite block.
+function prerequisiteError(titles: string[]): string {
+  const list =
+    titles.length === 1
+      ? `"${titles[0]}"`
+      : `${titles.slice(0, -1).map((t) => `"${t}"`).join(", ")} and "${titles[titles.length - 1]}"`;
+  return `Complete ${list} before enrolling in this course`;
+}
 
 export async function enrollInCourse(courseId: string) {
   try {
@@ -109,6 +119,13 @@ export async function enrollInCourse(courseId: string) {
               ? "Please add your date of birth to your profile before enrolling"
               : "Parental consent is required before enrolling",
       };
+    }
+
+    // Prerequisite gate: every PUBLISHED prerequisite course must be COMPLETED
+    // first. Admin enrolment (adminEnrollUser) bypasses this.
+    const unmet = await getUnmetPrerequisites(session.user.id, parsed.data.courseId);
+    if (unmet.length > 0) {
+      return { success: false, error: prerequisiteError(unmet.map((c) => c.title)) };
     }
 
     const enrollment = await enrollUser(session.user.id, parsed.data.courseId);

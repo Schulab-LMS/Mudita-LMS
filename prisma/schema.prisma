@@ -289,6 +289,12 @@ model Course {
   nextCourse   Course?  @relation("CourseProgression", fields: [nextCourseId], references: [id], onDelete: SetNull)
   prevCourses  Course[] @relation("CourseProgression")
 
+  // Course prerequisites (many-to-many self-relation via CoursePrerequisite).
+  // `prerequisites` = courses that must be completed before enrolling in this
+  // one; `requiredFor` = courses that list this course as a prerequisite.
+  prerequisites CoursePrerequisite[] @relation("CourseRequires")
+  requiredFor   CoursePrerequisite[] @relation("CoursePrereqOf")
+
   modules     Module[]
   enrollments Enrollment[]
   reviews     CourseReview[]
@@ -316,6 +322,22 @@ model Course {
   @@index([organizationId])
   @@index([nextCourseId])
   @@index([contentStatus])
+}
+
+// Explicit many-to-many self-relation: a course requires N prerequisite
+// courses. A DB CHECK (added in the migration) prevents a course from listing
+// itself. Enrolment is blocked until every prerequisite is COMPLETED — see
+// getUnmetPrerequisites + the gate in enrollInCourse.
+model CoursePrerequisite {
+  id             String @id @default(cuid())
+  courseId       String
+  prerequisiteId String
+  course         Course @relation("CourseRequires", fields: [courseId], references: [id], onDelete: Cascade)
+  prerequisite   Course @relation("CoursePrereqOf", fields: [prerequisiteId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, prerequisiteId])
+  @@index([courseId])
+  @@index([prerequisiteId])
 }
 
 model Module {
@@ -470,6 +492,7 @@ model Bundle {
   courses       BundleCourse[]
   pathwayStages PathwayStage[]
   certificates  Certificate[]
+  submissions   ActivitySubmission[]
 
   // External reference sources credited on the bundle page.
   referenceSources BundleReferenceSource[]
@@ -769,9 +792,14 @@ enum ActivitySubmissionStatus {
 
 // A student's response to a lesson's hands-on activity, plus the tutor's
 // feedback. One submission per (student, lesson); resubmitting updates it.
+// A student's response to a lesson activity OR a bundle capstone (portfolio).
+// Exactly one of (lessonId, bundleId) is set — a DB CHECK enforces the XOR.
+// The two partial unique indexes give "one submission per (student, lesson)"
+// and "one per (student, bundle)" while NULLs on the other side stay distinct.
 model ActivitySubmission {
   id           String                   @id @default(cuid())
-  lessonId     String
+  lessonId     String?
+  bundleId     String?
   studentId    String
   bookingId    String?
   content      String                   @db.Text
@@ -782,11 +810,14 @@ model ActivitySubmission {
   createdAt    DateTime                 @default(now())
   updatedAt    DateTime                 @updatedAt
 
-  lesson  Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  student User   @relation("StudentSubmissions", fields: [studentId], references: [id])
+  lesson  Lesson? @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  bundle  Bundle? @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  student User    @relation("StudentSubmissions", fields: [studentId], references: [id])
 
   @@unique([studentId, lessonId])
+  @@unique([studentId, bundleId])
   @@index([lessonId])
+  @@index([bundleId])
   @@index([bookingId])
 }
 

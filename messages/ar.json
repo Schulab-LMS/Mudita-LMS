@@ -82,7 +82,9 @@
     "quizzes": "الاختبارات",
     "learn": "تعلّم",
     "language": "اللغة",
-    "account": "الحساب"
+    "account": "الحساب",
+    "portfolio": "معرض الأعمال",
+    "bundleSubmissions": "المشاريع الختامية"
   },
   "help": {
     "title": "مركز المساعدة",
