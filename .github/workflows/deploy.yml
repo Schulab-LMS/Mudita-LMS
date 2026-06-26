@@ -218,6 +218,19 @@ jobs:
               ${{ env.IMAGE }}:${IMAGE_TAG} \
               npx prisma migrate deploy
 
+            # Catalog content (reference sources, course master list, bundles,
+            # pathways + links). Production-safe — seeds ONLY catalog data, never
+            # demo users. Idempotent (upsert + replace-children). Non-fatal so a
+            # seed hiccup can never block shipping app code or trigger rollback;
+            # re-runs every deploy. Look for "✅ Catalog seeded — …" in the log.
+            echo "==> Seeding catalog (production-safe, idempotent)"
+            docker run --rm \
+              --network mudita-lms_default \
+              --env-file .env \
+              ${{ env.IMAGE }}:${IMAGE_TAG} \
+              npx tsx prisma/seed-catalog.standalone.ts \
+              || echo "!! Catalog seed failed (non-fatal) — check logs above; safe to re-run"
+
             echo "==> Force-recreating web container at ${IMAGE_TAG}"
             docker compose up -d --force-recreate --remove-orphans web
 
