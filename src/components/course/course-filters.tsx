@@ -3,7 +3,6 @@
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Search } from "lucide-react";
 import { useCallback } from "react";
 import { AGE_GROUPS } from "@/lib/constants";
 
@@ -62,17 +61,7 @@ export function CourseFilters({
 
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-soft">
-      {/* Search */}
-      <div className="relative min-w-[200px] flex-1">
-        <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-        <input
-          type="search"
-          placeholder={t("searchPlaceholder")}
-          defaultValue={searchParams.get("q") ?? ""}
-          onChange={(e) => updateParam("q", e.target.value)}
-          className="input-pretty h-10 w-full rounded-lg border border-input bg-background py-2 ps-9 pe-3 text-sm focus-visible:outline-none"
-        />
-      </div>
+      {/* Search lives in the page hero (single search bar); filters only here. */}
 
       {/* Age Group */}
       <select
