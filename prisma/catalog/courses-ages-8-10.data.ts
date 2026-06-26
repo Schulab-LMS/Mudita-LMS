@@ -25,7 +25,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Build an animated scene in Scratch where a character responds to clicks and key presses with movement, sound, and dialogue.",
     referenceKeys: ["scratch", "code-org", "tynker"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -71,7 +71,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Create a complete arcade-style game in Scratch with a player sprite, obstacles, a score counter, and a win or lose condition.",
     referenceKeys: ["scratch", "tynker", "makecode"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -117,7 +117,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Design and solve your own multi-step coding puzzle, then explain the step-by-step plan you used to crack it.",
     referenceKeys: ["code-org", "raspberry-pi"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -163,7 +163,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Combine your three favourite challenge projects into a single showcase that visitors can click through and explore.",
     referenceKeys: ["scratch", "code-club", "raspberry-pi"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -209,7 +209,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Plan, build, and present an original Scratch project of your own design, then explain how you made it and what you learned.",
     referenceKeys: ["scratch", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -255,7 +255,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Code a character that the player can move in every direction with the keyboard, including running, turning, and jumping.",
     referenceKeys: ["scratch", "makecode"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -301,7 +301,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Build a game that uses events and if-then rules to award points, trigger reactions, and decide when the player wins.",
     referenceKeys: ["scratch", "makecode"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -347,7 +347,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Create a game with at least three levels, each with its own backdrop and a rising challenge that leads to a final win.",
     referenceKeys: ["scratch", "makecode"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -393,7 +393,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Finish, polish, and present an original game, gathering feedback from playtesters and sharing what you learned.",
     referenceKeys: ["scratch", "code-club"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -439,7 +439,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Build a menu that links to three different mini-projects you created, showing off your range of coding skills.",
     referenceKeys: ["scratch", "raspberry-pi", "code-club"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -485,7 +485,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Follow the build steps to create your own finished game with a player, a goal, sound, and a way to win.",
     referenceKeys: ["scratch", "makecode", "code-club"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -531,7 +531,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Create an interactive showcase that links to your best projects and includes a short reflection on what you learned.",
     referenceKeys: ["raspberry-pi", "code-club", "scratch"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -577,7 +577,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Plan and build a complete beginner project that uses sequencing, loops, and events, then share it with your class.",
     referenceKeys: ["scratchjr", "scratch", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -623,7 +623,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Build an interactive music project where different keys and clicks play sounds, beats, and melodies you choose.",
     referenceKeys: ["scratch", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -669,7 +669,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Create an interactive digital artwork that combines animation, sound, and user interaction, then present it to others.",
     referenceKeys: ["scratch", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -715,7 +715,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Build a game that challenges players to spot, continue, or create number and shape patterns to score points.",
     referenceKeys: ["ck12", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -761,7 +761,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Use the engineering design process to plan, build, and improve a digital solution to a problem you choose.",
     referenceKeys: ["code-org", "smithsonian-ssec"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -807,7 +807,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
     finalProjectDescription:
       "Run a virtual experiment using an online simulation, record your results, and create a digital report of your findings.",
     referenceKeys: ["phet", "ck12", "smithsonian-ssec"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -881,6 +881,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
       "Write and code an animated multi-scene story with characters that move, talk, and react across the stage.",
     referenceKeys: ["scratch", "code-org"],
     existing: true,
+    status: "PUBLISHED",
     contentStatus: "NEEDS_REVIEW",
     adminNotes:
       "Maps to master 'Scratch Animation Studio'. DRAFT placeholder pending curriculum.",
@@ -966,6 +967,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
       "Choose a science question, explore it using an online simulation, and present what you discovered.",
     referenceKeys: ["phet", "ck12"],
     existing: true,
+    status: "PUBLISHED",
     contentStatus: "NEEDS_REVIEW",
     adminNotes: "Maps to master 'Digital STEM Challenges'. DRAFT placeholder.",
   },
@@ -994,6 +996,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
       "Use block-based code to program a simulated robot to complete a multi-step challenge course.",
     referenceKeys: ["makecode", "microbit", "create-learn"],
     existing: true,
+    status: "PUBLISHED",
     contentStatus: "NEEDS_REVIEW",
     adminNotes: "DRAFT placeholder. Simulator-first, no hardware.",
   },
@@ -1022,6 +1025,7 @@ export const COURSES_AGES_8_10: CatalogCourse[] = [
       "Design a small pack of logic puzzles for others to solve, then explain the reasoning behind each one.",
     referenceKeys: ["code-org", "raspberry-pi"],
     existing: true,
+    status: "PUBLISHED",
     contentStatus: "NEEDS_REVIEW",
     adminNotes:
       "Maps to master 'Logic Puzzles and Problem Solving'. DRAFT placeholder.",

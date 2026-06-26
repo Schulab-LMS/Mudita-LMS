@@ -107,6 +107,11 @@ export async function seedCatalog(db: PrismaClient, adminId: string) {
         update.status = c.status ?? "DRAFT";
         update.isFree = c.isFree ?? false;
         update.requiredPlan = (c.requiredPlan ?? null) as PlanTier | null;
+      } else if (c.status) {
+        // Existing courses keep their lifecycle UNLESS the data explicitly sets
+        // a status (used to publish the former DRAFT placeholder courses).
+        // Real base courses omit `status` and are left untouched.
+        update.status = c.status;
       }
       await db.course.update({ where: { id: existingRow.id }, data: update });
       courseIdBySlug.set(c.slug, existingRow.id);

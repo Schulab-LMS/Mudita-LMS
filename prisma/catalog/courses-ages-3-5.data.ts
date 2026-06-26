@@ -21,7 +21,7 @@ export const COURSES_AGES_3_5: CatalogCourse[] = [
     referenceKeys: ["code-org", "scratchjr"],
     isFree: true,
     contentStatus: "SEED_NOW",
-    status: "DRAFT",
+    status: "PUBLISHED",
     nextSlug: "pre-coding-sequencing-games",
     modules: [
       {
@@ -63,7 +63,7 @@ export const COURSES_AGES_3_5: CatalogCourse[] = [
     referenceKeys: ["scratchjr", "code-org"],
     requiredPlan: "LEARNER",
     contentStatus: "SEED_NOW",
-    status: "DRAFT",
+    status: "PUBLISHED",
     modules: [
       {
         title: "Meet the Characters",
@@ -104,7 +104,7 @@ export const COURSES_AGES_3_5: CatalogCourse[] = [
     referenceKeys: ["code-org", "natgeo-kids"],
     requiredPlan: "LEARNER",
     contentStatus: "SEED_NOW",
-    status: "DRAFT",
+    status: "PUBLISHED",
     modules: [
       {
         title: "Wonder All Around",
@@ -145,7 +145,7 @@ export const COURSES_AGES_3_5: CatalogCourse[] = [
     referenceKeys: ["code-org", "scratchjr"],
     requiredPlan: "LEARNER",
     contentStatus: "SEED_NOW",
-    status: "DRAFT",
+    status: "PUBLISHED",
     prereqSlug: "digital-discovery-shapes-patterns-logic",
     modules: [
       {
@@ -187,7 +187,7 @@ export const COURSES_AGES_3_5: CatalogCourse[] = [
     referenceKeys: ["code-org"],
     requiredPlan: "LEARNER",
     contentStatus: "SEED_NOW",
-    status: "DRAFT",
+    status: "PUBLISHED",
     modules: [
       {
         title: "Colors and Brushes",
@@ -228,7 +228,7 @@ export const COURSES_AGES_3_5: CatalogCourse[] = [
     referenceKeys: ["code-org", "nasa-space-place", "natgeo-kids"],
     requiredPlan: "LEARNER",
     contentStatus: "SEED_NOW",
-    status: "DRAFT",
+    status: "PUBLISHED",
     modules: [
       {
         title: "Wonders of the World",

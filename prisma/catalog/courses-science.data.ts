@@ -28,7 +28,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Children create a digital notebook of their favourite space facts and activities discovered on NASA Space Place and ESA Kids.",
     referenceKeys: ["nasa-space-place", "esa-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -74,7 +74,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Children build a simple digital tour of the planets, sharing one amazing fact about each using NASA and ESA activities.",
     referenceKeys: ["nasa-space-place", "esa-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -120,7 +120,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Children assemble a digital picture-story of Earth from space, labelling features they discovered in NASA, ESA, and Nat Geo activities.",
     referenceKeys: ["nasa-space-place", "esa-kids", "natgeo-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -166,7 +166,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Children complete a series of NASA Space Place games and challenges and record the badges and facts they earned along the way.",
     referenceKeys: ["nasa-space-place"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -212,7 +212,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Children pick a favourite real space mission and build a simple digital logbook of its goals and discoveries using ESA Kids and NASA resources.",
     referenceKeys: ["esa-kids", "nasa-space-place"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -263,7 +263,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners create a digital field guide comparing several planets, moons, and space objects using data from NASA and ESA activities.",
     referenceKeys: ["nasa-space-place", "esa-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -310,7 +310,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners produce a digital explainer showing how energy travels from the Sun to Earth, drawing on NASA and ESA activities.",
     referenceKeys: ["nasa-space-place", "esa-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -357,7 +357,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners design a digital poster explaining how Earth's tilt creates seasons and how space weather affects our planet, using NASA and ESA activities.",
     referenceKeys: ["nasa-space-place", "esa-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -404,7 +404,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners design a digital plan for a Mars rover mission, choosing goals and instruments based on real NASA and ESA activities.",
     referenceKeys: ["nasa-space-place", "esa-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -451,7 +451,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners create a digital explainer tracing how a signal travels from a spacecraft back to Earth, using NASA and ESA activities.",
     referenceKeys: ["nasa-space-place", "esa-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -498,7 +498,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners build a digital calendar of upcoming sky events with explanations of eclipses and Moon phases drawn from NASA and ESA activities.",
     referenceKeys: ["nasa-space-place", "esa-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -545,7 +545,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners create a digital tour journeying from our Sun to distant galaxies, using NASA, ESA, and Nat Geo activities.",
     referenceKeys: ["nasa-space-place", "esa-kids", "natgeo-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -592,7 +592,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners create a digital guide comparing meteors, asteroids, and comets using facts from NASA and ESA activities.",
     referenceKeys: ["nasa-space-place", "esa-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -639,7 +639,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners complete several NASA digital STEM activities and assemble their results into a reflective online portfolio.",
     referenceKeys: ["nasa-space-place"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -686,7 +686,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners plan, research, and present an original digital space science project of their choice using NASA and ESA activities.",
     referenceKeys: ["nasa-space-place", "esa-kids"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -737,7 +737,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners choose a PhET simulation, run a guided investigation, and report their findings using CK-12 support.",
     referenceKeys: ["phet", "ck12"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -784,7 +784,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners use a PhET forces and motion simulation to test how a variable changes movement and report their results with CK-12 support.",
     referenceKeys: ["phet", "ck12"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -831,7 +831,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners design and test a working circuit in a PhET simulation and explain how energy moves through it using CK-12 support.",
     referenceKeys: ["phet", "ck12"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -878,7 +878,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners use PhET wave simulations to investigate how a property changes light or sound and report their findings with CK-12 support.",
     referenceKeys: ["phet", "ck12"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -925,7 +925,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners use PhET chemistry simulations to build molecules and explore a reaction, then report their findings with CK-12 support.",
     referenceKeys: ["phet", "ck12"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -972,7 +972,7 @@ export const COURSES_SCIENCE: CatalogCourse[] = [
     finalProjectDescription:
       "Learners use a digital simulation to investigate an Earth system and present their findings using CK-12 and Smithsonian Science resources.",
     referenceKeys: ["phet", "ck12", "smithsonian-ssec"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [

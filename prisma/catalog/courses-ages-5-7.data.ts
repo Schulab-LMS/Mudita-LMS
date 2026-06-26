@@ -25,7 +25,7 @@ export const COURSES_AGES_5_7: CatalogCourse[] = [
     finalProjectDescription:
       "Children create a short animated scene where their chosen characters move and react to taps.",
     referenceKeys: ["scratchjr", "tynker"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -72,7 +72,7 @@ export const COURSES_AGES_5_7: CatalogCourse[] = [
     finalProjectDescription:
       "Learners build a program that uses a loop to make characters repeat a fun dance.",
     referenceKeys: ["scratchjr", "code-org", "tynker"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -118,7 +118,7 @@ export const COURSES_AGES_5_7: CatalogCourse[] = [
     finalProjectDescription:
       "Children create a playable mini game where tapping a character makes something fun happen.",
     referenceKeys: ["scratchjr", "tynker"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -164,7 +164,7 @@ export const COURSES_AGES_5_7: CatalogCourse[] = [
     finalProjectDescription:
       "Children produce a multi-scene animated story with characters that talk and move.",
     referenceKeys: ["scratchjr", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -211,7 +211,7 @@ export const COURSES_AGES_5_7: CatalogCourse[] = [
     finalProjectDescription:
       "Children present a finished interactive ScratchJr story, animation, or simple game of their own design.",
     referenceKeys: ["scratchjr", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "LEARNER",
     modules: [
@@ -258,6 +258,7 @@ export const COURSES_AGES_5_7: CatalogCourse[] = [
       "Children create a short animated story with a character that moves from one scene to the next.",
     referenceKeys: ["scratchjr", "code-org", "tynker"],
     existing: true,
+    status: "PUBLISHED",
     contentStatus: "NEEDS_REVIEW",
     adminNotes:
       "Maps to master course 'ScratchJr Starter: Create Your First Story'. Currently a DRAFT placeholder pending curriculum.",
@@ -424,6 +425,7 @@ export const COURSES_AGES_5_7: CatalogCourse[] = [
       "Children create a colourful interactive artwork that blends drawing with simple coding.",
     referenceKeys: ["scratch", "tynker", "code-org"],
     existing: true,
+    status: "PUBLISHED",
     contentStatus: "NEEDS_REVIEW",
     adminNotes: "DRAFT placeholder pending curriculum.",
   },

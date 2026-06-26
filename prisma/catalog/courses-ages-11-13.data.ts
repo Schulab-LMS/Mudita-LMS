@@ -26,7 +26,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Design a block-based puzzle game that uses loops, variables, and at least three conditional rules to challenge a player.",
     referenceKeys: ["scratch", "code-org", "makecode"],
     requiredPlan: "LEARNER",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -72,7 +72,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Create a playable game with at least two levels, a working score system, and clear win and lose conditions.",
     referenceKeys: ["makecode", "scratch", "tynker"],
     requiredPlan: "LEARNER",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -118,7 +118,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Train a simple browser-based AI model to classify images or text and explain how the training data shaped its results.",
     referenceKeys: ["code-org", "create-learn", "tynker"],
     requiredPlan: "PRO",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -164,7 +164,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Build a single web page about yourself using headings, a list, an image, and at least one working link.",
     referenceKeys: ["khan-computing", "code-org"],
     requiredPlan: "LEARNER",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -210,7 +210,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Design and build a working app prototype that solves a real problem you identified through user research.",
     referenceKeys: ["app-inventor", "code-org"],
     requiredPlan: "LEARNER",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -256,7 +256,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Build a capstone project that combines a coded element, a science concept, and an engineering idea, then present how they connect.",
     referenceKeys: ["code-org", "phet", "nasa-space-place"],
     requiredPlan: "LEARNER",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -302,7 +302,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Create a small gallery of AI-assisted artworks and write about how you guided the tools and what made each piece your own.",
     referenceKeys: ["create-learn", "tynker"],
     requiredPlan: "PRO",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -348,7 +348,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Gather a small dataset, identify a pattern, and use a browser-based tool to make and test a prediction from it.",
     referenceKeys: ["code-org", "create-learn", "tynker"],
     requiredPlan: "PRO",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -394,7 +394,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Write and illustrate a charter of rules for using and building AI fairly, using examples of bias and privacy you studied.",
     referenceKeys: ["code-org"],
     requiredPlan: "PRO",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -440,7 +440,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Design and build an AI-powered project that solves a problem you care about, then present how it works and how it stays fair.",
     referenceKeys: ["code-org", "create-learn"],
     requiredPlan: "PRO",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -486,7 +486,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Program a virtual robot in the simulator to navigate a set path using turns and loops without hitting any obstacles.",
     referenceKeys: ["makecode", "create-learn", "microbit"],
     requiredPlan: "PRO",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -532,7 +532,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Program a virtual robot to use simulated sensors and conditional logic so it automatically reacts to changes around it.",
     referenceKeys: ["makecode", "microbit", "create-learn"],
     requiredPlan: "PRO",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -578,7 +578,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Program a virtual robot in the simulator to solve a maze on its own using sensing and decision logic.",
     referenceKeys: ["makecode", "create-learn"],
     requiredPlan: "PRO",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -624,7 +624,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Design a simulated automation routine that detects a repetitive task and completes it automatically using loops and triggers.",
     referenceKeys: ["makecode", "code-org"],
     requiredPlan: "PRO",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -670,7 +670,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Program a virtual robot in the simulator to complete a multi-step challenge that uses movement, sensing, and automation together.",
     referenceKeys: ["create-learn", "makecode"],
     requiredPlan: "PRO",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -716,7 +716,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Build an interactive Python program such as a quiz or number game that uses variables, loops, and conditionals.",
     referenceKeys: ["create-learn", "raspberry-pi"],
     requiredPlan: "LEARNER",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -762,7 +762,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Design and build a multi-section web page styled with CSS for colors, fonts, and an organized layout.",
     referenceKeys: ["khan-computing", "raspberry-pi", "code-club"],
     requiredPlan: "LEARNER",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -808,7 +808,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Build a complete arcade game in MakeCode Arcade with animated sprites, player controls, and a working score system.",
     referenceKeys: ["makecode"],
     requiredPlan: "LEARNER",
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     modules: [
       {
@@ -883,6 +883,7 @@ export const COURSES_AGES_11_13: CatalogCourse[] = [
       "Create a playbook of effective prompts for different tasks, showing before-and-after examples of how refining a prompt improves the result.",
     referenceKeys: ["code-org", "create-learn", "app-inventor"],
     existing: true,
+    status: "PUBLISHED",
     contentStatus: "NEEDS_REVIEW",
     adminNotes: "Maps to master 'Prompt Engineering for Students'. DRAFT placeholder.",
   },

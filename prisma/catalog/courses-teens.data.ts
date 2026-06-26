@@ -26,7 +26,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Build a small collection of interactive Python scripts — such as a calculator, quiz, and number-guessing game — and publish them to your portfolio.",
     referenceKeys: ["create-learn", "khan-computing"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -72,7 +72,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Create an interactive web widget — such as a quiz, tip calculator, or colour picker — that responds to user actions in real time.",
     referenceKeys: ["khan-computing", "makecode", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -118,7 +118,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Build and publish a multi-section personal website that showcases who you are, your interests, and your projects.",
     referenceKeys: ["khan-computing", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -164,7 +164,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Analyse a real dataset of your choice and create a notebook with charts and findings that tells a clear data story.",
     referenceKeys: ["create-learn", "khan-computing"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -210,7 +210,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Design, build, and present an original coding project of your choosing, complete with a short demo and write-up for your portfolio.",
     referenceKeys: ["khan-computing", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -256,7 +256,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Build a functional web or mobile app and deliver a recorded or live demo that walks through its features and purpose.",
     referenceKeys: ["khan-computing", "app-inventor", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -305,7 +305,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Build a practical Python application or automation that solves a real problem, with documentation explaining how it works.",
     referenceKeys: ["create-learn", "raspberry-pi", "khan-computing"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -352,7 +352,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Build an AI-powered application — such as an image classifier or chatbot — and present how it works and what it does.",
     referenceKeys: ["create-learn", "code-org", "app-inventor"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -399,7 +399,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Build and deploy a complete, working web product with multiple features, then share the live link in your portfolio.",
     referenceKeys: ["khan-computing", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -446,7 +446,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Design and build a functional app prototype, test it with users, and present it with a short pitch.",
     referenceKeys: ["app-inventor", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -493,7 +493,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Analyse a real dataset on an issue you care about and present a clear, evidence-based recommendation backed by visualisations.",
     referenceKeys: ["khan-computing", "ck12"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -540,7 +540,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Design, build, and publish a polished portfolio website that showcases your best projects and tells your story.",
     referenceKeys: ["khan-computing", "code-org"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -587,7 +587,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
     finalProjectDescription:
       "Plan, build, and present an ambitious original tech project that integrates skills from across your learning, with a full demo and reflection.",
     referenceKeys: ["code-org", "khan-computing", "create-learn"],
-    status: "DRAFT",
+    status: "PUBLISHED",
     contentStatus: "SEED_NOW",
     requiredPlan: "PRO",
     modules: [
@@ -773,6 +773,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
       "Design and build a working mobile app of your choice and demonstrate it running on a device.",
     referenceKeys: ["app-inventor", "code-org"],
     existing: true,
+    status: "PUBLISHED",
     contentStatus: "NEEDS_REVIEW",
     adminNotes:
       "Maps to master 'App Development with MIT App Inventor'. DRAFT placeholder.",
@@ -945,6 +946,7 @@ export const COURSES_TEENS: CatalogCourse[] = [
       "Identify a real problem, design a product concept to solve it, and present a pitch with your reasoning.",
     referenceKeys: ["code-org", "outschool"],
     existing: true,
+    status: "PUBLISHED",
     contentStatus: "NEEDS_REVIEW",
     adminNotes:
       "Maps to master 'Product Thinking and Entrepreneurship'. DRAFT placeholder.",
