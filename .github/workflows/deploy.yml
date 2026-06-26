@@ -262,5 +262,11 @@ jobs:
               echo "!! CRON_SECRET not set in .env — skipping catalog seed"
             fi
 
-            echo "==> Cleaning up dangling images"
-            docker image prune -f
+            # Remove images no longer used by a running container — including
+            # the previous SHA-tagged build this deploy just replaced. `-a` is
+            # the key: plain `prune -f` only drops untagged/dangling images, so
+            # old `mudita-lms:<sha>` tags would accumulate and fill the disk.
+            # Safe on this shared host — images in use by the other stacks'
+            # running containers are never touched.
+            echo "==> Cleaning up old images (keeping anything in use)"
+            docker image prune -af
