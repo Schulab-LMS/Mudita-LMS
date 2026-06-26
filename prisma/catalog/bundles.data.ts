@@ -27,6 +27,9 @@ export const BUNDLES: CatalogBundle[] = [
     recommendedDurationWeeks: 6,
     referenceKeys: ["scratchjr", "scratch", "code-org", "tynker"],
     courses: [
+      // Foundational computational-thinking curriculum (Git-managed) — the
+      // spine of the bundle; flows into the Junior Creator pathway via it.
+      { slug: "5-7-computational-thinking" },
       { slug: "scratchjr-first-stories" },
       { slug: "sequencing-loops-young-coders" },
       { slug: "scratch-starter-coding-blocks" },
@@ -58,6 +61,9 @@ export const BUNDLES: CatalogBundle[] = [
     recommendedDurationWeeks: 8,
     referenceKeys: ["scratch", "tynker", "makecode", "code-org", "raspberry-pi", "code-club"],
     courses: [
+      // Foundational block-programming curriculum (Git-managed); flows into the
+      // Creative Coder pathway via this bundle.
+      { slug: "8-10-block-programming" },
       { slug: "scratch-game-design-level-1" },
       { slug: "game-design-level-2" },
       { slug: "character-movement-controls" },
@@ -291,6 +297,9 @@ export const BUNDLES: CatalogBundle[] = [
     referenceKeys: ["nasa-space-place", "esa-kids", "natgeo-kids"],
     adminNotes: "No coding prerequisite. Existing space courses are mapped here as IMPORTED_EXISTING (no duplicates).",
     courses: [
+      // Broad children's space-science curriculum (Git-managed) as the intro;
+      // flows into the Creative Coder pathway via this bundle.
+      { slug: "space-science-children-8-12" },
       { slug: "nasa-space-explorer-intro" },
       { slug: "esa-space-for-kids-missions" },
       { slug: "solar-system-explorer" },

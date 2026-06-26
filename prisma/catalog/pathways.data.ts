@@ -63,11 +63,14 @@ export const PATHWAYS: CatalogPathway[] = [
     referenceKeys: ["code-org", "create-learn", "tynker", "makecode", "app-inventor", "nasa-space-place", "esa-kids", "phet", "ck12", "smithsonian-ssec"],
     adminNotes: "Capstone: a digital STEM project using coding, logic, AI awareness, simulation or space science. Next pathway: Tech Innovator.",
     stages: [
-      { bundleSlug: "ai-native-kids-bundle", title: "Stage 1: AI Native Kids" },
-      { bundleSlug: "virtual-robotics-simulation-bundle", title: "Stage 2: Virtual Robotics & Simulation" },
-      { bundleSlug: "interactive-science-simulations-bundle", title: "Stage 3: Interactive Science Simulations" },
-      { bundleSlug: "digital-stem-explorer-bundle", title: "Stage 4: Digital STEM Explorer" },
-      { courseSlug: "stem-builder-final-project", title: "Stage 5: STEM Builder Final Project" },
+      // Git-managed programming curriculum as the coding foundation (no general
+      // 11–13 CODING bundle exists, so it is a direct course stage here).
+      { courseSlug: "11-13-programming-fundamentals", title: "Stage 1: Programming Fundamentals" },
+      { bundleSlug: "ai-native-kids-bundle", title: "Stage 2: AI Native Kids" },
+      { bundleSlug: "virtual-robotics-simulation-bundle", title: "Stage 3: Virtual Robotics & Simulation" },
+      { bundleSlug: "interactive-science-simulations-bundle", title: "Stage 4: Interactive Science Simulations" },
+      { bundleSlug: "digital-stem-explorer-bundle", title: "Stage 5: Digital STEM Explorer" },
+      { courseSlug: "stem-builder-final-project", title: "Stage 6: STEM Builder Final Project" },
     ],
   },
   {
@@ -80,11 +83,14 @@ export const PATHWAYS: CatalogPathway[] = [
     referenceKeys: ["code-org", "khan-computing", "app-inventor", "makecode", "create-learn", "tynker", "raspberry-pi", "code-club", "phet", "nasa-space-place", "esa-kids"],
     adminNotes: "Capstone: a portfolio-ready web, app, Python, AI, data or simulation project. Next pathway: Future Tech Leader.",
     stages: [
-      { bundleSlug: "web-app-builder-bundle", title: "Stage 1: Web & App Builder" },
-      { courseSlug: "python-starter-for-teens", title: "Stage 2: Python Starter for Teens" },
-      { courseSlug: "ai-literacy-ethics", title: "Stage 3: AI Literacy & Responsible AI" },
-      { courseSlug: "data-basics-with-python", title: "Stage 4: Data Basics with Python" },
-      { courseSlug: "tech-innovator-portfolio-project", title: "Stage 5: Tech Innovator Portfolio Project" },
+      // Git-managed broad programming curriculum as the foundation (direct
+      // course stage — distinct from the web/app-specific bundle below).
+      { courseSlug: "14-16-software-development", title: "Stage 1: Software Development" },
+      { bundleSlug: "web-app-builder-bundle", title: "Stage 2: Web & App Builder" },
+      { courseSlug: "python-starter-for-teens", title: "Stage 3: Python Starter for Teens" },
+      { courseSlug: "ai-literacy-ethics", title: "Stage 4: AI Literacy & Responsible AI" },
+      { courseSlug: "data-basics-with-python", title: "Stage 5: Data Basics with Python" },
+      { courseSlug: "tech-innovator-portfolio-project", title: "Stage 6: Tech Innovator Portfolio Project" },
     ],
   },
   {
@@ -98,10 +104,13 @@ export const PATHWAYS: CatalogPathway[] = [
     adminNotes:
       "Final child pathway. Capstone: a real-world digital product, AI project, app prototype, data or portfolio project. Next: advanced specialization, competitions, internships or entrepreneurship.",
     stages: [
-      { bundleSlug: "future-tech-leader-bundle", title: "Stage 1: Future Tech Leader" },
-      { courseSlug: "data-thinking-future-leaders", title: "Stage 2: Data Thinking for Future Leaders" },
-      { courseSlug: "app-prototype-development", title: "Stage 3: App Prototype Development" },
-      { courseSlug: "future-tech-leader-capstone-project", title: "Stage 4: Future Tech Leader Capstone" },
+      // Git-managed advanced CS curriculum as the foundation (direct course
+      // stage — broader than the AI-focused bundle below).
+      { courseSlug: "17-18-advanced-computer-science", title: "Stage 1: Advanced Computer Science" },
+      { bundleSlug: "future-tech-leader-bundle", title: "Stage 2: Future Tech Leader" },
+      { courseSlug: "data-thinking-future-leaders", title: "Stage 3: Data Thinking for Future Leaders" },
+      { courseSlug: "app-prototype-development", title: "Stage 4: App Prototype Development" },
+      { courseSlug: "future-tech-leader-capstone-project", title: "Stage 5: Future Tech Leader Capstone" },
     ],
   },
 ];
