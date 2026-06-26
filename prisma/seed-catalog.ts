@@ -37,6 +37,19 @@ const ALL_COURSES: CatalogCourse[] = [
 
 const DEFAULT_LESSON_DURATION = 1800; // 30 min, matches legacy seedCourseContent
 
+// Access policy: the whole catalog is subscription-only EXCEPT exactly one free
+// course per age band (real-content "showcase" courses). Enforced as a blanket
+// pass over the entire Course table (step 7) so it also covers courses not in
+// the catalog data (legacy one-time-purchase / free courses).
+const FREE_COURSE_SLUGS = [
+  "wonder-lab-science-tiny-explorers", // AGES_3_5
+  "coding-adventures-blocks", // AGES_5_7
+  "scratch-game-studio", // AGES_8_10
+  "space-science-missions", // AGES_11_13
+  "web-builders-bootcamp", // AGES_14_16
+  "ai-foundations-future-leaders", // AGES_17_18
+];
+
 export async function seedCatalog(db: PrismaClient, adminId: string) {
   // 1. Reference sources (upsert by stable key) ───────────────────────────────
   const sourceIdByKey = new Map<string, string>();
@@ -308,8 +321,29 @@ export async function seedCatalog(db: PrismaClient, adminId: string) {
     }
   }
 
+  // 7. Access policy — subscription-only catalog, one free course per age band.
+  //    Blanket pass over the WHOLE Course table (covers legacy free / one-time
+  //    courses not present in the catalog data too).
+  //    a) Everything not free-listed: never free, no one-time price.
+  await db.course.updateMany({
+    where: { slug: { notIn: FREE_COURSE_SLUGS } },
+    data: { isFree: false, price: 0 },
+  });
+  //    b) …and require a subscription. Only fill in a tier where none is set, so
+  //       courses already gated at LEARNER/PRO keep their tier.
+  const gated = await db.course.updateMany({
+    where: { slug: { notIn: FREE_COURSE_SLUGS }, requiredPlan: null },
+    data: { requiredPlan: "LEARNER" },
+  });
+  //    c) The one free course per age band.
+  const freed = await db.course.updateMany({
+    where: { slug: { in: FREE_COURSE_SLUGS } },
+    data: { isFree: true, price: 0, requiredPlan: null },
+  });
+
   console.log(
     `✅ Catalog seeded — ${REFERENCE_SOURCES.length} sources, ${created} new courses, ` +
-      `${enriched} enriched, ${bundlesUpserted} bundles, ${pathwaysUpserted} pathways`
+      `${enriched} enriched, ${bundlesUpserted} bundles, ${pathwaysUpserted} pathways; ` +
+      `access policy applied — ${freed.count} free course(s), ${gated.count} newly subscription-gated`
   );
 }
