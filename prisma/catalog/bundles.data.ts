@@ -1,6 +1,7 @@
 import type { CatalogBundle } from "./types";
 
-// The 11 SchuLab course bundles. Course slugs MUST resolve to entries in the
+// The SchuLab course bundles: 11 published + a 5-bundle DRAFT Space Science
+// track (one per age band). Course slugs MUST resolve to entries in the
 // courses-*.data.ts files (existing slugs are reused, new ones are seeded).
 // Reference keys MUST exist in reference-sources.data.ts. Bundles are
 // subscription-first (requiredPlan) and every bundle ends in a final project.
@@ -370,5 +371,140 @@ export const BUNDLES: CatalogBundle[] = [
       { slug: "makecode-arcade-game-builder" },
       { slug: "creative-coding-showcase" },
     ],
+  },
+
+  // ===========================================================================
+  // SPACE SCIENCE TRACK — one bundle per age band (status: DRAFT / hidden).
+  // Hosts the Git-managed space-science age-band series. Kept DRAFT because the
+  // underlying courses are DRAFT; publish the courses, then flip these to
+  // PUBLISHED (here or in admin). DRAFT bundles are excluded from public bundle
+  // listings, so their unpublished courses never surface.
+  // ===========================================================================
+  {
+    slug: "space-explorers-5-7-bundle",
+    title: "Space Explorers — Ages 5–7",
+    description:
+      "An early-years introduction to space: the Sun, Moon, stars and planets through stories and playful, agency-backed activities.",
+    themeCategory: "SCIENCE",
+    ageGroup: "AGES_5_7",
+    level: "BEGINNER",
+    requiredPlan: "LEARNER",
+    status: "DRAFT",
+    finalProjectTitle: "My Sky Journal",
+    finalProjectDescription:
+      "Learners present a simple journal of what they have discovered in the sky.",
+    learningObjectives: [
+      "Recognise the Sun, Moon, stars and planets",
+      "Observe and describe the sky",
+      "Build early scientific curiosity",
+    ],
+    recommendedDurationWeeks: 6,
+    referenceKeys: ["nasa-space-place", "esa-kids"],
+    adminNotes: "Git-managed space-science series (ages 5–7). DRAFT until the course is published.",
+    courses: [{ slug: "5-7-early-explorers-s1" }],
+  },
+  {
+    slug: "space-explorers-8-10-bundle",
+    title: "Space Explorers — Ages 8–10",
+    description:
+      "A two-series foundation in space science for ages 8–10: the solar system, the Sun–Earth–Moon system, missions and exploration.",
+    themeCategory: "SCIENCE",
+    ageGroup: "AGES_8_10",
+    level: "BEGINNER",
+    requiredPlan: "LEARNER",
+    status: "DRAFT",
+    finalProjectTitle: "Solar System & Mission Showcase",
+    finalProjectDescription:
+      "Learners present a solar-system model and a researched space mission.",
+    learningObjectives: [
+      "Explore the solar system",
+      "Understand the Sun–Earth–Moon system",
+      "Learn how space missions work",
+      "Practise observation and research",
+    ],
+    recommendedDurationWeeks: 10,
+    referenceKeys: ["nasa-space-place", "esa-kids"],
+    adminNotes: "Git-managed space-science series 1 & 2 (ages 8–10). DRAFT until the courses are published.",
+    courses: [
+      { slug: "8-10-young-learners-s1" },
+      { slug: "8-10-young-learners-s2" },
+    ],
+  },
+  {
+    slug: "space-explorers-11-13-bundle",
+    title: "Space Explorers — Ages 11–13",
+    description:
+      "A two-series deep dive for ages 11–13: planets and moons, the Sun–Earth connection, space weather, missions, communications and sky events.",
+    themeCategory: "SCIENCE",
+    ageGroup: "AGES_11_13",
+    level: "INTERMEDIATE",
+    requiredPlan: "LEARNER",
+    status: "DRAFT",
+    finalProjectTitle: "Space Weather & Mission Brief",
+    finalProjectDescription:
+      "Students present a space-weather report and explain how a mission sends data to Earth.",
+    learningObjectives: [
+      "Investigate planets, moons and the Sun–Earth connection",
+      "Understand space weather",
+      "Explore missions, communications and sky events",
+      "Interpret real data",
+    ],
+    recommendedDurationWeeks: 10,
+    referenceKeys: ["nasa-space-place", "esa-kids"],
+    adminNotes: "Git-managed space-science series 1 & 2 (ages 11–13). DRAFT until the courses are published.",
+    courses: [
+      { slug: "11-13-middle-explorers-s1" },
+      { slug: "11-13-middle-explorers-s2" },
+    ],
+  },
+  {
+    slug: "space-explorers-14-16-bundle",
+    title: "Space Explorers — Ages 14–16",
+    description:
+      "A two-series programme for ages 14–16: stars and galaxies, orbital mechanics, mission design, data analysis and the search for life.",
+    themeCategory: "SCIENCE",
+    ageGroup: "AGES_14_16",
+    level: "INTERMEDIATE",
+    requiredPlan: "LEARNER",
+    status: "DRAFT",
+    finalProjectTitle: "Mission Design Proposal",
+    finalProjectDescription:
+      "Students design and justify a space-mission proposal grounded in real science.",
+    learningObjectives: [
+      "Study stars, galaxies and orbital mechanics",
+      "Apply scientific reasoning to exploration",
+      "Design a mission and analyse data",
+      "Investigate the search for life",
+    ],
+    recommendedDurationWeeks: 12,
+    referenceKeys: ["nasa-space-place", "esa-kids"],
+    adminNotes: "Git-managed space-science series 1 & 2 (ages 14–16). DRAFT until the courses are published.",
+    courses: [
+      { slug: "14-16-future-innovators-s1" },
+      { slug: "14-16-future-innovators-s2" },
+    ],
+  },
+  {
+    slug: "space-explorers-17-18-bundle",
+    title: "Space Explorers — Ages 17–18",
+    description:
+      "Advanced space science for ages 17–18: cosmology, advanced mission science and a research-style capstone.",
+    themeCategory: "SCIENCE",
+    ageGroup: "AGES_17_18",
+    level: "ADVANCED",
+    requiredPlan: "LEARNER",
+    status: "DRAFT",
+    finalProjectTitle: "Research Capstone",
+    finalProjectDescription:
+      "Students produce a research-style capstone on a space-science topic of their choosing.",
+    learningObjectives: [
+      "Engage with cosmology and advanced mission science",
+      "Conduct independent research",
+      "Communicate findings in a research format",
+    ],
+    recommendedDurationWeeks: 12,
+    referenceKeys: ["nasa-space-place", "esa-kids"],
+    adminNotes: "Git-managed space-science series (ages 17–18). DRAFT until the course is published.",
+    courses: [{ slug: "17-18-senior-scientists-s1" }],
   },
 ];

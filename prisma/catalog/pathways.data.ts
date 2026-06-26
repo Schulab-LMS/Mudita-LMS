@@ -113,4 +113,32 @@ export const PATHWAYS: CatalogPathway[] = [
       { courseSlug: "future-tech-leader-capstone-project", title: "Stage 5: Future Tech Leader Capstone" },
     ],
   },
+
+  // ===========================================================================
+  // SPACE EXPLORERS — a subject pathway that progresses across age bands
+  // (status: DRAFT / hidden). Unlike the six age-band pathways above, this is a
+  // multi-year space-science journey built from the per-band Space Explorers
+  // bundles. DRAFT until the underlying courses/bundles are published; DRAFT
+  // pathways are excluded from public pathway listings. `ageGroup` marks the
+  // entry band (5–7); each stage steps up a band.
+  // ===========================================================================
+  {
+    slug: "space-explorers",
+    title: "Space Explorers",
+    description:
+      "A space-science journey from ages 5 to 18 — from the Sun, Moon and planets to missions, orbital mechanics, cosmology and a research capstone. Built from NASA/ESA-backed digital activities; no coding required.",
+    ageGroup: "AGES_5_7",
+    order: 1,
+    status: "DRAFT",
+    referenceKeys: ["nasa-space-place", "esa-kids"],
+    adminNotes:
+      "Cross-band subject pathway (5–7 → 17–18). DRAFT until the space-science course series are published. Each stage is a per-band Space Explorers bundle.",
+    stages: [
+      { bundleSlug: "space-explorers-5-7-bundle", title: "Stage 1: Early Explorers (Ages 5–7)" },
+      { bundleSlug: "space-explorers-8-10-bundle", title: "Stage 2: Young Learners (Ages 8–10)" },
+      { bundleSlug: "space-explorers-11-13-bundle", title: "Stage 3: Middle Explorers (Ages 11–13)" },
+      { bundleSlug: "space-explorers-14-16-bundle", title: "Stage 4: Future Innovators (Ages 14–16)" },
+      { bundleSlug: "space-explorers-17-18-bundle", title: "Stage 5: Senior Scientists (Ages 17–18)" },
+    ],
+  },
 ];

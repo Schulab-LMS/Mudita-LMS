@@ -93,6 +93,9 @@ export interface CatalogBundle {
   level: Level;
   requiredPlan?: Plan | null;
   isFree?: boolean;
+  /** Defaults to PUBLISHED in the seed. Set DRAFT to stage a hidden bundle
+   *  (e.g. one whose courses aren't published yet). */
+  status?: "PUBLISHED" | "DRAFT";
   finalProjectTitle: string;
   finalProjectDescription: string;
   learningObjectives: string[];
@@ -115,6 +118,8 @@ export interface CatalogPathway {
   description: string;
   ageGroup: AgeBand;
   order: number;
+  /** Defaults to PUBLISHED in the seed. Set DRAFT to stage a hidden pathway. */
+  status?: "PUBLISHED" | "DRAFT";
   referenceKeys: SourceKey[];
   adminNotes?: string;
   stages: CatalogPathwayStage[];
