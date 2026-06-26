@@ -366,7 +366,10 @@ export async function enrollChildInCourse(input: {
     );
     if (tenantError) return { success: false, error: "Course not found" };
 
-    const isFree = course.isFree || Number(course.price) === 0;
+    // Zero price alone no longer means free — subscription courses are priced
+    // at 0 and gated by requiredPlan.
+    const isFree =
+      course.isFree || (Number(course.price) <= 0 && !course.requiredPlan);
     if (!isFree) {
       // Household model: check the PARENT's subscription, not the child's.
       // Legacy paid courses without a requiredPlan fall back to LEARNER —

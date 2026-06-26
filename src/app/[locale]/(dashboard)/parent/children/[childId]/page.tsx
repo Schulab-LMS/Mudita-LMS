@@ -96,7 +96,9 @@ export default async function ChildDetailPage({
   // are filtered out — clicking would dead-end.
   const enrollableCourses = candidateCourses
     .map((c) => {
-      const isFree = c.isFree || Number(c.price) === 0;
+      // Zero price alone no longer means free — subscription courses are priced
+      // at 0 and gated by requiredPlan.
+      const isFree = c.isFree || (Number(c.price) === 0 && !c.requiredPlan);
       let kind: "free" | "subscription" | "paid";
       if (isFree) {
         kind = "free";

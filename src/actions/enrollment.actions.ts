@@ -79,7 +79,11 @@ export async function enrollInCourse(courseId: string) {
       }
     }
 
-    const isFree = course.isFree || Number(course.price) === 0;
+    // Free iff explicitly free, or a legacy course with no price AND no plan.
+    // A zero price alone no longer means free — subscription courses are priced
+    // at 0 and gated by requiredPlan.
+    const isFree =
+      course.isFree || (Number(course.price) <= 0 && !course.requiredPlan);
     if (!isFree) {
       // Default any legacy paid course (price > 0 with no requiredPlan) to
       // the lowest paid tier — every paid course is now subscription-only.

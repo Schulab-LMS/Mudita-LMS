@@ -27,6 +27,7 @@ interface CourseCardProps {
     isFree?: boolean;
     price?: unknown;
     currency?: string;
+    requiredPlan?: string | null;
   };
 }
 
@@ -37,7 +38,9 @@ export function CourseCard({ course }: CourseCardProps) {
   const lvlColor = levelColors[course.level] ?? "bg-gray-100 text-gray-700";
 
   const priceNum = course.price ? Number(course.price) : 0;
-  const isFree = course.isFree || priceNum === 0;
+  // A zero price alone no longer means free — subscription courses are priced
+  // at 0 and gated by requiredPlan. Free iff flagged free, or no plan + no price.
+  const isFree = course.isFree || (priceNum === 0 && !course.requiredPlan);
   // Paid courses are subscription-only — never surface a raw price on cards.
   const priceLabel = isFree ? "Free" : "Subscribers Only";
 

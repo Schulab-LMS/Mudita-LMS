@@ -206,8 +206,11 @@ export default async function CourseDetailPage({
   // Course access is either free or subscription-gated — individual purchases
   // were retired. Any course with a non-zero price falls back to the lowest
   // paid tier at enrolment time (see enrollInCourse).
+  // Zero price alone no longer means free — subscription courses are priced at
+  // 0 and gated by requiredPlan. Free iff flagged free, or no plan + no price.
   const isFreeCourse =
-    course.isFree || !course.price || Number(course.price) === 0;
+    course.isFree ||
+    (!course.requiredPlan && (!course.price || Number(course.price) === 0));
   const priceDisplay = isFreeCourse
     ? t("free")
     : t("includedWithPlan", {

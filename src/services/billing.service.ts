@@ -60,12 +60,18 @@ export async function createCourseCheckoutSession(params: {
       price: true,
       currency: true,
       isFree: true,
+      requiredPlan: true,
       status: true,
     },
   });
   if (!course) throw new Error("Course not found");
   if (course.status !== "PUBLISHED") {
     throw new Error("Course is not available for purchase");
+  }
+  // Subscription courses (gated by requiredPlan, priced at 0) can't be bought
+  // one-time — they come with a plan.
+  if (course.requiredPlan) {
+    throw new Error("Course is subscription-only — subscribe instead of buying");
   }
   if (course.isFree || Number(course.price) <= 0) {
     throw new Error("Course is free — enroll directly instead of buying");
