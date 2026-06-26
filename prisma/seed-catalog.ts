@@ -23,6 +23,7 @@ import { COURSES_AGES_8_10 } from "./catalog/courses-ages-8-10.data";
 import { COURSES_AGES_11_13 } from "./catalog/courses-ages-11-13.data";
 import { COURSES_SCIENCE } from "./catalog/courses-science.data";
 import { COURSES_TEENS } from "./catalog/courses-teens.data";
+import { COURSES_CURRICULUM } from "./catalog/courses-curriculum.data";
 import { BUNDLES } from "./catalog/bundles.data";
 import { PATHWAYS } from "./catalog/pathways.data";
 
@@ -33,6 +34,10 @@ const ALL_COURSES: CatalogCourse[] = [
   ...COURSES_AGES_11_13,
   ...COURSES_SCIENCE,
   ...COURSES_TEENS,
+  // Platform-owned metadata shells for the Git-authored curricula; the
+  // curriculum sync fills their lessons by matching slug. `modules` is omitted
+  // so no placeholder content is seeded. See courses-curriculum.data.ts.
+  ...COURSES_CURRICULUM,
 ];
 
 const DEFAULT_LESSON_DURATION = 1800; // 30 min, matches legacy seedCourseContent
