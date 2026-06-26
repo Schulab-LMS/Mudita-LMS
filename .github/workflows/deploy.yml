@@ -218,19 +218,6 @@ jobs:
               ${{ env.IMAGE }}:${IMAGE_TAG} \
               npx prisma migrate deploy
 
-            # Catalog content (reference sources, course master list, bundles,
-            # pathways + links). Production-safe — seeds ONLY catalog data, never
-            # demo users. Idempotent (upsert + replace-children). Non-fatal so a
-            # seed hiccup can never block shipping app code or trigger rollback;
-            # re-runs every deploy. Look for "✅ Catalog seeded — …" in the log.
-            echo "==> Seeding catalog (production-safe, idempotent)"
-            docker run --rm \
-              --network mudita-lms_default \
-              --env-file .env \
-              ${{ env.IMAGE }}:${IMAGE_TAG} \
-              npx tsx prisma/seed-catalog.standalone.ts \
-              || echo "!! Catalog seed failed (non-fatal) — check logs above; safe to re-run"
-
             echo "==> Force-recreating web container at ${IMAGE_TAG}"
             docker compose up -d --force-recreate --remove-orphans web
 
@@ -256,6 +243,23 @@ jobs:
                 echo "!! No previous image to roll back to"
               fi
               exit 1
+            fi
+
+            # Seed catalog content (reference sources, course master list,
+            # bundles, pathways + links) via the production-safe, idempotent
+            # cron route on the now-healthy app. Seeds ONLY catalog data, never
+            # demo users. Non-fatal: a hiccup must never fail an otherwise-good
+            # deploy; the route is safe to re-run. Look for the JSON counts.
+            echo "==> Seeding catalog via /api/cron/seed-catalog"
+            CRON_SECRET_VALUE=$(grep -E '^CRON_SECRET=' .env | head -1 | cut -d= -f2- | tr -d '"')
+            if [ -n "$CRON_SECRET_VALUE" ]; then
+              curl -fsS --max-time 290 -X POST \
+                -H "Authorization: Bearer ${CRON_SECRET_VALUE}" \
+                http://127.0.0.1:3020/api/cron/seed-catalog \
+                && echo "" \
+                || echo "!! Catalog seed request failed (non-fatal) — safe to re-run"
+            else
+              echo "!! CRON_SECRET not set in .env — skipping catalog seed"
             fi
 
             echo "==> Cleaning up dangling images"
