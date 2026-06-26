@@ -951,4 +951,155 @@ export const COURSES_TEENS: CatalogCourse[] = [
     adminNotes:
       "Maps to master 'Product Thinking and Entrepreneurship'. DRAFT placeholder.",
   },
+
+  // ───────── Event-readiness courses (gaps surfaced by Events & Competitions) ─────────
+  // Seeded as DRAFT / NEEDS_REVIEW: metadata lives in the platform DB now, but the
+  // lessons/activities are authored later in the curriculum repo. These close the
+  // hardware/electronics and hackathon gaps for ESA CanSat, WRO Future Engineers,
+  // Astro Pi and NASA Space Apps. Kept DRAFT so they are not publicly visible until
+  // real content exists. Mapped to events in event-recommendations.data.ts.
+  {
+    slug: "electronics-sensors-arduino-raspberry-pi",
+    title: "Electronics & Sensors with Arduino and Raspberry Pi",
+    ageGroup: "AGES_14_16",
+    level: "ADVANCED",
+    category: "ENGINEERING",
+    description:
+      "Build real circuits, read sensors and send telemetry with Arduino and Raspberry Pi — the hands-on electronics foundation behind satellite and mission-design competitions.",
+    parentSummary:
+      "This advanced course moves beyond on-screen coding into real electronics: your teen wires sensors, reads live data and learns the telemetry and mission-design thinking that competitions like ESA CanSat and WRO Future Engineers expect. It is the bridge from software-only projects to physical engineering.",
+    studentSummary:
+      "You'll wire up real sensors and circuits and make a Raspberry Pi or Arduino read and report live data.",
+    skills: [
+      "Reading analog and digital sensors",
+      "Building and debugging circuits",
+      "Microcontroller programming",
+      "Collecting and logging telemetry",
+      "Mission and systems design thinking",
+    ],
+    tools: ["Arduino", "Raspberry Pi", "MakeCode"],
+    finalProjectTitle: "Sensor Telemetry Module",
+    finalProjectDescription:
+      "Design a small sensor module that measures the environment (temperature, pressure or motion) and logs or transmits its readings — a CanSat-style mini mission.",
+    referenceKeys: ["raspberry-pi", "microbit", "makecode"],
+    status: "DRAFT",
+    contentStatus: "NEEDS_REVIEW",
+    requiredPlan: "PRO",
+    adminNotes:
+      "Event-gap course for ESA CanSat / WRO Future Engineers. DRAFT until curriculum content is authored (needs physical-hardware lessons).",
+    modules: [
+      {
+        title: "Electronics Foundations",
+        lessons: [
+          { title: "Circuits, Power and Safety" },
+          { title: "Your First Microcontroller Program" },
+          { title: "Inputs, Outputs and the Breadboard" },
+        ],
+      },
+      {
+        title: "Sensors and Telemetry",
+        lessons: [
+          { title: "Reading Analog and Digital Sensors" },
+          { title: "Logging and Transmitting Data" },
+          { title: "Designing a Mini Mission" },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "python-on-hardware-sense-hat",
+    title: "Python on Hardware: Sense HAT & Space Sensors",
+    ageGroup: "AGES_14_16",
+    level: "ADVANCED",
+    category: "CODING",
+    description:
+      "Take Python off the screen and onto real hardware — read the Sense HAT's sensors, work with environmental data and write the kind of program that runs on the Astro Pi aboard the ISS.",
+    parentSummary:
+      "This course deepens your teen's Python skills by connecting them to physical sensors using the Raspberry Pi Sense HAT — the exact platform used in ESA's Astro Pi challenge. They move from pure software exercises to reading real data and designing simple experiments, the core skill for Astro Pi Mission Space Lab.",
+    studentSummary:
+      "You'll write Python that reads real sensors — temperature, motion and more — just like the code that runs on the Space Station.",
+    skills: [
+      "Python with hardware libraries",
+      "Reading environmental sensors",
+      "Working with sensor data",
+      "Designing simple experiments",
+      "Interpreting and presenting results",
+    ],
+    tools: ["Python", "Raspberry Pi", "Sense HAT"],
+    finalProjectTitle: "Sense HAT Data Experiment",
+    finalProjectDescription:
+      "Plan and run a small experiment that collects data from the Sense HAT sensors, then analyse and present your findings — Astro Pi Mission Space Lab style.",
+    referenceKeys: ["raspberry-pi", "code-org"],
+    status: "DRAFT",
+    contentStatus: "NEEDS_REVIEW",
+    requiredPlan: "PRO",
+    adminNotes:
+      "Event-gap course deepening Astro Pi (Mission Zero / Space Lab) readiness. DRAFT until curriculum content is authored.",
+    modules: [
+      {
+        title: "Python Meets Hardware",
+        lessons: [
+          { title: "Introducing the Sense HAT" },
+          { title: "Reading Your First Sensor in Python" },
+          { title: "The LED Matrix and Output" },
+        ],
+      },
+      {
+        title: "Data and Experiments",
+        lessons: [
+          { title: "Collecting Sensor Data Over Time" },
+          { title: "Designing a Simple Experiment" },
+          { title: "Analysing and Presenting Results" },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "team-hackathon-open-data-projects",
+    title: "Team Hackathon: Building with Open Data",
+    ageGroup: "AGES_14_16",
+    level: "INTERMEDIATE",
+    category: "DATA",
+    description:
+      "Work in a team to turn real open data into a project under time pressure — the collaboration, problem-framing and storytelling skills behind hackathons like NASA Space Apps.",
+    parentSummary:
+      "Hackathons reward more than coding: they need teamwork, fast problem-framing and the ability to tell a clear story with data. This course gives your teen structured practice with real open datasets (including NASA's) so they can confidently take part in events like NASA Space Apps.",
+    studentSummary:
+      "You'll team up, dig into real open data and build and pitch a project — just like a real hackathon.",
+    skills: [
+      "Working with open datasets",
+      "Team collaboration and roles",
+      "Framing a problem quickly",
+      "Data storytelling and presentation",
+      "Rapid prototyping",
+    ],
+    tools: ["Python", "Code.org", "NASA Open Data"],
+    finalProjectTitle: "Open-Data Hackathon Project",
+    finalProjectDescription:
+      "As a team, pick a challenge, explore an open dataset, build a simple solution and present a short pitch — a full mini hackathon run.",
+    referenceKeys: ["nasa-space-place", "code-org"],
+    status: "DRAFT",
+    contentStatus: "NEEDS_REVIEW",
+    requiredPlan: "PRO",
+    adminNotes:
+      "Event-gap course building NASA Space Apps collaboration/storytelling skills. DRAFT until curriculum content is authored.",
+    modules: [
+      {
+        title: "Hackathon Skills",
+        lessons: [
+          { title: "How Hackathons Work" },
+          { title: "Teamwork, Roles and Time-boxing" },
+          { title: "Framing a Problem Worth Solving" },
+        ],
+      },
+      {
+        title: "Building with Open Data",
+        lessons: [
+          { title: "Finding and Exploring Open Datasets" },
+          { title: "From Data to a Simple Solution" },
+          { title: "Telling Your Story and Pitching" },
+        ],
+      },
+    ],
+  },
 ];

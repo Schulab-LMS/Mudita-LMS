@@ -304,6 +304,9 @@ model Course {
   // External reference sources credited on the course page (badges + links).
   referenceSources CourseReferenceSource[]
 
+  // Events/competitions this course helps prepare a learner for.
+  eventRecommendations EventCourseRecommendation[]
+
   @@index([slug])
   @@index([category])
   @@index([ageGroup])
@@ -471,6 +474,9 @@ model Bundle {
   // External reference sources credited on the bundle page.
   referenceSources BundleReferenceSource[]
 
+  // Events/competitions this bundle helps prepare a learner for.
+  eventRecommendations EventBundleRecommendation[]
+
   @@index([slug])
   @@index([themeCategory])
   @@index([ageGroup])
@@ -525,6 +531,9 @@ model LearningPathway {
 
   // External reference sources credited on the pathway page.
   referenceSources PathwayReferenceSource[]
+
+  // Events that point at this pathway as their preparation journey.
+  preparesForEvents Competition[] @relation("EventPrepPath")
 
   @@index([slug])
   @@index([ageGroup])
@@ -1159,7 +1168,7 @@ model OrderItem {
   @@index([orderId])
 }
 
-// ========== COMPETITIONS ==========
+// ========== COMPETITIONS & EVENTS ==========
 
 enum CompetitionStatus {
   UPCOMING
@@ -1169,31 +1178,128 @@ enum CompetitionStatus {
   COMPLETED
 }
 
+// Geographic scope of an external event (catalog metadata).
+enum EventRegion {
+  GLOBAL
+  EUROPE
+  GERMANY
+  US
+  UK
+}
+
+// Catalog visibility for external events. Distinct from the hosted-competition
+// lifecycle (`status`): ACTIVE = listed & promoted, OPTIONAL = listed as a
+// stretch/optional opportunity, ARCHIVED = hidden from the public catalog.
+enum EventListingStatus {
+  ACTIVE
+  OPTIONAL
+  ARCHIVED
+}
+
+// How a course/bundle relates to an event's preparation.
+enum EventRecommendationType {
+  PREREQUISITE
+  RECOMMENDED
+  ADVANCED_PREPARATION
+}
+
+// The Competition model serves two kinds of record, separated by `isExternal`:
+//  - isExternal = false → a SchuLab-HOSTED competition (registration window,
+//    scoring, leaderboard, prizes). The date fields drive that flow.
+//  - isExternal = true  → a curated entry in the "Events & Competitions" catalog
+//    for a reputable EXTERNAL program (FIRST LEGO League, WRO, Astro Pi…). These
+//    carry provider/URL/region/season/track metadata and recommendation links,
+//    and have no SchuLab-managed registration window (date fields stay null).
+// The DB is the single source of truth for all of this metadata — the curriculum
+// Git repo only owns the preparation *content*, linked via `preparationPath`.
 model Competition {
-  id                String                    @id @default(cuid())
-  slug              String                    @unique
+  id                String            @id @default(cuid())
+  slug              String            @unique
   title             String
   titleAr           String?
   titleDe           String?
-  description       String                    @db.Text
-  descriptionAr     String?                   @db.Text
-  descriptionDe     String?                   @db.Text
+  description       String            @db.Text
+  descriptionAr     String?           @db.Text
+  descriptionDe     String?           @db.Text
   thumbnail         String?
   ageGroup          AgeGroup
   category          String
-  status            CompetitionStatus         @default(UPCOMING)
-  registrationStart DateTime
-  registrationEnd   DateTime
-  startDate         DateTime
-  endDate           DateTime
+  status            CompetitionStatus @default(UPCOMING)
+  // Hosted-competition registration/run window. Nullable because external
+  // catalog events have no SchuLab-managed dates (they use seasonMonths).
+  registrationStart DateTime?
+  registrationEnd   DateTime?
+  startDate         DateTime?
+  endDate           DateTime?
   maxParticipants   Int?
   prizes            Json?
-  rules             String?                   @db.Text
-  createdAt         DateTime                  @default(now())
-  registrations     CompetitionRegistration[]
+  rules             String?           @db.Text
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @default(now()) @updatedAt
+
+  // ----- External-event catalog metadata (isExternal = true) -----
+  isExternal        Boolean            @default(false)
+  eventType         String? // e.g. "Robotics / STEM Challenge"
+  officialProvider  String?
+  officialUrl       String?
+  region            EventRegion?
+  tracks            String[]           @default([]) // Robotics, Coding, AI, Space…
+  seasonMonths      Int[]              @default([]) // months 1–12 the event typically runs
+  ageMin            Int? // precise span; ageGroup keeps a representative band
+  ageMax            Int?
+  levelMin          CourseLevel?
+  levelMax          CourseLevel?
+  listingStatus     EventListingStatus @default(ACTIVE)
+  // Free-form machine-readable gate, shaped { minAge, maxAge, tracks[], notes }.
+  eligibilityRules  Json?
+  // Optional in-DB preparation journey (NOT the curriculum repo).
+  preparationPathId String?
+  preparationPath   LearningPathway?   @relation("EventPrepPath", fields: [preparationPathId], references: [id], onDelete: SetNull)
+
+  registrations         CompetitionRegistration[]
+  courseRecommendations EventCourseRecommendation[]
+  bundleRecommendations EventBundleRecommendation[]
 
   @@index([slug])
   @@index([status])
+  @@index([isExternal, listingStatus])
+}
+
+// A course that prepares a learner for an event. The reason/threshold fields let
+// the eligibility engine decide whether a completed course satisfies the event.
+model EventCourseRecommendation {
+  id                          String                  @id @default(cuid())
+  competitionId               String
+  courseId                    String
+  recommendationType          EventRecommendationType @default(RECOMMENDED)
+  reason                      String                  @db.Text
+  minimumCompletionPercentage Int                     @default(100)
+  requiredAssessmentScore     Int?
+  createdAt                   DateTime                @default(now())
+  updatedAt                   DateTime                @updatedAt
+  competition                 Competition             @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  course                      Course                  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([competitionId, courseId])
+  @@index([courseId])
+}
+
+// A bundle that prepares a learner for an event. Same shape as the course join.
+model EventBundleRecommendation {
+  id                          String                  @id @default(cuid())
+  competitionId               String
+  bundleId                    String
+  recommendationType          EventRecommendationType @default(RECOMMENDED)
+  reason                      String                  @db.Text
+  minimumCompletionPercentage Int                     @default(100)
+  requiredAssessmentScore     Int?
+  createdAt                   DateTime                @default(now())
+  updatedAt                   DateTime                @updatedAt
+  competition                 Competition             @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  bundle                      Bundle                  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+
+  @@unique([competitionId, bundleId])
+  @@index([bundleId])
 }
 
 model CompetitionRegistration {

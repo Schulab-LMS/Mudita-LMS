@@ -47,6 +47,7 @@
     "curriculum": "Curriculum (Git)",
     "stemKits": "STEM Kits",
     "competitions": "Competitions",
+    "events": "Events & Competitions",
     "pricing": "Pricing",
     "about": "About",
     "contact": "Contact",
@@ -659,6 +660,50 @@
     "registerNow": "Register Now",
     "participants": "participants",
     "deadline": "Registration Deadline"
+  },
+  "events": {
+    "title": "Events & Competitions",
+    "subtitle": "Reputable global STEM events and competitions your child can prepare for on SchuLab — from robotics and space coding to digital making showcases.",
+    "empty": "No events are listed yet. Check back soon.",
+    "provider": "Official provider",
+    "eventType": "Type",
+    "ageRange": "Age range",
+    "level": "Difficulty",
+    "tracks": "Related tracks",
+    "region": "Region",
+    "season": "Season",
+    "status": "Status",
+    "active": "Active",
+    "optional": "Optional",
+    "archived": "Archived",
+    "prepAvailable": "Preparation content available",
+    "recommendedPrep": "Recommended SchuLab courses & bundles",
+    "eligibility": "Eligibility criteria",
+    "viewPrepPath": "View Preparation Path",
+    "checkEligibility": "Check Eligibility",
+    "visitOfficial": "Visit official site",
+    "years": "years",
+    "allYear": "Year-round",
+    "recommendation": {
+      "PREREQUISITE": "Prerequisite",
+      "RECOMMENDED": "Recommended",
+      "ADVANCED_PREPARATION": "Advanced preparation"
+    },
+    "dashboard": {
+      "readyTitle": "You are ready for these events",
+      "readySubtitle": "Based on what you've completed, you can start preparing now.",
+      "almostTitle": "Get ready for these events",
+      "almostSubtitle": "Finish these courses or bundles to unlock them.",
+      "needTitle": "What you still need",
+      "prepPath": "Recommended preparation path",
+      "addDob": "Add your date of birth in your profile to see age-matched events.",
+      "empty": "Complete a course or bundle to unlock event recommendations.",
+      "viewAll": "Browse all events"
+    },
+    "completion": {
+      "title": "Next competition you can prepare for",
+      "subtitle": "Your progress here helps you get ready for:"
+    }
   },
   "footer": {
     "description": "The next era of learning for children ages 3–18. Interactive STEM courses, live tutoring, and hands-on kits — where school becomes a lab.",

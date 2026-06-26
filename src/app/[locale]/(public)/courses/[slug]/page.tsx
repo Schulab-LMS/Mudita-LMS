@@ -5,6 +5,8 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getCourseBySlug, getLocalizedField } from "@/services/course.service";
 import { listApprovedReviews } from "@/services/review.service";
+import { getEventRecommendationsForCourse } from "@/services/event.service";
+import { CompletionEventCard } from "@/components/events/completion-event-card";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
@@ -148,6 +150,9 @@ export default async function CourseDetailPage({
       // graceful degradation
     }
   }
+
+  // Events this course helps prepare a learner for (completion-page surface).
+  const eventRecs = await getEventRecommendationsForCourse(course.id);
 
   // Instructor + social proof — fetched once the course exists. Course has
   // `createdById` but no Prisma relation, so the instructor is a separate
@@ -620,6 +625,9 @@ export default async function CourseDetailPage({
             </Link>
           </section>
         )}
+
+        {/* Next event/competition this course prepares you for */}
+        <CompletionEventCard recs={eventRecs} />
 
         {/* Related courses */}
         {relatedCourses.length > 0 && (

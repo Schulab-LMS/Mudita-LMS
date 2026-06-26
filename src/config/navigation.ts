@@ -1,7 +1,7 @@
 export const publicNavItems = [
   { href: "/courses", labelKey: "nav.courses" },
   { href: "/tutors", labelKey: "nav.tutors" },
-  { href: "/competitions", labelKey: "nav.competitions" },
+  { href: "/events", labelKey: "nav.events" },
   { href: "/stem-kits", labelKey: "nav.stemKits" },
   { href: "/how-it-works", labelKey: "nav.howItWorks" },
   { href: "/for-schools", labelKey: "nav.forSchools" },
@@ -25,6 +25,7 @@ const adminItems: NavItem[] = [
   { href: "/admin/pathways", labelKey: "nav.pathways", icon: "Map" },
   { href: "/admin/curriculum", labelKey: "nav.curriculum", icon: "GitBranch" },
   { href: "/admin/products", labelKey: "nav.products", icon: "Package" },
+  { href: "/admin/events", labelKey: "nav.events", icon: "Sparkles" },
   { href: "/admin/competitions", labelKey: "nav.competitions", icon: "Trophy" },
   { href: "/admin/certificates", labelKey: "nav.certificates", icon: "GraduationCap" },
   { href: "/admin/badges", labelKey: "nav.badges", icon: "Award" },

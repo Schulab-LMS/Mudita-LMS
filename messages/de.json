@@ -47,6 +47,7 @@
     "curriculum": "Lehrplan (Git)",
     "stemKits": "STEM-Kits",
     "competitions": "Wettbewerbe",
+    "events": "Events & Wettbewerbe",
     "pricing": "Preise",
     "about": "Über uns",
     "contact": "Kontakt",
@@ -659,6 +660,50 @@
     "registerNow": "Jetzt anmelden",
     "participants": "Teilnehmer",
     "deadline": "Anmeldeschluss"
+  },
+  "events": {
+    "title": "Events & Wettbewerbe",
+    "subtitle": "Renommierte globale STEM-Events und Wettbewerbe, auf die sich Ihr Kind auf SchuLab vorbereiten kann — von Robotik und Weltraum-Coding bis hin zu digitalen Maker-Showcases.",
+    "empty": "Es sind noch keine Events gelistet. Schauen Sie bald wieder vorbei.",
+    "provider": "Offizieller Anbieter",
+    "eventType": "Typ",
+    "ageRange": "Altersbereich",
+    "level": "Schwierigkeit",
+    "tracks": "Verwandte Bereiche",
+    "region": "Region",
+    "season": "Saison",
+    "status": "Status",
+    "active": "Aktiv",
+    "optional": "Optional",
+    "archived": "Archiviert",
+    "prepAvailable": "Vorbereitungsinhalte verfügbar",
+    "recommendedPrep": "Empfohlene SchuLab-Kurse & Bundles",
+    "eligibility": "Teilnahmevoraussetzungen",
+    "viewPrepPath": "Vorbereitungspfad ansehen",
+    "checkEligibility": "Eignung prüfen",
+    "visitOfficial": "Offizielle Website besuchen",
+    "years": "Jahre",
+    "allYear": "Ganzjährig",
+    "recommendation": {
+      "PREREQUISITE": "Voraussetzung",
+      "RECOMMENDED": "Empfohlen",
+      "ADVANCED_PREPARATION": "Fortgeschrittene Vorbereitung"
+    },
+    "dashboard": {
+      "readyTitle": "Du bist bereit für diese Events",
+      "readySubtitle": "Basierend auf deinem Fortschritt kannst du dich jetzt vorbereiten.",
+      "almostTitle": "Mach dich bereit für diese Events",
+      "almostSubtitle": "Schließe diese Kurse oder Bundles ab, um sie freizuschalten.",
+      "needTitle": "Was dir noch fehlt",
+      "prepPath": "Empfohlener Vorbereitungspfad",
+      "addDob": "Füge dein Geburtsdatum in deinem Profil hinzu, um altersgerechte Events zu sehen.",
+      "empty": "Schließe einen Kurs oder ein Bundle ab, um Event-Empfehlungen freizuschalten.",
+      "viewAll": "Alle Events durchsuchen"
+    },
+    "completion": {
+      "title": "Nächster Wettbewerb, auf den du dich vorbereiten kannst",
+      "subtitle": "Dein Fortschritt hier hilft dir, dich vorzubereiten auf:"
+    }
   },
   "footer": {
     "description": "Die nächste Ära des Lernens für Kinder von 3–18 Jahren. Interaktive STEM-Kurse, Live-Nachhilfe und praktische Kits — wo Schule zum Labor wird.",

@@ -14,6 +14,9 @@ import type {
   PlanTier,
   ContentStatus,
   SourceStatus,
+  EventRegion,
+  EventListingStatus,
+  EventRecommendationType,
 } from "../src/generated/prisma/client";
 import type { CatalogCourse } from "./catalog/types";
 import { REFERENCE_SOURCES } from "./catalog/reference-sources.data";
@@ -26,6 +29,11 @@ import { COURSES_TEENS } from "./catalog/courses-teens.data";
 import { COURSES_CURRICULUM } from "./catalog/courses-curriculum.data";
 import { BUNDLES } from "./catalog/bundles.data";
 import { PATHWAYS } from "./catalog/pathways.data";
+import { EVENTS } from "./catalog/events.data";
+import {
+  EVENT_BUNDLE_RECOMMENDATIONS,
+  EVENT_COURSE_RECOMMENDATIONS,
+} from "./catalog/event-recommendations.data";
 
 const ALL_COURSES: CatalogCourse[] = [
   ...COURSES_AGES_3_5,
@@ -346,9 +354,114 @@ export async function seedCatalog(db: PrismaClient, adminId: string) {
     data: { isFree: true, price: 0, requiredPlan: null },
   });
 
+  // 8. Events & Competitions catalog (upsert events + rebuild recommendations) ──
+  //    External STEM events (FIRST LEGO League, WRO, Astro Pi…). Stored on the
+  //    Competition model with isExternal = true. Recommendation join rows are
+  //    replace-children (idempotent). Bundle/course slugs resolve against the
+  //    maps built above; pathway slug → preparationPathId.
+  let eventsUpserted = 0;
+  let eventRecs = 0;
+  const eventIdBySlug = new Map<string, string>();
+  for (const e of EVENTS) {
+    let preparationPathId: string | null = null;
+    if (e.preparationPathSlug) {
+      const path = await db.learningPathway.findUnique({
+        where: { slug: e.preparationPathSlug },
+        select: { id: true },
+      });
+      if (path) preparationPathId = path.id;
+      else console.log(`⚠️  Event "${e.slug}" — pathway "${e.preparationPathSlug}" not found, skipped link`);
+    }
+
+    const eventData = {
+      title: e.name,
+      description: e.description,
+      ageGroup: e.ageGroup as AgeGroup,
+      category: e.category,
+      isExternal: true,
+      eventType: e.eventType,
+      officialProvider: e.officialProvider,
+      officialUrl: e.officialUrl,
+      region: e.region as EventRegion,
+      tracks: e.tracks,
+      seasonMonths: e.seasonMonths,
+      ageMin: e.ageMin,
+      ageMax: e.ageMax,
+      levelMin: e.levelMin as CourseLevel,
+      levelMax: e.levelMax as CourseLevel,
+      listingStatus: e.listingStatus as EventListingStatus,
+      eligibilityRules: e.eligibilityRules,
+      preparationPathId,
+    };
+
+    const row = await db.competition.upsert({
+      where: { slug: e.slug },
+      update: eventData,
+      create: { slug: e.slug, ...eventData },
+    });
+    eventIdBySlug.set(e.slug, row.id);
+    eventsUpserted++;
+  }
+
+  // 8a. Event ↔ bundle recommendations (replace-children) ──────────────────────
+  for (const id of eventIdBySlug.values()) {
+    await db.eventBundleRecommendation.deleteMany({ where: { competitionId: id } });
+    await db.eventCourseRecommendation.deleteMany({ where: { competitionId: id } });
+  }
+  for (const r of EVENT_BUNDLE_RECOMMENDATIONS) {
+    const competitionId = eventIdBySlug.get(r.eventSlug);
+    if (!competitionId) {
+      console.log(`⚠️  Recommendation — event "${r.eventSlug}" not found, skipped`);
+      continue;
+    }
+    const bundle = await db.bundle.findUnique({ where: { slug: r.bundleSlug }, select: { id: true } });
+    if (!bundle) {
+      console.log(`⚠️  Recommendation — bundle "${r.bundleSlug}" not found, skipped`);
+      continue;
+    }
+    await db.eventBundleRecommendation.create({
+      data: {
+        competitionId,
+        bundleId: bundle.id,
+        recommendationType: r.recommendationType as EventRecommendationType,
+        reason: r.reason,
+        minimumCompletionPercentage: r.minimumCompletionPercentage ?? 100,
+      },
+    });
+    eventRecs++;
+  }
+
+  // 8b. Event ↔ course recommendations (replace-children) ───────────────────────
+  for (const r of EVENT_COURSE_RECOMMENDATIONS) {
+    const competitionId = eventIdBySlug.get(r.eventSlug);
+    if (!competitionId) {
+      console.log(`⚠️  Recommendation — event "${r.eventSlug}" not found, skipped`);
+      continue;
+    }
+    // Resolve from the DB (covers base-seed courses not in the catalog data).
+    const courseId =
+      courseIdBySlug.get(r.courseSlug) ??
+      (await db.course.findUnique({ where: { slug: r.courseSlug }, select: { id: true } }))?.id;
+    if (!courseId) {
+      console.log(`⚠️  Recommendation — course "${r.courseSlug}" not found, skipped`);
+      continue;
+    }
+    await db.eventCourseRecommendation.create({
+      data: {
+        competitionId,
+        courseId,
+        recommendationType: r.recommendationType as EventRecommendationType,
+        reason: r.reason,
+        minimumCompletionPercentage: r.minimumCompletionPercentage ?? 100,
+      },
+    });
+    eventRecs++;
+  }
+
   console.log(
     `✅ Catalog seeded — ${REFERENCE_SOURCES.length} sources, ${created} new courses, ` +
-      `${enriched} enriched, ${bundlesUpserted} bundles, ${pathwaysUpserted} pathways; ` +
+      `${enriched} enriched, ${bundlesUpserted} bundles, ${pathwaysUpserted} pathways, ` +
+      `${eventsUpserted} events (${eventRecs} recommendations); ` +
       `access policy applied — ${freed.count} free course(s), ${gated.count} newly subscription-gated`
   );
 }

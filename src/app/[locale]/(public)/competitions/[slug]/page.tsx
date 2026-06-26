@@ -104,7 +104,7 @@ export default async function CompetitionDetailPage({
     day: "numeric",
     year: "numeric",
   });
-  const daysToStart = daysUntil(competition.startDate);
+  const daysToStart = competition.startDate ? daysUntil(competition.startDate) : 0;
   const participantCount = competition.registrations.length;
   const maxParticipants = competition.maxParticipants;
   const spotsLeft = maxParticipants
@@ -180,17 +180,17 @@ export default async function CompetitionDetailPage({
           <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <HeroStat
               label="Start"
-              value={dateFmt.format(new Date(competition.startDate))}
+              value={competition.startDate ? dateFmt.format(new Date(competition.startDate)) : "TBA"}
               icon={<Calendar className="h-4 w-4" />}
             />
             <HeroStat
               label="End"
-              value={dateFmt.format(new Date(competition.endDate))}
+              value={competition.endDate ? dateFmt.format(new Date(competition.endDate)) : "TBA"}
               icon={<Calendar className="h-4 w-4" />}
             />
             <HeroStat
               label="Register by"
-              value={dateFmt.format(new Date(competition.registrationEnd))}
+              value={competition.registrationEnd ? dateFmt.format(new Date(competition.registrationEnd)) : "TBA"}
               icon={<Clock className="h-4 w-4" />}
             />
             <HeroStat
@@ -459,7 +459,9 @@ export default async function CompetitionDetailPage({
                 <li className="flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5 text-primary" aria-hidden />
                   Registration closes{" "}
-                  {dateFmt.format(new Date(competition.registrationEnd))}
+                  {competition.registrationEnd
+                    ? dateFmt.format(new Date(competition.registrationEnd))
+                    : "TBA"}
                 </li>
               </ul>
             </div>

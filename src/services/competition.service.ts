@@ -2,7 +2,9 @@ import { db } from "@/lib/db";
 
 export async function getCompetitions(filters?: { status?: string; ageGroup?: string }) {
   try {
-    const where: Record<string, unknown> = {};
+    // Only SchuLab-HOSTED competitions. External catalog events (isExternal)
+    // are served by the Events & Competitions tab via event.service.ts.
+    const where: Record<string, unknown> = { isExternal: false };
     if (filters?.status) where.status = filters.status;
     if (filters?.ageGroup) where.ageGroup = filters.ageGroup;
 
@@ -17,8 +19,8 @@ export async function getCompetitions(filters?: { status?: string; ageGroup?: st
 
 export async function getCompetitionBySlug(slug: string) {
   try {
-    return await db.competition.findUnique({
-      where: { slug },
+    return await db.competition.findFirst({
+      where: { slug, isExternal: false },
       include: {
         registrations: { select: { id: true, userId: true } },
       },

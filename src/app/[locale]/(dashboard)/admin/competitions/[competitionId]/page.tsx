@@ -96,19 +96,19 @@ export default async function AdminCompetitionDetailPage({
         <InfoTile
           icon={<Calendar className="h-4 w-4" />}
           label="Start"
-          value={dateFmt.format(new Date(competition.startDate))}
+          value={competition.startDate ? dateFmt.format(new Date(competition.startDate)) : "TBA"}
           tone="primary"
         />
         <InfoTile
           icon={<Calendar className="h-4 w-4" />}
           label="End"
-          value={dateFmt.format(new Date(competition.endDate))}
+          value={competition.endDate ? dateFmt.format(new Date(competition.endDate)) : "TBA"}
           tone="secondary"
         />
         <InfoTile
           icon={<Clock className="h-4 w-4" />}
           label="Registration ends"
-          value={dateFmt.format(new Date(competition.registrationEnd))}
+          value={competition.registrationEnd ? dateFmt.format(new Date(competition.registrationEnd)) : "TBA"}
           tone="accent"
         />
         <InfoTile

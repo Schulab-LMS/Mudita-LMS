@@ -123,7 +123,7 @@ export default async function CompetitionsPage() {
               const config =
                 statusConfig[competition.status] ?? statusConfig.UPCOMING;
               const StatusIcon = config.Icon;
-              const days = daysUntil(competition.startDate);
+              const days = competition.startDate ? daysUntil(competition.startDate) : 0;
               const prizeCount = countPrizes(competition.prizes);
               const participants = competition.maxParticipants;
 
@@ -166,7 +166,7 @@ export default async function CompetitionsPage() {
                     <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
                       <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 font-medium text-foreground">
                         <Calendar className="h-3 w-3 text-primary" aria-hidden />
-                        {dateFmt.format(new Date(competition.startDate))}
+                        {competition.startDate ? dateFmt.format(new Date(competition.startDate)) : "TBA"}
                       </span>
                       {participants && (
                         <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 font-medium text-foreground">
@@ -191,8 +191,8 @@ export default async function CompetitionsPage() {
                     {/* Footer — CTA */}
                     <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
                       <p className="text-xs text-muted-foreground">
-                        {dateFmt.format(new Date(competition.startDate))} ·{" "}
-                        {dateFmt.format(new Date(competition.endDate))}
+                        {competition.startDate ? dateFmt.format(new Date(competition.startDate)) : "TBA"}
+                        {competition.endDate ? ` · ${dateFmt.format(new Date(competition.endDate))}` : ""}
                       </p>
                       <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5">
                         {competition.status === "REGISTRATION_OPEN"

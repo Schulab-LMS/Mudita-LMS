@@ -9,6 +9,8 @@ import {
 } from "@/services/bundle.service";
 import { auth } from "@/lib/auth";
 import { hasBundleAccess } from "@/lib/subscription-access";
+import { getEventRecommendationsForBundle } from "@/services/event.service";
+import { CompletionEventCard } from "@/components/events/completion-event-card";
 import { Link } from "@/i18n/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { CourseCard } from "@/components/course/course-card";
@@ -40,6 +42,8 @@ export default async function BundleDetailPage({ params }: BundleDetailPageProps
   const [bundle, session] = await Promise.all([getBundleBySlug(slug), auth()]);
 
   if (!bundle) notFound();
+
+  const eventRecs = await getEventRecommendationsForBundle(bundle.id);
 
   const title = getLocalizedField(bundle, "title", locale);
   const description = getLocalizedField(bundle, "description", locale);
@@ -229,6 +233,9 @@ export default async function BundleDetailPage({ params }: BundleDetailPageProps
           />
         </div>
       </div>
+
+      {/* Next event/competition this bundle prepares you for */}
+      <CompletionEventCard recs={eventRecs} />
     </div>
   );
 }

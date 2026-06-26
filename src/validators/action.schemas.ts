@@ -58,6 +58,82 @@ export const updateCourseSchema = z.object({
 
 export const deleteCourseSchema = z.object({ courseId: cuidSchema });
 
+// ── Admin: Events & Competitions (external catalog) ─────────────────────────
+
+const levelEnum = z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]);
+const regionEnum = z.enum(["GLOBAL", "EUROPE", "GERMANY", "US", "UK"]);
+const listingStatusEnum = z.enum(["ACTIVE", "OPTIONAL", "ARCHIVED"]);
+const recommendationTypeEnum = z.enum(["PREREQUISITE", "RECOMMENDED", "ADVANCED_PREPARATION"]);
+
+const eventCoreShape = {
+  name: z.string().min(1, "Name is required").max(200),
+  description: z.string().min(1, "Description is required"),
+  officialProvider: z.string().min(1, "Provider is required").max(200),
+  officialUrl: z.string().url("A valid official URL is required"),
+  eventType: z.string().min(1, "Event type is required").max(120),
+  category: z.string().min(1, "Category is required").max(60),
+  region: regionEnum,
+  tracks: z.array(z.string().min(1)).default([]),
+  ageGroup: ageGroupEnum,
+  ageMin: z.number().int().min(0).max(99),
+  ageMax: z.number().int().min(0).max(99),
+  levelMin: levelEnum,
+  levelMax: levelEnum,
+  seasonMonths: z.array(z.number().int().min(1).max(12)).default([]),
+  listingStatus: listingStatusEnum,
+  preparationPathId: cuidSchema.optional().nullable(),
+  thumbnail: z.string().url().optional().nullable(),
+};
+
+export const createEventSchema = z.object(eventCoreShape).refine((d) => d.ageMax >= d.ageMin, {
+  message: "Maximum age must be greater than or equal to minimum age",
+  path: ["ageMax"],
+});
+
+export const updateEventSchema = z.object({
+  eventId: cuidSchema,
+  data: z.object({
+    name: z.string().min(1).max(200).optional(),
+    description: z.string().min(1).optional(),
+    officialProvider: z.string().min(1).max(200).optional(),
+    officialUrl: z.string().url().optional(),
+    eventType: z.string().min(1).max(120).optional(),
+    category: z.string().min(1).max(60).optional(),
+    region: regionEnum.optional(),
+    tracks: z.array(z.string().min(1)).optional(),
+    ageGroup: ageGroupEnum.optional(),
+    ageMin: z.number().int().min(0).max(99).optional(),
+    ageMax: z.number().int().min(0).max(99).optional(),
+    levelMin: levelEnum.optional(),
+    levelMax: levelEnum.optional(),
+    seasonMonths: z.array(z.number().int().min(1).max(12)).optional(),
+    listingStatus: listingStatusEnum.optional(),
+    preparationPathId: cuidSchema.optional().nullable(),
+    thumbnail: z.string().url().optional().nullable(),
+  }),
+});
+
+export const deleteEventSchema = z.object({ eventId: cuidSchema });
+
+export const toggleEventListingSchema = z.object({
+  eventId: cuidSchema,
+  listingStatus: listingStatusEnum,
+});
+
+export const addEventRecommendationSchema = z.object({
+  eventId: cuidSchema,
+  target: z.enum(["course", "bundle"]),
+  targetId: cuidSchema,
+  recommendationType: recommendationTypeEnum,
+  reason: z.string().min(1, "Reason is required").max(500),
+  minimumCompletionPercentage: z.number().int().min(0).max(100).default(100),
+});
+
+export const removeEventRecommendationSchema = z.object({
+  recommendationId: cuidSchema,
+  target: z.enum(["course", "bundle"]),
+});
+
 // ── Admin: Badges ───────────────────────────────────────────────────────
 
 export const createBadgeSchema = z.object({

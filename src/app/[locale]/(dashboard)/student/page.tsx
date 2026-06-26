@@ -17,6 +17,8 @@ import { DailyGoal } from "@/components/dashboard/daily-goal";
 import { QuestList, type Quest } from "@/components/dashboard/quest-list";
 import { ActivityHeatmap } from "@/components/dashboard/activity-heatmap";
 import { NextLesson } from "@/components/dashboard/next-lesson";
+import { EventRecommendations } from "@/components/dashboard/event-recommendations";
+import { getEligibleEventsForUser } from "@/services/event.service";
 import { Link } from "@/i18n/navigation";
 import {
   BookOpen,
@@ -45,7 +47,7 @@ export default async function StudentDashboardPage() {
     getLocale(),
   ]);
 
-  const [stats, enrollments, today, streakDays, dynamicQuests, heatmap, rec] =
+  const [stats, enrollments, today, streakDays, dynamicQuests, heatmap, rec, eventEligibility] =
     await Promise.all([
       getStudentStats(session.user.id).catch(() => ({
         enrollments: 0,
@@ -64,6 +66,7 @@ export default async function StudentDashboardPage() {
         bundle: null,
         nextCourse: null,
       })),
+      getEligibleEventsForUser(session.user.id),
     ]);
 
   const inProgress = enrollments.filter((e) => e.status !== "COMPLETED");
@@ -342,6 +345,9 @@ export default async function StudentDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ============ EVENTS & COMPETITIONS ============ */}
+      <EventRecommendations result={eventEligibility} />
     </div>
   );
 }

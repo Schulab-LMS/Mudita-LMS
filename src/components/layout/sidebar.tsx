@@ -30,6 +30,7 @@ import {
   GitBranch,
   Layers,
   Map,
+  Sparkles,
 } from "lucide-react";
 import { SchulabLogo } from "@/components/brand/schulab-logo";
 import { PreviewSwitcher } from "@/components/layout/preview-switcher";
@@ -58,6 +59,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   GitBranch,
   Layers,
   Map,
+  Sparkles,
 };
 
 interface SidebarProps {
