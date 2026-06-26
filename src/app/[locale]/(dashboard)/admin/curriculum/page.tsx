@@ -59,7 +59,7 @@ export default async function AdminCurriculumPage() {
     <div className="space-y-6">
       <PageHeader
         title="Curriculum (Git)"
-        description="Curriculum content is owned by the STEM-Curricula repository and synced into the platform. It is read-only here — edit it in Git."
+        description="Lesson content (handouts, activities, presentations, quizzes, resources) is owned by the STEM-Curricula repository and synced into matching platform courses by slug. Content is read-only here — edit it in Git. Course metadata (name, age group, level, category, status, pathways & bundles) stays platform-owned and editable; the sync never overwrites it."
         breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Curriculum" }]}
         actions={<ResyncButton disabled={!configured} currentRunId={lastRun?.id ?? null} />}
       />

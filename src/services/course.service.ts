@@ -57,6 +57,12 @@ export async function getCourses(filters: CourseFilters = {}) {
   try {
     const where: Record<string, unknown> = {
       status: "PUBLISHED",
+      // Hide courses whose Git content source was removed. `status` is the
+      // platform-owned visibility flag; `syncStatus` is the sync-owned
+      // content-health flag (mirrors the module/lesson filter below). A course
+      // with no live content source never appears in the catalog, yet the sync
+      // never has to touch the admin's published `status` to achieve that.
+      syncStatus: "ACTIVE",
     };
 
     if (filters.ageGroup) {
@@ -268,7 +274,9 @@ export async function getFeaturedCourses(
 ) {
   try {
     const courses = await db.course.findMany({
-      where: { status: "PUBLISHED", ...tenantScope(viewer) },
+      // syncStatus ACTIVE: exclude courses whose Git content source was removed
+      // (see getCourses) without the sync ever changing platform-owned `status`.
+      where: { status: "PUBLISHED", syncStatus: "ACTIVE", ...tenantScope(viewer) },
       include: {
         modules: {
           // Exclude Git-removed modules and count only active lessons so the

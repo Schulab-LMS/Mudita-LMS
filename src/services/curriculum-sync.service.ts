@@ -538,36 +538,60 @@ interface SyncCounts {
   coursesArchived: number;
 }
 
-async function persistCourse(
+// Exported for the metadata-ownership regression test. The platform DB is the
+// single source of truth for course METADATA + organisation (name, description,
+// ageGroup, level, category, tags, requiredPlan gating, visibility/status,
+// bundle & pathway membership…). The Git sync owns CONTENT, not identity, so it
+// must never clobber an admin's catalog settings. A repo course root links to a
+// platform course by `slug`; `sourcePath` records where the content came from.
+export async function persistCourse(
   course: BuiltCourse,
   commitSha: string,
   counts: SyncCounts
 ): Promise<void> {
-  const courseData = {
-    title: course.title,
-    titleAr: course.titleAr,
-    titleDe: course.titleDe,
-    description: course.description,
-    ageGroup: course.ageGroup,
-    level: course.level,
-    category: course.category,
-    requiredPlan: course.requiredPlan,
-    tags: course.tags,
-    status: course.status,
+  // Sync bookkeeping only — *just* the fields the sync owns; nothing else.
+  const provenance = {
     managedByGit: true,
     sourcePath: course.sourcePath,
     sourceCommitSha: commitSha,
     syncStatus: "ACTIVE" as const,
   };
 
-  const existing = await db.course.findUnique({ where: { slug: course.slug } });
+  const existing = await db.course.findUnique({
+    where: { slug: course.slug },
+    select: { id: true },
+  });
   let courseId: string;
   if (existing) {
+    // Existing course: write provenance ONLY. Every metadata/organisation field
+    // is left exactly as the platform has it, so an admin's name / age group /
+    // level / category / pathway / bundle / visibility edits survive every sync.
+    // This also re-activates a course whose content had been soft-removed and
+    // has since returned, and adopts an admin-curated catalog course the moment
+    // its slug matches a repo root (its content becomes Git-managed; its
+    // metadata stays platform-owned).
     courseId = existing.id;
-    await db.course.update({ where: { id: courseId }, data: courseData });
+    await db.course.update({ where: { id: courseId }, data: provenance });
   } else {
+    // First import: bootstrap a hidden shell so freshly-authored content is not
+    // lost before an admin has created the course. Descriptive fields are seeded
+    // from the repo as a ONE-TIME starting point — the platform owns them from
+    // here on and no later sync will overwrite them. Force DRAFT so the repo can
+    // never publish a course (visibility is platform-owned) and omit
+    // requiredPlan so access gating stays a platform decision.
     const created = await db.course.create({
-      data: { ...courseData, slug: course.slug, createdById: SYSTEM_AUTHOR },
+      data: {
+        slug: course.slug,
+        title: course.title,
+        description: course.description,
+        ageGroup: course.ageGroup,
+        level: course.level,
+        category: course.category,
+        tags: course.tags,
+        status: "DRAFT",
+        createdById: SYSTEM_AUTHOR,
+        ...provenance,
+      },
     });
     courseId = created.id;
     counts.coursesUpserted += 1;
@@ -918,10 +942,15 @@ export async function runCurriculumSync(opts: {
       }
     }
 
-    // Soft-archive managed courses that disappeared from the repo.
+    // Flag managed courses that disappeared from the repo: mark the content
+    // source as gone (syncStatus REMOVED — public catalog reads exclude these,
+    // mirroring the module/lesson filter) but DO NOT touch `status`. Visibility
+    // is platform-owned; an admin decides whether to unpublish a course whose
+    // Git content was retired. If the content returns, the next sync flips the
+    // course back to ACTIVE without ever having changed its published state.
     const archived = await db.course.updateMany({
       where: { managedByGit: true, slug: { notIn: seenSlugs }, syncStatus: "ACTIVE" },
-      data: { syncStatus: "REMOVED", status: "ARCHIVED" },
+      data: { syncStatus: "REMOVED" },
     });
     counts.coursesArchived = archived.count;
 

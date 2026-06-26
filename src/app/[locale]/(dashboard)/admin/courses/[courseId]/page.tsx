@@ -177,17 +177,19 @@ export default async function CourseDetailPage({
         <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
           <GitBranch className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           <div>
-            <p className="font-semibold">Managed in Git — read-only.</p>
+            <p className="font-semibold">Content managed in Git.</p>
             <p className="mt-1">
-              This course is synced from the STEM-Curricula repository
+              The lessons below are synced from the STEM-Curricula repository
               {course.sourcePath ? (
                 <>
                   {" "}
                   (<code className="font-mono">{course.sourcePath}</code>)
                 </>
-              ) : null}
-              . Edits made here are blocked and would be overwritten on the next
-              sync — change the content in Git instead.{" "}
+              ) : null}{" "}
+              and are read-only here — edit the content in Git. Course settings
+              (name, age group, level, category, status, pathways &amp; bundles)
+              are platform-owned and stay editable here; the sync never
+              overwrites them.{" "}
               <Link href="/admin/curriculum" className="font-semibold underline">
                 Curriculum sync
               </Link>

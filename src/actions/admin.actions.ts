@@ -188,9 +188,12 @@ export async function updateCourse(
     const parsed = updateCourseSchema.safeParse({ courseId, data });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
-    const editable = await assertCourseEditable({ courseId: parsed.data.courseId });
-    if (!editable.ok) return { success: false, error: editable.error };
-
+    // No content guard here: course metadata (name, description, age group,
+    // level, category, price/plan gating, thumbnail) is platform-owned and
+    // stays editable even for Git-managed courses. The Git sync only writes
+    // CONTENT (modules/lessons) and never overwrites these fields, so an admin
+    // edit cannot be clobbered by the next sync. Content edits remain guarded
+    // (see course-content.actions / quiz-admin.actions).
     await db.course.update({ where: { id: parsed.data.courseId }, data: parsed.data.data as never });
     await audit({
       actorId: session.user!.id,
@@ -246,8 +249,8 @@ export async function toggleCourseStatus(courseId: string, status: string) {
       return { success: false, error: "Invalid status" };
     }
 
-    const editable = await assertCourseEditable({ courseId: parsed.data.courseId });
-    if (!editable.ok) return { success: false, error: editable.error };
+    // Visibility/status is platform-owned (the sync never sets it), so admins
+    // can publish/unpublish a Git-managed course freely — no content guard.
 
     const prev = await db.course.findUnique({
       where: { id: parsed.data.courseId },

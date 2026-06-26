@@ -1,10 +1,14 @@
 import { db } from "@/lib/db";
 
-// Git is the single source of truth for managed curriculum. These courses are
-// read-only in the admin UI — any write action must refuse, so an admin edit
-// can't be silently overwritten by the next repo sync.
+// Git is the single source of truth for managed curriculum CONTENT. A managed
+// course's modules / lessons / quizzes are read-only in the admin UI — any
+// content write must refuse, so an admin edit can't be silently overwritten by
+// the next repo sync. Course-level METADATA + organisation (name, description,
+// age group, level, category, visibility/status, plan gating, bundle & pathway
+// membership) is platform-owned and stays editable; those actions intentionally
+// do NOT call this guard.
 export const MANAGED_COURSE_ERROR =
-  "This course is managed in the STEM-Curricula Git repo and is read-only here. Make changes in Git instead.";
+  "This course's content is managed in the STEM-Curricula Git repo and is read-only here. Edit lessons in Git; course settings remain editable here.";
 
 type CourseRef = {
   courseId?: string;
