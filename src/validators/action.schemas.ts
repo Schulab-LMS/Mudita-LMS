@@ -1,8 +1,13 @@
 import { z } from "zod";
+import { AGE_GROUP_VALUES } from "@/lib/constants";
 
 // ── Shared ──────────────────────────────────────────────────────────────
 
 export const cuidSchema = z.string().min(1, "ID is required");
+
+// Single source of truth for the AgeGroup enum, derived from AGE_GROUPS so the
+// six bands never drift between the DB enum, forms and validators.
+const ageGroupEnum = z.enum(AGE_GROUP_VALUES);
 
 // ── Admin: Users ────────────────────────────────────────────────────────
 
@@ -21,14 +26,17 @@ export const compAccessSchema = z.object({
 
 // ── Admin: Courses ──────────────────────────────────────────────────────
 
+const planTierEnum = z.enum(["FREE", "LEARNER", "PRO", "LIFETIME"]);
+
 export const createCourseSchema = z.object({
   title: z.string().min(1, "Title is required").max(200),
   description: z.string().min(1, "Description is required"),
-  ageGroup: z.enum(["AGES_3_5", "AGES_6_8", "AGES_9_12", "AGES_13_15", "AGES_16_18"]),
+  ageGroup: ageGroupEnum,
   level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
   category: z.string().min(1, "Category is required"),
   isFree: z.boolean(),
   price: z.number().min(0, "Price must be non-negative"),
+  requiredPlan: planTierEnum.optional().nullable(),
   thumbnail: z.string().url().optional().nullable(),
 });
 
@@ -37,11 +45,12 @@ export const updateCourseSchema = z.object({
   data: z.object({
     title: z.string().min(1).max(200).optional(),
     description: z.string().min(1).optional(),
-    ageGroup: z.enum(["AGES_3_5", "AGES_6_8", "AGES_9_12", "AGES_13_15", "AGES_16_18"]).optional(),
+    ageGroup: ageGroupEnum.optional(),
     level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]).optional(),
     category: z.string().min(1).optional(),
     isFree: z.boolean().optional(),
     price: z.number().min(0).optional(),
+    requiredPlan: planTierEnum.optional().nullable(),
     status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
     thumbnail: z.string().url().optional().nullable(),
   }),
@@ -91,7 +100,7 @@ export const createProductSchema = z.object({
   descriptionAr: z.string().optional(),
   descriptionDe: z.string().optional(),
   price: z.number().min(0, "Price must be non-negative"),
-  ageGroup: z.enum(["AGES_3_5", "AGES_6_8", "AGES_9_12", "AGES_13_15", "AGES_16_18"]),
+  ageGroup: ageGroupEnum,
   category: z.string().min(1, "Category is required"),
   stock: z.number().int().min(0, "Stock must be non-negative"),
   status: z.enum(["ACTIVE", "OUT_OF_STOCK", "DISCONTINUED"]),
@@ -478,4 +487,102 @@ export const deleteAccountSchema = z.object({
   confirmation: z.literal("DELETE", {
     message: "Type DELETE to confirm",
   }),
+});
+
+// ── Bundles ─────────────────────────────────────────────────────────────
+
+export const createBundleSchema = z.object({
+  title: z.string().min(1, "Title is required").max(200),
+  description: z.string().min(1, "Description is required"),
+  themeCategory: z.string().min(1, "Theme category is required"),
+  ageGroup: ageGroupEnum,
+  level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
+  requiredPlan: planTierEnum.optional().nullable(),
+  finalProjectTitle: z.string().max(200).optional().nullable(),
+  finalProjectDescription: z.string().optional().nullable(),
+  recommendedDurationWeeks: z.number().int().min(0).optional().nullable(),
+  thumbnail: z.string().url().optional().nullable(),
+});
+
+export const updateBundleSchema = z.object({
+  bundleId: cuidSchema,
+  data: z.object({
+    title: z.string().min(1).max(200).optional(),
+    description: z.string().min(1).optional(),
+    themeCategory: z.string().min(1).optional(),
+    ageGroup: ageGroupEnum.optional(),
+    level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]).optional(),
+    requiredPlan: planTierEnum.optional().nullable(),
+    status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
+    finalProjectTitle: z.string().max(200).optional().nullable(),
+    finalProjectDescription: z.string().optional().nullable(),
+    recommendedDurationWeeks: z.number().int().min(0).optional().nullable(),
+    thumbnail: z.string().url().optional().nullable(),
+  }),
+});
+
+export const deleteBundleSchema = z.object({ bundleId: cuidSchema });
+
+export const addCourseToBundleSchema = z.object({
+  bundleId: cuidSchema,
+  courseId: cuidSchema,
+  isRequired: z.boolean().optional(),
+});
+
+export const removeCourseFromBundleSchema = z.object({
+  bundleCourseId: cuidSchema,
+});
+
+export const setBundleCourseRequiredSchema = z.object({
+  bundleCourseId: cuidSchema,
+  isRequired: z.boolean(),
+});
+
+export const reorderBundleCoursesSchema = z.object({
+  bundleId: cuidSchema,
+  bundleCourseIds: z.array(cuidSchema),
+});
+
+// ── Pathways ────────────────────────────────────────────────────────────
+
+export const createPathwaySchema = z.object({
+  title: z.string().min(1, "Title is required").max(200),
+  description: z.string().min(1, "Description is required"),
+  ageGroup: ageGroupEnum,
+  order: z.number().int().min(0).optional(),
+  thumbnail: z.string().url().optional().nullable(),
+});
+
+export const updatePathwaySchema = z.object({
+  pathwayId: cuidSchema,
+  data: z.object({
+    title: z.string().min(1).max(200).optional(),
+    description: z.string().min(1).optional(),
+    ageGroup: ageGroupEnum.optional(),
+    status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
+    order: z.number().int().min(0).optional(),
+    thumbnail: z.string().url().optional().nullable(),
+  }),
+});
+
+export const deletePathwaySchema = z.object({ pathwayId: cuidSchema });
+
+// A stage points at EXACTLY ONE of a bundle or a course (XOR), mirroring the
+// DB CHECK constraint at the app layer (defense in depth).
+export const addPathwayStageSchema = z
+  .object({
+    pathwayId: cuidSchema,
+    title: z.string().max(200).optional().nullable(),
+    bundleId: cuidSchema.optional(),
+    courseId: cuidSchema.optional(),
+  })
+  .refine((d) => Boolean(d.bundleId) !== Boolean(d.courseId), {
+    message: "Provide exactly one of bundleId or courseId",
+  });
+
+export const removePathwayStageSchema = z.object({ stageId: cuidSchema });
+
+export const reorderPathwayStagesSchema = z.object({
+  pathwayId: cuidSchema,
+  stageIds: z.array(cuidSchema),
 });

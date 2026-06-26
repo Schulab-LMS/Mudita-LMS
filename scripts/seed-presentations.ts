@@ -18,6 +18,7 @@
 // first (we rely on admin@schulab.com, aisha@example.com, marcus@example.com).
 
 import { PrismaClient } from "../src/generated/prisma/client";
+import type { AgeGroup } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
@@ -398,7 +399,7 @@ interface PresentationCourseSpec {
   slug: string;
   title: string;
   description: string;
-  ageGroup: "AGES_3_5" | "AGES_6_8" | "AGES_9_12" | "AGES_13_15" | "AGES_16_18";
+  ageGroup: AgeGroup;
   level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
   category: string;
   moduleTitle: string;
@@ -561,7 +562,7 @@ async function main() {
       title: "Sample Presentation — Beginner: Shapes & Colors",
       description:
         "A short Reveal.js deck for ages 6–8 — fragments, an embedded image, speaker notes, and a 3-question quiz.",
-      ageGroup: "AGES_6_8",
+      ageGroup: "AGES_5_7",
       level: "BEGINNER",
       category: "SCIENCE",
       moduleTitle: "Slide Deck",
@@ -615,7 +616,7 @@ async function main() {
       title: "Sample Presentation — Intermediate: Intro to Web Development",
       description:
         "A Reveal.js deck for ages 9–12 — vertical slides, code blocks (highlight), a table, downloadable resources, and a 5-question quiz.",
-      ageGroup: "AGES_9_12",
+      ageGroup: "AGES_8_10",
       level: "INTERMEDIATE",
       category: "CODING",
       moduleTitle: "Slide Deck",
@@ -695,7 +696,7 @@ async function main() {
       title: "Sample Presentation — Advanced: Intro to Machine Learning",
       description:
         "A Reveal.js deck for ages 16–18 — vertical slides, math (KaTeX), Python code, fragments, and a 6-question quiz.",
-      ageGroup: "AGES_16_18",
+      ageGroup: "AGES_17_18",
       level: "ADVANCED",
       category: "AI",
       moduleTitle: "Slide Deck",

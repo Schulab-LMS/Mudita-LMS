@@ -62,12 +62,17 @@ const LEVEL_FROM_EXPERIENCE: Record<string, CourseLevel> = {
   advanced: "ADVANCED",
 };
 
+// Non-overlapping matching ranges. The 3-5 and 5-7 bands overlap at age 5 in
+// their labels, so we cap 3-5 at 4 here — this matches AGE_BUCKETS in
+// curriculum-structure.ts (which routes a lone age 5 to AGES_5_7), keeping
+// learner-age resolution consistent with how content is authored.
 const AGE_GROUP_RANGES: Record<AgeGroup, [number, number]> = {
-  AGES_3_5: [3, 5],
-  AGES_6_8: [6, 8],
-  AGES_9_12: [9, 12],
-  AGES_13_15: [13, 15],
-  AGES_16_18: [16, 18],
+  AGES_3_5: [3, 4],
+  AGES_5_7: [5, 7],
+  AGES_8_10: [8, 10],
+  AGES_11_13: [11, 13],
+  AGES_14_16: [14, 16],
+  AGES_17_18: [17, 18],
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────
@@ -102,10 +107,11 @@ function ageGroupForYears(years: number): AgeGroup | null {
 // some credit. Returns 0 for an exact match, 1 for next bucket, etc.
 const AGE_GROUP_ORDER: AgeGroup[] = [
   "AGES_3_5",
-  "AGES_6_8",
-  "AGES_9_12",
-  "AGES_13_15",
-  "AGES_16_18",
+  "AGES_5_7",
+  "AGES_8_10",
+  "AGES_11_13",
+  "AGES_14_16",
+  "AGES_17_18",
 ];
 function ageGroupDistance(a: AgeGroup, b: AgeGroup): number {
   return Math.abs(AGE_GROUP_ORDER.indexOf(a) - AGE_GROUP_ORDER.indexOf(b));

@@ -28,6 +28,8 @@ import {
   Bell,
   ClipboardList,
   GitBranch,
+  Layers,
+  Map,
 } from "lucide-react";
 import { SchulabLogo } from "@/components/brand/schulab-logo";
 import { PreviewSwitcher } from "@/components/layout/preview-switcher";
@@ -54,6 +56,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Bell,
   ClipboardList,
   GitBranch,
+  Layers,
+  Map,
 };
 
 interface SidebarProps {

@@ -76,10 +76,11 @@ function countPrizes(prizes: unknown): number {
 
 const AGE_LABELS: Record<string, string> = {
   AGES_3_5: "Ages 3–5",
-  AGES_6_8: "Ages 6–8",
-  AGES_9_12: "Ages 9–12",
-  AGES_13_15: "Ages 13–15",
-  AGES_16_18: "Ages 16–18",
+  AGES_5_7: "Ages 5–7",
+  AGES_8_10: "Ages 8–10",
+  AGES_11_13: "Ages 11–13",
+  AGES_14_16: "Ages 14–16",
+  AGES_17_18: "Ages 17–18",
 };
 
 export default async function CompetitionsPage() {

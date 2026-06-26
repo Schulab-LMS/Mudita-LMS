@@ -3,6 +3,13 @@ import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { BookOpen, Users, Clock } from "lucide-react";
 import { CategoryIllustration } from "./category-illustration";
+import {
+  categoryGradients,
+  ageGroupLabels,
+  ageGroupColors,
+  levelLabels,
+  levelColors,
+} from "./catalog-labels";
 
 interface CourseCardProps {
   course: {
@@ -22,60 +29,6 @@ interface CourseCardProps {
     currency?: string;
   };
 }
-
-const categoryGradients: Record<string, string> = {
-  math: "from-amber-400 to-orange-500",
-  coding: "from-emerald-400 to-green-600",
-  science: "from-cyan-400 to-blue-500",
-  robotics: "from-violet-400 to-purple-600",
-  engineering: "from-orange-400 to-red-500",
-  ai: "from-blue-400 to-indigo-600",
-  electronics: "from-teal-400 to-cyan-600",
-  biology: "from-lime-400 to-emerald-600",
-  chemistry: "from-pink-400 to-rose-600",
-  physics: "from-slate-400 to-indigo-500",
-  mathematics: "from-amber-400 to-orange-500",
-  technology: "from-blue-400 to-indigo-600",
-  stem: "from-violet-400 to-purple-600",
-  arts: "from-pink-400 to-rose-500",
-  language: "from-teal-400 to-green-500",
-  // real DB categories
-  digital_literacy: "from-sky-400 to-cyan-600",
-  data_science: "from-purple-500 to-violet-700",
-  cybersecurity: "from-slate-600 to-gray-900",
-  design: "from-fuchsia-400 to-pink-600",
-  entrepreneurship: "from-yellow-400 to-amber-500",
-  career: "from-blue-500 to-indigo-700",
-};
-
-
-const ageGroupLabels: Record<string, string> = {
-  AGES_3_5: "Ages 3-5",
-  AGES_6_8: "Ages 6-8",
-  AGES_9_12: "Ages 9-12",
-  AGES_13_15: "Ages 13-15",
-  AGES_16_18: "Ages 16-18",
-};
-
-const ageGroupColors: Record<string, string> = {
-  AGES_3_5: "bg-pink-100 text-pink-700 border-pink-200",
-  AGES_6_8: "bg-blue-100 text-blue-700 border-blue-200",
-  AGES_9_12: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  AGES_13_15: "bg-purple-100 text-purple-700 border-purple-200",
-  AGES_16_18: "bg-indigo-100 text-indigo-700 border-indigo-200",
-};
-
-const levelLabels: Record<string, string> = {
-  BEGINNER: "Beginner",
-  INTERMEDIATE: "Intermediate",
-  ADVANCED: "Advanced",
-};
-
-const levelColors: Record<string, string> = {
-  BEGINNER: "bg-green-100 text-green-700 border-green-200",
-  INTERMEDIATE: "bg-amber-100 text-amber-700 border-amber-200",
-  ADVANCED: "bg-red-100 text-red-700 border-red-200",
-};
 
 export function CourseCard({ course }: CourseCardProps) {
   const categoryKey = course.category.toLowerCase();

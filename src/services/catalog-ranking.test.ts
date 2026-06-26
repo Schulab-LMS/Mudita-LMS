@@ -18,7 +18,7 @@ function course(partial: Partial<RankableCourse>): RankableCourse {
     category: "SCIENCE",
     tags: [],
     level: "BEGINNER",
-    ageGroup: "AGES_9_12",
+    ageGroup: "AGES_8_10",
     averageRating: 0,
     reviewCount: 0,
     enrollmentCount: 0,
@@ -89,9 +89,9 @@ describe("scoreCourse — subject matching", () => {
 
 describe("scoreCourse — age fit", () => {
   it("exact age-group match scores higher than adjacent", () => {
-    const c = course({ ageGroup: "AGES_9_12" });
-    const exact = scoreCourse(c, { ageYears: 10 });
-    const adjacent = scoreCourse(c, { ageYears: 14 });
+    const c = course({ ageGroup: "AGES_8_10" });
+    const exact = scoreCourse(c, { ageYears: 9 }); // AGES_8_10 → dist 0
+    const adjacent = scoreCourse(c, { ageYears: 12 }); // AGES_11_13 → dist 1
     expect(exact.breakdown.age).toBeGreaterThan(adjacent.breakdown.age!);
   });
 

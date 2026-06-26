@@ -524,6 +524,42 @@ export default async function CourseDetailPage({
           t={t}
         />
 
+        {/* Next recommended course — the admin-set linear progression. */}
+        {course.nextCourse && (
+          <section className="mt-12">
+            <h2 className="mb-4 text-xl font-bold">Continue your journey</h2>
+            <Link
+              href={`/courses/${course.nextCourse.slug}`}
+              className="group flex items-center gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-4 transition-all hover:-translate-y-0.5 hover:shadow-elev"
+            >
+              {course.nextCourse.thumbnail ? (
+                <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-xl">
+                  <Image
+                    src={course.nextCourse.thumbnail}
+                    alt={getLocalizedField(course.nextCourse, "title", locale)}
+                    fill
+                    sizes="128px"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-20 w-32 shrink-0 items-center justify-center rounded-xl bg-launch-gradient-soft">
+                  <CategoryIcon category={course.nextCourse.category || "rocket"} size={48} />
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                  Recommended next
+                </p>
+                <h3 className="mt-0.5 font-display text-lg font-bold leading-tight transition-colors group-hover:text-primary">
+                  {getLocalizedField(course.nextCourse, "title", locale)}
+                </h3>
+              </div>
+              <Sparkles className="ms-auto h-5 w-5 shrink-0 text-accent" aria-hidden />
+            </Link>
+          </section>
+        )}
+
         {/* Related courses */}
         {relatedCourses.length > 0 && (
           <section className="mt-12">

@@ -170,6 +170,18 @@ export async function getCourseBySlug(
         _count: {
           select: { enrollments: true },
         },
+        // "Next recommended course" pointer — minimal projection for the card.
+        nextCourse: {
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+            titleAr: true,
+            titleDe: true,
+            thumbnail: true,
+            category: true,
+          },
+        },
       },
     });
 

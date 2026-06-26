@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import type { AgeGroup } from "@/generated/prisma/client";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
 import {
@@ -52,7 +53,7 @@ export async function createProduct(data: {
         descriptionAr: data.descriptionAr || null,
         descriptionDe: data.descriptionDe || null,
         price: parsed.data.price,
-        ageGroup: parsed.data.ageGroup as "AGES_3_5" | "AGES_6_8" | "AGES_9_12" | "AGES_13_15" | "AGES_16_18",
+        ageGroup: parsed.data.ageGroup as AgeGroup,
         category: parsed.data.category,
         stock: parsed.data.stock,
         status: parsed.data.status as "ACTIVE" | "OUT_OF_STOCK" | "DISCONTINUED",
@@ -107,7 +108,7 @@ export async function updateProduct(
         descriptionAr: data.descriptionAr || null,
         descriptionDe: data.descriptionDe || null,
         price: parsed.data.data.price,
-        ageGroup: parsed.data.data.ageGroup as "AGES_3_5" | "AGES_6_8" | "AGES_9_12" | "AGES_13_15" | "AGES_16_18",
+        ageGroup: parsed.data.data.ageGroup as AgeGroup,
         category: parsed.data.data.category,
         stock: parsed.data.data.stock,
         status: parsed.data.data.status as "ACTIVE" | "OUT_OF_STOCK" | "DISCONTINUED",

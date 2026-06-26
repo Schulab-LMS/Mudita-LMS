@@ -5,19 +5,21 @@ import { useRouter } from "next/navigation";
 import { createCourse, updateCourse } from "@/actions/admin.actions";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Link } from "@/i18n/navigation";
-
-const AGE_GROUPS = [
-  { value: "AGES_3_5", label: "Ages 3-5" },
-  { value: "AGES_6_8", label: "Ages 6-8" },
-  { value: "AGES_9_12", label: "Ages 9-12" },
-  { value: "AGES_13_15", label: "Ages 13-15" },
-  { value: "AGES_16_18", label: "Ages 16-18" },
-];
+import { AGE_GROUPS } from "@/lib/constants";
 
 const LEVELS = [
   { value: "BEGINNER", label: "Beginner" },
   { value: "INTERMEDIATE", label: "Intermediate" },
   { value: "ADVANCED", label: "Advanced" },
+];
+
+// Subscription tier that unlocks the course. Empty = free / one-time only
+// (requiredPlan stays null). Tier order: FREE < LEARNER < PRO < LIFETIME.
+const REQUIRED_PLANS = [
+  { value: "", label: "None (free or one-time)" },
+  { value: "LEARNER", label: "Learner & up" },
+  { value: "PRO", label: "Pro & up" },
+  { value: "LIFETIME", label: "Lifetime only" },
 ];
 
 const STATUSES = [
@@ -48,6 +50,7 @@ export interface CourseFormData {
   category: string;
   isFree: boolean;
   price: number;
+  requiredPlan?: string | null;
   currency?: string;
   status?: string;
   thumbnail?: string | null;
@@ -74,6 +77,7 @@ export default function CourseForm({ mode, initialData }: CourseFormProps) {
 
     const fd = new FormData(e.currentTarget);
     const price = isFree ? 0 : Math.max(0, Number(fd.get("price")) || 0);
+    const requiredPlanRaw = fd.get("requiredPlan") as string;
 
     const courseData = {
       title: fd.get("title") as string,
@@ -83,6 +87,7 @@ export default function CourseForm({ mode, initialData }: CourseFormProps) {
       category: fd.get("category") as string,
       isFree,
       price,
+      requiredPlan: requiredPlanRaw ? requiredPlanRaw : null,
       thumbnail: thumbnailUrl,
     };
 
@@ -241,6 +246,27 @@ export default function CourseForm({ mode, initialData }: CourseFormProps) {
           Leave unchecked to make this course subscription-only — access is
           gated by the learner&apos;s active Solo / Family / Custom plan.
         </p>
+
+        {/* Required plan tier — gates access for non-free courses */}
+        {!isFree && (
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">
+              Minimum plan tier
+            </label>
+            <select
+              name="requiredPlan"
+              defaultValue={initialData?.requiredPlan ?? ""}
+              className="flex h-10 w-full max-w-xs rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {REQUIRED_PLANS.map((p) => (
+                <option key={p.value || "none"} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Subscribers on this tier or higher get the course included.
+            </p>
+          </div>
+        )}
 
         {/* Price and Currency — legacy fields, kept for historical reporting
             only. Individual course purchases are no longer offered. */}

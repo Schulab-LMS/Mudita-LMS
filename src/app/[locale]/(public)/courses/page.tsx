@@ -7,6 +7,7 @@ import { getCourses } from "@/services/course.service";
 import { Link } from "@/i18n/navigation";
 import { CourseGrid } from "@/components/course/course-grid";
 import { CourseFilters } from "@/components/course/course-filters";
+import { CatalogTabs } from "@/components/course/catalog-tabs";
 import { Sparkles, Search as SearchIcon } from "lucide-react";
 import type { RankingSignals } from "@/services/catalog-ranking.service";
 
@@ -128,6 +129,9 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <CatalogTabs />
+        </div>
         <div className="mb-6">
           <Suspense>
             <CourseFilters />

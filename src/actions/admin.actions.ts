@@ -123,6 +123,7 @@ export async function createCourse(data: {
   category: string;
   isFree: boolean;
   price: number;
+  requiredPlan?: string | null;
   thumbnail?: string | null;
 }) {
   try {
@@ -144,6 +145,7 @@ export async function createCourse(data: {
         category: parsed.data.category,
         isFree: parsed.data.isFree,
         price: parsed.data.price,
+        requiredPlan: (parsed.data.requiredPlan ?? null) as never,
         thumbnail: parsed.data.thumbnail ?? null,
         slug,
         createdById: session.user.id,
@@ -176,6 +178,7 @@ export async function updateCourse(
     category: string;
     isFree: boolean;
     price: number;
+    requiredPlan: string | null;
     status: string;
     thumbnail: string | null;
   }>

@@ -47,16 +47,18 @@ describe("slugify", () => {
 
 describe("resolveAgeGroup", () => {
   it("uses an explicit enum value verbatim", () => {
-    expect(resolveAgeGroup("AGES_13_15", "whatever")).toBe("AGES_13_15");
+    expect(resolveAgeGroup("AGES_14_16", "whatever")).toBe("AGES_14_16");
   });
   it("derives the bucket from an age range by midpoint", () => {
-    // 8–12 → midpoint 10 → AGES_9_12
-    expect(resolveAgeGroup(undefined, "space-science-children-8-12")).toBe("AGES_9_12");
+    // 8–12 → midpoint 10 → AGES_8_10 (band caps at 10)
+    expect(resolveAgeGroup(undefined, "space-science-children-8-12")).toBe("AGES_8_10");
     expect(resolveAgeGroup("3-5", "x")).toBe("AGES_3_5");
-    expect(resolveAgeGroup("16-18", "x")).toBe("AGES_16_18");
+    expect(resolveAgeGroup("5-7", "x")).toBe("AGES_5_7");
+    expect(resolveAgeGroup("11-13", "x")).toBe("AGES_11_13");
+    expect(resolveAgeGroup("17-18", "x")).toBe("AGES_17_18");
   });
-  it("falls back to AGES_9_12 when nothing parses", () => {
-    expect(resolveAgeGroup(undefined, "biology")).toBe("AGES_9_12");
+  it("falls back to AGES_8_10 when nothing parses", () => {
+    expect(resolveAgeGroup(undefined, "biology")).toBe("AGES_8_10");
   });
 });
 

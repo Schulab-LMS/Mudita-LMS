@@ -5,15 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import { useCallback } from "react";
+import { AGE_GROUPS } from "@/lib/constants";
 
-const AGE_GROUP_VALUES = [
-  "",
-  "AGES_3_5",
-  "AGES_6_8",
-  "AGES_9_12",
-  "AGES_13_15",
-  "AGES_16_18",
-] as const;
+const AGE_GROUP_VALUES = ["", ...AGE_GROUPS.map((g) => g.value)] as const;
 
 const CATEGORY_VALUES = [
   "",

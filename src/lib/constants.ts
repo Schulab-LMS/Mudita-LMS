@@ -1,10 +1,18 @@
 export const AGE_GROUPS = [
   { value: "AGES_3_5", label: "Early Learners (3–5)", minAge: 3, maxAge: 5 },
-  { value: "AGES_6_8", label: "Kids (6–8)", minAge: 6, maxAge: 8 },
-  { value: "AGES_9_12", label: "Juniors (9–12)", minAge: 9, maxAge: 12 },
-  { value: "AGES_13_15", label: "Teens (13–15)", minAge: 13, maxAge: 15 },
-  { value: "AGES_16_18", label: "Seniors (16–18)", minAge: 16, maxAge: 18 },
+  { value: "AGES_5_7", label: "Juniors (5–7)", minAge: 5, maxAge: 7 },
+  { value: "AGES_8_10", label: "Explorers (8–10)", minAge: 8, maxAge: 10 },
+  { value: "AGES_11_13", label: "Builders (11–13)", minAge: 11, maxAge: 13 },
+  { value: "AGES_14_16", label: "Teens (14–16)", minAge: 14, maxAge: 16 },
+  { value: "AGES_17_18", label: "Seniors (17–18)", minAge: 17, maxAge: 18 },
 ] as const;
+
+// Canonical enum-value tuple for the AgeGroup DB enum, derived from AGE_GROUPS
+// so Zod schemas and selects never drift. Typed for z.enum() use.
+export const AGE_GROUP_VALUES = AGE_GROUPS.map((g) => g.value) as unknown as [
+  string,
+  ...string[],
+];
 
 export const COURSE_CATEGORIES = [
   { value: "math", label: "Mathematics" },

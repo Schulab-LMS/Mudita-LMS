@@ -3,14 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct, updateProduct } from "@/actions/product.actions";
-
-const AGE_GROUPS = [
-  { value: "AGES_3_5", label: "Ages 3–5" },
-  { value: "AGES_6_8", label: "Ages 6–8" },
-  { value: "AGES_9_12", label: "Ages 9–12" },
-  { value: "AGES_13_15", label: "Ages 13–15" },
-  { value: "AGES_16_18", label: "Ages 16–18" },
-];
+import { AGE_GROUPS } from "@/lib/constants";
 
 const CATEGORIES = ["ROBOTICS", "ELECTRONICS", "SCIENCE", "CODING", "ENGINEERING", "ART"];
 const STATUSES = [
@@ -59,7 +52,7 @@ export default function ProductForm({ mode, initialData }: ProductFormProps) {
   const [descriptionAr, setDescriptionAr] = useState(initialData?.descriptionAr ?? "");
   const [descriptionDe, setDescriptionDe] = useState(initialData?.descriptionDe ?? "");
   const [price, setPrice] = useState(initialData?.price ?? 0);
-  const [ageGroup, setAgeGroup] = useState(initialData?.ageGroup ?? "AGES_6_8");
+  const [ageGroup, setAgeGroup] = useState(initialData?.ageGroup ?? "AGES_5_7");
   const [category, setCategory] = useState(initialData?.category ?? "ROBOTICS");
   const [stock, setStock] = useState(initialData?.stock ?? 0);
   const [status, setStatus] = useState(initialData?.status ?? "ACTIVE");

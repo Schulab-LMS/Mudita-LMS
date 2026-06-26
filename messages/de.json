@@ -42,6 +42,8 @@
   },
   "nav": {
     "courses": "Kurse",
+    "bundles": "Pakete",
+    "pathways": "Lernpfade",
     "curriculum": "Lehrplan (Git)",
     "stemKits": "STEM-Kits",
     "competitions": "Wettbewerbe",
@@ -244,10 +246,11 @@
     },
     "ageGroups": {
       "AGES_3_5": "3–5 Jahre",
-      "AGES_6_8": "6–8 Jahre",
-      "AGES_9_12": "9–12 Jahre",
-      "AGES_13_15": "13–15 Jahre",
-      "AGES_16_18": "16–18 Jahre"
+      "AGES_5_7": "5–7 Jahre",
+      "AGES_8_10": "8–10 Jahre",
+      "AGES_11_13": "11–13 Jahre",
+      "AGES_14_16": "14–16 Jahre",
+      "AGES_17_18": "17–18 Jahre"
     },
     "categories": {
       "MATH": "Mathematik",

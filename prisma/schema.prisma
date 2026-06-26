@@ -35,9 +35,11 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users    User[]
-  courses  Course[]
-  bookings Booking[]
+  users     User[]
+  courses   Course[]
+  bookings  Booking[]
+  bundles   Bundle[]
+  pathways  LearningPathway[]
 
   @@index([slug])
 }
@@ -188,12 +190,17 @@ enum SyncStatus {
   REMOVED
 }
 
+// Six learner age bands, aligned with the STEM-Curricula repo's authored
+// stages (5-7, 8-10, 11-13…) and the public pathway bands. Shared by Course,
+// Bundle, LearningPathway, Product and Competition so the platform has one age
+// vocabulary everywhere.
 enum AgeGroup {
   AGES_3_5
-  AGES_6_8
-  AGES_9_12
-  AGES_13_15
-  AGES_16_18
+  AGES_5_7
+  AGES_8_10
+  AGES_11_13
+  AGES_14_16
+  AGES_17_18
 }
 
 model Course {
@@ -211,6 +218,24 @@ model Course {
   ageGroup      AgeGroup
   category      String
   tags          String[]
+  // Catalog-page metadata. `skills` is what the learner gains; `tools` is the
+  // software used (Scratch, Python…). Both locale-agnostic short labels.
+  skills        String[]     @default([])
+  tools         String[]     @default([])
+  // Optional standalone capstone shown when the course is not inside a bundle.
+  finalProjectTitle         String?
+  finalProjectTitleAr       String?
+  finalProjectTitleDe       String?
+  finalProjectDescription   String? @db.Text
+  finalProjectDescriptionAr String? @db.Text
+  finalProjectDescriptionDe String? @db.Text
+  // Audience-specific blurbs for the course page; fall back to `description`.
+  parentSummary    String? @db.Text
+  parentSummaryAr  String? @db.Text
+  parentSummaryDe  String? @db.Text
+  studentSummary   String? @db.Text
+  studentSummaryAr String? @db.Text
+  studentSummaryDe String? @db.Text
   price         Decimal      @default(0) @db.Decimal(10, 2)
   currency      String       @default("USD")
   isFree        Boolean      @default(false)
@@ -240,9 +265,19 @@ model Course {
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
+  // Linear "next recommended course" pointer (self-relation). Rendered on the
+  // course detail page; falls back to same-category related courses when null.
+  nextCourseId String?
+  nextCourse   Course?  @relation("CourseProgression", fields: [nextCourseId], references: [id], onDelete: SetNull)
+  prevCourses  Course[] @relation("CourseProgression")
+
   modules     Module[]
   enrollments Enrollment[]
   reviews     CourseReview[]
+
+  // Membership in bundles / pathway stages.
+  bundleLinks   BundleCourse[]
+  pathwayStages PathwayStage[]
 
   @@index([slug])
   @@index([category])
@@ -251,6 +286,7 @@ model Course {
   @@index([requiredPlan])
   @@index([managedByGit])
   @@index([organizationId])
+  @@index([nextCourseId])
 }
 
 model Module {
@@ -346,6 +382,140 @@ model Lesson {
   @@unique([moduleId, sourcePath])
   @@index([moduleId])
   @@index([videoAssetId])
+}
+
+// ========== BUNDLES & PATHWAYS ==========
+
+// A themed group of related courses (coding, AI, game design…) that ends in a
+// final project. Access is subscription-first: gated by requiredPlan + the
+// per-course purchase model. Price/isFree are declared for a future bundle
+// checkout but are not charged in v1. Reusable across pathways.
+model Bundle {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  title         String
+  titleAr       String?
+  titleDe       String?
+  description   String       @db.Text
+  descriptionAr String?      @db.Text
+  descriptionDe String?      @db.Text
+  thumbnail     String?
+  themeCategory String
+  ageGroup      AgeGroup
+  level         CourseLevel  @default(BEGINNER)
+  status        CourseStatus @default(DRAFT)
+  requiredPlan  PlanTier?
+  isFree        Boolean      @default(false)
+  price         Decimal      @default(0) @db.Decimal(10, 2)
+  currency      String       @default("USD")
+
+  // Capstone shown at the end of the bundle.
+  finalProjectTitle         String?
+  finalProjectTitleAr       String?
+  finalProjectTitleDe       String?
+  finalProjectDescription   String? @db.Text
+  finalProjectDescriptionAr String? @db.Text
+  finalProjectDescriptionDe String? @db.Text
+
+  // Localized objective lists, shaped { en: string[], ar: string[], de: string[] }.
+  // String[] can't carry per-locale variants, so JSON keeps i18n parity.
+  learningObjectives       Json?
+  recommendedDurationWeeks Int?
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  // Git-sync parity (declared now so a future curriculum-sync of bundles
+  // needs no second migration). Mirrors Course's provenance fields.
+  managedByGit    Boolean    @default(false)
+  sourcePath      String?
+  sourceCommitSha String?
+  syncStatus      SyncStatus @default(ACTIVE)
+
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courses       BundleCourse[]
+  pathwayStages PathwayStage[]
+
+  @@index([slug])
+  @@index([themeCategory])
+  @@index([ageGroup])
+  @@index([status])
+  @@index([requiredPlan])
+  @@index([organizationId])
+}
+
+// Explicit ordered join: courses inside a bundle carry per-link attributes
+// (order, required vs optional) that an implicit m2m can't store. Mirrors
+// Module.order semantics; reorder rewrites `order` like reorderModules.
+model BundleCourse {
+  id         String  @id @default(cuid())
+  bundleId   String
+  courseId   String
+  order      Int
+  isRequired Boolean @default(true)
+  bundle     Bundle  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  course     Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([bundleId, courseId])
+  @@index([bundleId, order])
+  @@index([courseId])
+}
+
+// An age-based learning journey (beginner → advanced) made of ordered stages.
+// One pathway per age band on the public site.
+model LearningPathway {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  title         String
+  titleAr       String?
+  titleDe       String?
+  description   String         @db.Text
+  descriptionAr String?        @db.Text
+  descriptionDe String?        @db.Text
+  thumbnail     String?
+  ageGroup      AgeGroup
+  status        CourseStatus   @default(DRAFT)
+  order         Int            @default(0)
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stages PathwayStage[]
+
+  @@index([slug])
+  @@index([ageGroup])
+  @@index([status])
+  @@index([organizationId])
+}
+
+// One stage of a pathway. Points at EXACTLY ONE of a bundle or a course — a
+// DB CHECK constraint (added by hand in the migration SQL, since Prisma can't
+// express XOR) enforces it; addPathwayStageSchema mirrors it at the app layer.
+model PathwayStage {
+  id        String  @id @default(cuid())
+  pathwayId String
+  order     Int
+  title     String?
+  titleAr   String?
+  titleDe   String?
+  bundleId  String?
+  courseId  String?
+
+  pathway LearningPathway @relation(fields: [pathwayId], references: [id], onDelete: Cascade)
+  bundle  Bundle?         @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  course  Course?         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([pathwayId, order])
+  @@index([pathwayId, order])
+  @@index([bundleId])
+  @@index([courseId])
 }
 
 // ========== QUIZZES ==========

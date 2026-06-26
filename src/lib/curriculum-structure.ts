@@ -40,24 +40,29 @@ export function firstHeading(markdown: string | null): string | null {
   return m ? m[1].replace(/[*_`]/g, "").trim() : null;
 }
 
+// Ordered by ascending max so resolveAgeGroup picks the first band a midpoint
+// fits. Bands overlap at the boundary (e.g. 5 is in 3-5 and 5-7); the 3-5 band
+// caps at 4 so a lone age 5 resolves to the dedicated 5-7 band.
 const AGE_BUCKETS: { max: number; group: AgeGroup }[] = [
-  { max: 5, group: "AGES_3_5" },
-  { max: 8, group: "AGES_6_8" },
-  { max: 12, group: "AGES_9_12" },
-  { max: 15, group: "AGES_13_15" },
-  { max: 18, group: "AGES_16_18" },
+  { max: 4, group: "AGES_3_5" },
+  { max: 7, group: "AGES_5_7" },
+  { max: 10, group: "AGES_8_10" },
+  { max: 13, group: "AGES_11_13" },
+  { max: 16, group: "AGES_14_16" },
+  { max: 18, group: "AGES_17_18" },
 ];
 
 const VALID_AGE_GROUPS = new Set<string>([
   "AGES_3_5",
-  "AGES_6_8",
-  "AGES_9_12",
-  "AGES_13_15",
-  "AGES_16_18",
+  "AGES_5_7",
+  "AGES_8_10",
+  "AGES_11_13",
+  "AGES_14_16",
+  "AGES_17_18",
 ]);
 
-// Map an explicit enum value, or derive from an age range like "8-12" by its
-// midpoint. Falls back to AGES_9_12 when nothing parses.
+// Map an explicit enum value, or derive from an age range like "8-10" by its
+// midpoint. Falls back to AGES_8_10 (mid band) when nothing parses.
 export function resolveAgeGroup(raw: string | undefined, folder: string): AgeGroup {
   if (raw && VALID_AGE_GROUPS.has(raw)) return raw as AgeGroup;
   const source = raw || folder;
@@ -67,9 +72,9 @@ export function resolveAgeGroup(raw: string | undefined, folder: string): AgeGro
     for (const bucket of AGE_BUCKETS) {
       if (mid <= bucket.max) return bucket.group;
     }
-    return "AGES_16_18";
+    return "AGES_17_18";
   }
-  return "AGES_9_12";
+  return "AGES_8_10";
 }
 
 export function resolveLevel(raw: string | undefined): CourseLevel {

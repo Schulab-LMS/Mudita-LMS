@@ -1,4 +1,5 @@
 import { PrismaClient } from "../src/generated/prisma/client";
+import type { AgeGroup, CourseLevel, PlanTier } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
@@ -35,6 +36,143 @@ async function seedCourseContent(
       });
     }
   }
+}
+
+// Upsert a bundle by slug, then rebuild its course links from `courseSlugs`
+// (replace-children pattern: idempotent, re-runnable). A slug that has no
+// matching course is skipped so a partial catalog never breaks the seed.
+async function seedBundle(
+  createdById: string,
+  bundle: {
+    slug: string;
+    title: string;
+    description: string;
+    themeCategory: string;
+    ageGroup: AgeGroup;
+    level: CourseLevel;
+    requiredPlan?: PlanTier;
+    finalProjectTitle: string;
+    finalProjectDescription: string;
+    learningObjectives: string[];
+    recommendedDurationWeeks: number;
+    courses: { slug: string; isRequired?: boolean }[];
+  }
+) {
+  const row = await db.bundle.upsert({
+    where: { slug: bundle.slug },
+    update: {
+      title: bundle.title,
+      description: bundle.description,
+      themeCategory: bundle.themeCategory,
+      ageGroup: bundle.ageGroup,
+      level: bundle.level,
+      requiredPlan: bundle.requiredPlan ?? null,
+      status: "PUBLISHED",
+      finalProjectTitle: bundle.finalProjectTitle,
+      finalProjectDescription: bundle.finalProjectDescription,
+      learningObjectives: { en: bundle.learningObjectives, ar: [], de: [] },
+      recommendedDurationWeeks: bundle.recommendedDurationWeeks,
+    },
+    create: {
+      slug: bundle.slug,
+      title: bundle.title,
+      description: bundle.description,
+      themeCategory: bundle.themeCategory,
+      ageGroup: bundle.ageGroup,
+      level: bundle.level,
+      requiredPlan: bundle.requiredPlan ?? null,
+      status: "PUBLISHED",
+      finalProjectTitle: bundle.finalProjectTitle,
+      finalProjectDescription: bundle.finalProjectDescription,
+      learningObjectives: { en: bundle.learningObjectives, ar: [], de: [] },
+      recommendedDurationWeeks: bundle.recommendedDurationWeeks,
+      createdById,
+    },
+  });
+
+  // Rebuild the ordered course links.
+  await db.bundleCourse.deleteMany({ where: { bundleId: row.id } });
+  let order = 0;
+  for (const link of bundle.courses) {
+    const course = await db.course.findUnique({ where: { slug: link.slug }, select: { id: true } });
+    if (!course) {
+      console.log(`⚠️  Bundle "${bundle.slug}" — course slug "${link.slug}" not found, skipped`);
+      continue;
+    }
+    await db.bundleCourse.create({
+      data: {
+        bundleId: row.id,
+        courseId: course.id,
+        order: order++,
+        isRequired: link.isRequired ?? true,
+      },
+    });
+  }
+  return row;
+}
+
+// Upsert a pathway by slug, then rebuild its stages (replace-children pattern).
+// Each stage references EXACTLY ONE of a bundle or a course (by slug). A stage
+// whose target slug is missing is skipped so a partial catalog never breaks
+// the seed. The (pathwayId, order) unique key is satisfied by sequential order.
+async function seedPathway(
+  createdById: string,
+  pathway: {
+    slug: string;
+    title: string;
+    description: string;
+    ageGroup: AgeGroup;
+    order: number;
+    stages: { bundleSlug?: string; courseSlug?: string; title?: string }[];
+  }
+) {
+  const row = await db.learningPathway.upsert({
+    where: { slug: pathway.slug },
+    update: {
+      title: pathway.title,
+      description: pathway.description,
+      ageGroup: pathway.ageGroup,
+      order: pathway.order,
+      status: "PUBLISHED",
+    },
+    create: {
+      slug: pathway.slug,
+      title: pathway.title,
+      description: pathway.description,
+      ageGroup: pathway.ageGroup,
+      order: pathway.order,
+      status: "PUBLISHED",
+      createdById,
+    },
+  });
+
+  await db.pathwayStage.deleteMany({ where: { pathwayId: row.id } });
+  let order = 0;
+  for (const stage of pathway.stages) {
+    let bundleId: string | null = null;
+    let courseId: string | null = null;
+    if (stage.bundleSlug) {
+      const b = await db.bundle.findUnique({ where: { slug: stage.bundleSlug }, select: { id: true } });
+      if (!b) {
+        console.log(`⚠️  Pathway "${pathway.slug}" — bundle slug "${stage.bundleSlug}" not found, skipped`);
+        continue;
+      }
+      bundleId = b.id;
+    } else if (stage.courseSlug) {
+      const c = await db.course.findUnique({ where: { slug: stage.courseSlug }, select: { id: true } });
+      if (!c) {
+        console.log(`⚠️  Pathway "${pathway.slug}" — course slug "${stage.courseSlug}" not found, skipped`);
+        continue;
+      }
+      courseId = c.id;
+    } else {
+      continue;
+    }
+    await db.pathwayStage.create({
+      data: { pathwayId: row.id, order: order++, title: stage.title ?? null, bundleId, courseId },
+    });
+  }
+  return row;
 }
 
 async function main() {
@@ -410,9 +548,9 @@ async function main() {
     where: { slug: "tiny-engineers" },
     update: {},
     create: {
-      title: "Tiny Engineers",
+      title: "Tiny Builders (Digital)",
       slug: "tiny-engineers",
-      description: "Build, test, and fix simple structures with everyday materials.",
+      description: "Build and test playful structures and machines in colourful on-screen building games — drag, snap and watch them work.",
       ageGroup: "AGES_3_5",
       level: "BEGINNER",
       category: "ENGINEERING",
@@ -544,7 +682,7 @@ async function main() {
     },
   ]);
 
-  // ── Ages 6–8 Courses ─────────────────────────────────────────────────────
+  // ── Ages 5–7 Courses ─────────────────────────────────────────────────────
 
   const c6 = await db.course.upsert({
     where: { slug: "coding-adventures-blocks" },
@@ -553,7 +691,7 @@ async function main() {
       title: "Coding Adventures with Blocks",
       slug: "coding-adventures-blocks",
       description: "Learn real programming using Scratch blocks — no typing required.",
-      ageGroup: "AGES_6_8",
+      ageGroup: "AGES_5_7",
       level: "BEGINNER",
       category: "CODING",
       status: "PUBLISHED",
@@ -598,7 +736,7 @@ async function main() {
       title: "Science Detectives",
       slug: "science-detectives",
       description: "Investigate the world like a scientist — ask questions, experiment, explain.",
-      ageGroup: "AGES_6_8",
+      ageGroup: "AGES_5_7",
       level: "BEGINNER",
       category: "SCIENCE",
       status: "PUBLISHED",
@@ -641,12 +779,12 @@ async function main() {
     where: { slug: "inventor-studio" },
     update: {},
     create: {
-      title: "Inventor Studio",
+      title: "Digital Inventor Studio",
       slug: "inventor-studio",
-      description: "Design and build inventions that solve real problems in your home and school.",
-      ageGroup: "AGES_6_8",
+      description: "Design inventions that solve real problems using a free online design canvas — sketch, label and animate your ideas.",
+      ageGroup: "AGES_5_7",
       level: "BEGINNER",
-      category: "ENGINEERING",
+      category: "DESIGN",
       status: "PUBLISHED",
       isFree: false,
       price: 35,
@@ -690,7 +828,7 @@ async function main() {
       title: "AI Around Us",
       slug: "ai-around-us",
       description: "Spot AI in everyday life and learn how it works in simple, friendly terms.",
-      ageGroup: "AGES_6_8",
+      ageGroup: "AGES_5_7",
       level: "BEGINNER",
       category: "AI",
       status: "PUBLISHED",
@@ -736,7 +874,7 @@ async function main() {
       title: "Smart & Safe Online",
       slug: "smart-safe-online",
       description: "Learn how to stay safe, kind, and smart on the internet.",
-      ageGroup: "AGES_6_8",
+      ageGroup: "AGES_5_7",
       level: "BEGINNER",
       category: "DIGITAL_LITERACY",
       status: "PUBLISHED",
@@ -775,7 +913,7 @@ async function main() {
     },
   ]);
 
-  // ── Ages 9–12 Courses ─────────────────────────────────────────────────────
+  // ── Ages 8–10 & 11–13 Courses ─────────────────────────────────────────────────────
 
   const c11 = await db.course.upsert({
     where: { slug: "scratch-game-studio" },
@@ -784,7 +922,7 @@ async function main() {
       title: "Scratch Game Studio",
       slug: "scratch-game-studio",
       description: "Design and build complete Scratch games with scoring, levels, and sound.",
-      ageGroup: "AGES_9_12",
+      ageGroup: "AGES_8_10",
       level: "INTERMEDIATE",
       category: "CODING",
       status: "PUBLISHED",
@@ -826,10 +964,10 @@ async function main() {
     where: { slug: "junior-robotics-automation" },
     update: {},
     create: {
-      title: "Junior Robotics & Automation",
+      title: "Virtual Robotics & Simulation",
       slug: "junior-robotics-automation",
-      description: "Program real or simulated robots to complete missions using block coding.",
-      ageGroup: "AGES_9_12",
+      description: "Program robots entirely in your browser — drive, sense and solve missions in an online robot simulator. No hardware needed.",
+      ageGroup: "AGES_11_13",
       level: "INTERMEDIATE",
       category: "ROBOTICS",
       status: "PUBLISHED",
@@ -872,10 +1010,10 @@ async function main() {
     where: { slug: "space-science-missions" },
     update: {},
     create: {
-      title: "Space Science & Missions",
+      title: "Space Science & Simulations",
       slug: "space-science-missions",
-      description: "Explore the solar system, design space missions, and learn real orbital mechanics.",
-      ageGroup: "AGES_9_12",
+      description: "Explore the solar system and design space missions in interactive online simulations and orbital sandboxes.",
+      ageGroup: "AGES_11_13",
       level: "INTERMEDIATE",
       category: "SCIENCE",
       status: "PUBLISHED",
@@ -921,7 +1059,7 @@ async function main() {
       title: "Data Detectives",
       slug: "data-detectives",
       description: "Collect, chart, and interpret real data to answer questions that matter.",
-      ageGroup: "AGES_9_12",
+      ageGroup: "AGES_11_13",
       level: "INTERMEDIATE",
       category: "DATA_SCIENCE",
       status: "PUBLISHED",
@@ -967,7 +1105,7 @@ async function main() {
       title: "Media Smart Kids",
       slug: "media-smart-kids",
       description: "Create, critique, and fact-check media like a professional journalist.",
-      ageGroup: "AGES_9_12",
+      ageGroup: "AGES_8_10",
       level: "INTERMEDIATE",
       category: "DIGITAL_LITERACY",
       status: "PUBLISHED",
@@ -1006,7 +1144,7 @@ async function main() {
     },
   ]);
 
-  // ── Ages 13–15 Courses ────────────────────────────────────────────────────
+  // ── Ages 14–16 Courses ────────────────────────────────────────────────────
 
   const c16 = await db.course.upsert({
     where: { slug: "web-builders-bootcamp" },
@@ -1015,7 +1153,7 @@ async function main() {
       title: "Web Builders Bootcamp",
       slug: "web-builders-bootcamp",
       description: "Build real websites with HTML, CSS, and JavaScript from scratch.",
-      ageGroup: "AGES_13_15",
+      ageGroup: "AGES_14_16",
       level: "BEGINNER",
       category: "CODING",
       status: "PUBLISHED",
@@ -1060,7 +1198,7 @@ async function main() {
       title: "Python Logic Lab",
       slug: "python-logic-lab",
       description: "Learn Python programming through logical puzzles, data, and mini-projects.",
-      ageGroup: "AGES_13_15",
+      ageGroup: "AGES_14_16",
       level: "INTERMEDIATE",
       category: "CODING",
       status: "PUBLISHED",
@@ -1106,7 +1244,7 @@ async function main() {
       title: "AI Literacy & Ethics",
       slug: "ai-literacy-ethics",
       description: "Understand how AI systems work and think critically about their impact on society.",
-      ageGroup: "AGES_13_15",
+      ageGroup: "AGES_14_16",
       level: "INTERMEDIATE",
       category: "AI",
       status: "PUBLISHED",
@@ -1152,7 +1290,7 @@ async function main() {
       title: "Cyber Basics for Teens",
       slug: "cyber-basics-teens",
       description: "Learn to protect yourself and others online with real cybersecurity skills.",
-      ageGroup: "AGES_13_15",
+      ageGroup: "AGES_14_16",
       level: "INTERMEDIATE",
       category: "CYBERSECURITY",
       status: "PUBLISHED",
@@ -1198,7 +1336,7 @@ async function main() {
       title: "Design, Build, Test",
       slug: "design-build-test",
       description: "Master the full design thinking process from user research to final prototype.",
-      ageGroup: "AGES_13_15",
+      ageGroup: "AGES_14_16",
       level: "INTERMEDIATE",
       category: "DESIGN",
       status: "PUBLISHED",
@@ -1237,7 +1375,7 @@ async function main() {
     },
   ]);
 
-  // ── Ages 16–18 Courses ────────────────────────────────────────────────────
+  // ── Ages 17–18 Courses ────────────────────────────────────────────────────
 
   const c21 = await db.course.upsert({
     where: { slug: "ai-foundations-future-leaders" },
@@ -1246,7 +1384,7 @@ async function main() {
       title: "AI Foundations for Future Leaders",
       slug: "ai-foundations-future-leaders",
       description: "Understand machine learning, societal AI impacts, and build your first model.",
-      ageGroup: "AGES_16_18",
+      ageGroup: "AGES_17_18",
       level: "INTERMEDIATE",
       category: "AI",
       status: "PUBLISHED",
@@ -1291,7 +1429,7 @@ async function main() {
       title: "Full-Stack Thinking",
       slug: "full-stack-thinking",
       description: "Build and deploy a full-stack web app with front-end, back-end, and database.",
-      ageGroup: "AGES_16_18",
+      ageGroup: "AGES_17_18",
       level: "ADVANCED",
       category: "CODING",
       status: "PUBLISHED",
@@ -1337,7 +1475,7 @@ async function main() {
       title: "Data Decisions & Society",
       slug: "data-decisions-society",
       description: "Collect, visualise, and communicate data insights on real social issues.",
-      ageGroup: "AGES_16_18",
+      ageGroup: "AGES_17_18",
       level: "ADVANCED",
       category: "DATA_SCIENCE",
       status: "PUBLISHED",
@@ -1383,7 +1521,7 @@ async function main() {
       title: "Startup Lab",
       slug: "startup-lab",
       description: "Build a real startup from problem discovery to MVP, pitch, and business model.",
-      ageGroup: "AGES_16_18",
+      ageGroup: "AGES_17_18",
       level: "ADVANCED",
       category: "ENTREPRENEURSHIP",
       status: "PUBLISHED",
@@ -1429,7 +1567,7 @@ async function main() {
       title: "Career Launch",
       slug: "career-launch",
       description: "Build your professional portfolio, CV, and LinkedIn — and land your first opportunity.",
-      ageGroup: "AGES_16_18",
+      ageGroup: "AGES_17_18",
       level: "ADVANCED",
       category: "CAREER",
       status: "PUBLISHED",
@@ -1467,6 +1605,255 @@ async function main() {
       ],
     },
   ]);
+
+  // ── Placeholder courses for digital-first gap topics (DRAFT until authored) ──
+  // These fill out the new bundles/pathways. Kept DRAFT so they stay hidden
+  // from the public catalog until real content is added via the admin UI.
+  const placeholderCourses: {
+    slug: string;
+    title: string;
+    description: string;
+    ageGroup: AgeGroup;
+    level: CourseLevel;
+    category: string;
+  }[] = [
+    { slug: "scratchjr-first-stories", title: "ScratchJr: First Stories", description: "Make your first interactive stories with ScratchJr — tap blocks to bring characters to life.", ageGroup: "AGES_5_7", level: "BEGINNER", category: "CODING" },
+    { slug: "animation-storytelling-scratch", title: "Animation & Storytelling with Scratch", description: "Animate characters and tell digital stories with sound, motion and scenes.", ageGroup: "AGES_8_10", level: "BEGINNER", category: "ARTS" },
+    { slug: "prompt-engineering-for-students", title: "Prompt Engineering for Students", description: "Learn to talk to AI clearly and safely — write better prompts to create, learn and solve problems.", ageGroup: "AGES_11_13", level: "INTERMEDIATE", category: "AI" },
+    { slug: "app-development-basics", title: "App Development Basics", description: "Design and prototype your first mobile app — screens, buttons and simple interactions.", ageGroup: "AGES_14_16", level: "INTERMEDIATE", category: "CODING" },
+    { slug: "digital-stem-experiments", title: "Digital STEM Experiments", description: "Run science experiments in interactive online simulations and record what you discover.", ageGroup: "AGES_8_10", level: "BEGINNER", category: "SCIENCE" },
+    { slug: "digital-creativity-studio", title: "Digital Creativity Studio", description: "Create digital art, designs and animations using free browser-based creative tools.", ageGroup: "AGES_5_7", level: "BEGINNER", category: "DESIGN" },
+    { slug: "block-robotics-sim", title: "Block Robotics Simulator", description: "Program a virtual robot with drag-and-drop blocks to complete fun challenges — no hardware.", ageGroup: "AGES_8_10", level: "BEGINNER", category: "ROBOTICS" },
+    { slug: "entrepreneurship-product-thinking", title: "Entrepreneurship & Product Thinking", description: "Turn an idea into a product: research, prototype, pitch and plan like a young founder.", ageGroup: "AGES_17_18", level: "ADVANCED", category: "ENTREPRENEURSHIP" },
+    { slug: "logic-problem-solving", title: "Logic & Problem Solving", description: "Build computational-thinking skills with puzzles, patterns and step-by-step problem solving.", ageGroup: "AGES_8_10", level: "BEGINNER", category: "CODING" },
+  ];
+  for (const pc of placeholderCourses) {
+    await db.course.upsert({
+      where: { slug: pc.slug },
+      update: {},
+      create: { ...pc, status: "DRAFT", isFree: false, requiredPlan: "LEARNER", createdById: admin.id },
+    });
+  }
+
+  // ── Bundles (themed groups of courses; subscription-first) ───────────────
+  await seedBundle(admin.id, {
+    slug: "coding-starter-bundle",
+    title: "Coding Starter Bundle",
+    description: "A gentle first step into coding with friendly block-based tools — sequencing, loops and events through play.",
+    themeCategory: "CODING",
+    ageGroup: "AGES_5_7",
+    level: "BEGINNER",
+    requiredPlan: "LEARNER",
+    finalProjectTitle: "My First Interactive Story",
+    finalProjectDescription: "Build an interactive ScratchJr story with characters, scenes and sound.",
+    learningObjectives: ["Sequence instructions", "Use loops and events", "Tell a story with code"],
+    recommendedDurationWeeks: 6,
+    courses: [
+      { slug: "little-coders-unplugged" },
+      { slug: "coding-adventures-blocks" },
+      { slug: "scratchjr-first-stories" },
+    ],
+  });
+  await seedBundle(admin.id, {
+    slug: "creative-coding-game-design-bundle",
+    title: "Creative Coding & Game Design Bundle",
+    description: "Build playable games and animated stories in Scratch while sharpening logic and problem solving.",
+    themeCategory: "CODING",
+    ageGroup: "AGES_8_10",
+    level: "INTERMEDIATE",
+    requiredPlan: "LEARNER",
+    finalProjectTitle: "Original Scratch Game",
+    finalProjectDescription: "Design and publish your own playable Scratch game with a score and levels.",
+    learningObjectives: ["Design game mechanics", "Animate sprites and scenes", "Debug and iterate"],
+    recommendedDurationWeeks: 8,
+    courses: [
+      { slug: "scratch-game-studio" },
+      { slug: "animation-storytelling-scratch" },
+      { slug: "logic-problem-solving" },
+    ],
+  });
+  await seedBundle(admin.id, {
+    slug: "ai-native-kids-bundle",
+    title: "AI Native Kids Bundle",
+    description: "Understand how AI works, use it safely and creatively, and learn to write effective prompts.",
+    themeCategory: "AI",
+    ageGroup: "AGES_11_13",
+    level: "INTERMEDIATE",
+    requiredPlan: "PRO",
+    finalProjectTitle: "AI-Assisted Creation + Reflection",
+    finalProjectDescription: "Create something with an AI helper and reflect on how you guided it.",
+    learningObjectives: ["Explain how AI learns", "Use AI safely and ethically", "Write clear prompts"],
+    recommendedDurationWeeks: 6,
+    courses: [
+      { slug: "ai-around-us" },
+      { slug: "creative-robot-stories" },
+      { slug: "prompt-engineering-for-students" },
+    ],
+  });
+  await seedBundle(admin.id, {
+    slug: "web-app-builder-bundle",
+    title: "Web & App Builder Bundle",
+    description: "Build responsive web pages and your first app prototypes, then ship a mini project online.",
+    themeCategory: "CODING",
+    ageGroup: "AGES_14_16",
+    level: "INTERMEDIATE",
+    requiredPlan: "PRO",
+    finalProjectTitle: "Deployed Mini Web/App",
+    finalProjectDescription: "Design, build and publish a small working web app you can share.",
+    learningObjectives: ["Structure pages with HTML/CSS", "Make responsive layouts", "Prototype an app"],
+    recommendedDurationWeeks: 10,
+    courses: [
+      { slug: "web-builders-bootcamp" },
+      { slug: "app-development-basics" },
+      { slug: "design-build-test" },
+    ],
+  });
+  await seedBundle(admin.id, {
+    slug: "digital-stem-explorer-bundle",
+    title: "Digital STEM Explorer Bundle",
+    description: "Run science simulations and digital experiments, then read and explain real data.",
+    themeCategory: "SCIENCE",
+    ageGroup: "AGES_11_13",
+    level: "INTERMEDIATE",
+    requiredPlan: "LEARNER",
+    finalProjectTitle: "Simulation Investigation Report",
+    finalProjectDescription: "Investigate a question using an online simulation and present your findings with data.",
+    learningObjectives: ["Run controlled simulations", "Collect and chart data", "Draw evidence-based conclusions"],
+    recommendedDurationWeeks: 8,
+    courses: [
+      { slug: "science-detectives" },
+      { slug: "space-science-missions" },
+      { slug: "digital-stem-experiments" },
+      { slug: "data-detectives" },
+    ],
+  });
+  await seedBundle(admin.id, {
+    slug: "future-tech-leader-bundle",
+    title: "Future Tech Leader Bundle",
+    description: "Apply Python and AI to real problems and think like a product builder.",
+    themeCategory: "AI",
+    ageGroup: "AGES_17_18",
+    level: "ADVANCED",
+    requiredPlan: "PRO",
+    finalProjectTitle: "Pitch + Working Prototype",
+    finalProjectDescription: "Build a working prototype and pitch it like a founder.",
+    learningObjectives: ["Apply Python to real tasks", "Use AI responsibly", "Validate a product idea"],
+    recommendedDurationWeeks: 12,
+    courses: [
+      { slug: "python-logic-lab" },
+      { slug: "ai-foundations-future-leaders" },
+      { slug: "ai-literacy-ethics" },
+      { slug: "entrepreneurship-product-thinking" },
+    ],
+  });
+  await seedBundle(admin.id, {
+    slug: "virtual-robotics-simulation-bundle",
+    title: "Virtual Robotics & Simulation Bundle",
+    description: "Program robots entirely in the browser — no hardware required — and solve simulated challenges.",
+    themeCategory: "ROBOTICS",
+    ageGroup: "AGES_11_13",
+    level: "INTERMEDIATE",
+    requiredPlan: "PRO",
+    finalProjectTitle: "Simulated Robot Challenge",
+    finalProjectDescription: "Program a simulated robot to complete a challenge course.",
+    learningObjectives: ["Control robots with code", "Use sensors and logic", "Plan and test missions"],
+    recommendedDurationWeeks: 8,
+    courses: [
+      { slug: "junior-robotics-automation" },
+      { slug: "block-robotics-sim" },
+      { slug: "scratch-game-studio", isRequired: false },
+    ],
+  });
+  await seedBundle(admin.id, {
+    slug: "digital-creativity-bundle",
+    title: "Digital Creativity Bundle",
+    description: "Make digital art, animation and stories — express ideas with creative browser tools.",
+    themeCategory: "DESIGN",
+    ageGroup: "AGES_5_7",
+    level: "BEGINNER",
+    requiredPlan: "LEARNER",
+    finalProjectTitle: "Animated Portfolio Piece",
+    finalProjectDescription: "Create an animated digital artwork for your portfolio.",
+    learningObjectives: ["Create digital art", "Animate simple scenes", "Tell a visual story"],
+    recommendedDurationWeeks: 6,
+    courses: [
+      { slug: "animation-storytelling-scratch" },
+      { slug: "digital-creativity-studio" },
+      { slug: "creative-robot-stories" },
+    ],
+  });
+
+  // ── Pathways (age-based journeys made of bundle / course stages) ─────────
+  await seedPathway(admin.id, {
+    slug: "digital-discovery",
+    title: "Digital Discovery",
+    description: "A playful first journey into digital creativity and coding logic for our youngest learners.",
+    ageGroup: "AGES_3_5",
+    order: 0,
+    stages: [
+      { courseSlug: "wonder-lab-science-tiny-explorers", title: "Stage 1: Explore & Play" },
+      { courseSlug: "tiny-engineers", title: "Stage 2: Build on Screen" },
+      { bundleSlug: "coding-starter-bundle", title: "Stage 3: First Code" },
+    ],
+  });
+  await seedPathway(admin.id, {
+    slug: "junior-creator",
+    title: "Junior Creator",
+    description: "Tell stories and create with ScratchJr while building sequencing and animation basics.",
+    ageGroup: "AGES_5_7",
+    order: 0,
+    stages: [
+      { bundleSlug: "coding-starter-bundle", title: "Stage 1: Coding Starter" },
+      { bundleSlug: "digital-creativity-bundle", title: "Stage 2: Digital Creativity" },
+    ],
+  });
+  await seedPathway(admin.id, {
+    slug: "creative-coder",
+    title: "Creative Coder",
+    description: "Build games, animate stories and sharpen logic with Scratch and creative coding.",
+    ageGroup: "AGES_8_10",
+    order: 0,
+    stages: [
+      { bundleSlug: "creative-coding-game-design-bundle", title: "Stage 1: Creative Coding & Game Design" },
+      { bundleSlug: "digital-stem-explorer-bundle", title: "Stage 2: Digital STEM Explorer" },
+    ],
+  });
+  await seedPathway(admin.id, {
+    slug: "stem-builder",
+    title: "STEM Builder",
+    description: "Step into Python, AI for kids, virtual robotics and data — the foundations of digital STEM.",
+    ageGroup: "AGES_11_13",
+    order: 0,
+    stages: [
+      { bundleSlug: "ai-native-kids-bundle", title: "Stage 1: AI Native Kids" },
+      { bundleSlug: "virtual-robotics-simulation-bundle", title: "Stage 2: Virtual Robotics" },
+      { bundleSlug: "digital-stem-explorer-bundle", title: "Stage 3: Digital STEM" },
+    ],
+  });
+  await seedPathway(admin.id, {
+    slug: "tech-innovator",
+    title: "Tech Innovator",
+    description: "Build for the web and apps, apply AI and prompt engineering, and start a portfolio.",
+    ageGroup: "AGES_14_16",
+    order: 0,
+    stages: [
+      { bundleSlug: "web-app-builder-bundle", title: "Stage 1: Web & App Builder" },
+      { courseSlug: "ai-literacy-ethics", title: "Stage 2: AI Literacy & Ethics" },
+      { courseSlug: "python-logic-lab", title: "Stage 3: Python Logic Lab" },
+    ],
+  });
+  await seedPathway(admin.id, {
+    slug: "future-tech-leader",
+    title: "Future Tech Leader",
+    description: "Advanced Python and AI, full-stack thinking and entrepreneurship — capped by a capstone.",
+    ageGroup: "AGES_17_18",
+    order: 0,
+    stages: [
+      { bundleSlug: "future-tech-leader-bundle", title: "Stage 1: Future Tech Leader" },
+      { courseSlug: "full-stack-thinking", title: "Stage 2: Full-Stack Thinking" },
+      { courseSlug: "data-decisions-society", title: "Stage 3: Data & Society" },
+    ],
+  });
 
   // ── Enrollments (skip gracefully if they already exist) ─────────────────
   const enrollments = [
@@ -1549,7 +1936,7 @@ async function main() {
       slug: "robotics-starter-kit",
       description: "Build your first robot with this beginner-friendly kit including servo motors, sensors, and step-by-step guide.",
       price: 79,
-      ageGroup: "AGES_9_12",
+      ageGroup: "AGES_8_10",
       category: "ROBOTICS",
       status: "ACTIVE",
       stock: 50,
@@ -1563,7 +1950,7 @@ async function main() {
       slug: "circuit-explorer-kit",
       description: "Learn electronics fundamentals with hands-on circuit experiments and color-coded components.",
       price: 49,
-      ageGroup: "AGES_6_8",
+      ageGroup: "AGES_5_7",
       category: "ELECTRONICS",
       status: "ACTIVE",
       stock: 100,
@@ -1582,7 +1969,7 @@ async function main() {
       prizes: { first: "$500 + trophy", second: "$250", third: "$100" },
       status: "UPCOMING",
       category: "STEM",
-      ageGroup: "AGES_9_12",
+      ageGroup: "AGES_8_10",
       registrationStart: new Date("2026-03-01"),
       registrationEnd: new Date("2026-03-31"),
       startDate: new Date("2026-04-01"),
@@ -1601,7 +1988,7 @@ async function main() {
       prizes: { first: "Schulab Pro 1-year", second: "STEM Kit", third: "Course voucher" },
       status: "UPCOMING",
       category: "CODING",
-      ageGroup: "AGES_6_8",
+      ageGroup: "AGES_5_7",
       registrationStart: new Date("2026-04-15"),
       registrationEnd: new Date("2026-05-10"),
       startDate: new Date("2026-05-15"),

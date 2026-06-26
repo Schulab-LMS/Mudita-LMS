@@ -21,6 +21,8 @@ const adminItems: NavItem[] = [
   { href: "/admin", labelKey: "nav.dashboard", icon: "LayoutDashboard" },
   { href: "/admin/users", labelKey: "nav.users", icon: "Users" },
   { href: "/admin/courses", labelKey: "nav.courses", icon: "BookOpen" },
+  { href: "/admin/bundles", labelKey: "nav.bundles", icon: "Layers" },
+  { href: "/admin/pathways", labelKey: "nav.pathways", icon: "Map" },
   { href: "/admin/curriculum", labelKey: "nav.curriculum", icon: "GitBranch" },
   { href: "/admin/products", labelKey: "nav.products", icon: "Package" },
   { href: "/admin/competitions", labelKey: "nav.competitions", icon: "Trophy" },

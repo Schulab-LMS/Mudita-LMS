@@ -15,10 +15,11 @@ export const metadata = { title: "Products | Admin | Schulab" };
 
 const AGE_SHORT: Record<string, string> = {
   AGES_3_5: "3–5",
-  AGES_6_8: "6–8",
-  AGES_9_12: "9–12",
-  AGES_13_15: "13–15",
-  AGES_16_18: "16–18",
+  AGES_5_7: "5–7",
+  AGES_8_10: "8–10",
+  AGES_11_13: "11–13",
+  AGES_14_16: "14–16",
+  AGES_17_18: "17–18",
 };
 
 const STATUS_TONE: Record<string, string> = {
