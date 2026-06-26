@@ -33,7 +33,6 @@ export const BUNDLES: CatalogBundle[] = [
       { slug: "scratchjr-first-stories" },
       { slug: "sequencing-loops-young-coders" },
       { slug: "scratch-starter-coding-blocks" },
-      { slug: "animation-storytelling-scratch" },
       { slug: "my-first-interactive-game" },
       { slug: "coding-starter-final-project" },
     ],
@@ -163,7 +162,6 @@ export const BUNDLES: CatalogBundle[] = [
       { slug: "logic-problem-solving" },
       { slug: "digital-stem-experiments" },
       { slug: "math-patterns-and-games" },
-      { slug: "science-simulation-explorer" },
       { slug: "nasa-digital-stem-activities" },
       { slug: "earth-from-space" },
       { slug: "space-science-games-challenges" },
@@ -268,7 +266,6 @@ export const BUNDLES: CatalogBundle[] = [
       { slug: "web-product-development" },
       { slug: "entrepreneurship-product-thinking" },
       { slug: "build-your-digital-portfolio" },
-      { slug: "future-tech-leader-capstone-project" },
     ],
   },
   {
@@ -342,7 +339,6 @@ export const BUNDLES: CatalogBundle[] = [
       { slug: "light-sound-waves-explorer" },
       { slug: "chemistry-basics-simulations" },
       { slug: "earth-science-digital-lab" },
-      { slug: "digital-experiment-report-project" },
     ],
   },
   {
