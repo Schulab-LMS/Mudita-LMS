@@ -22,7 +22,22 @@ const CATEGORY_VALUES = [
 
 const LEVEL_VALUES = ["", "BEGINNER", "INTERMEDIATE", "ADVANCED"] as const;
 
-export function CourseFilters() {
+// Duration buckets, value = upper bound in MINUTES (consumed by getCourses,
+// which converts to seconds). Empty value clears the filter.
+const DURATION_BUCKETS: ReadonlyArray<{ value: string; label: string }> = [
+  { value: "", label: "Any duration" },
+  { value: "120", label: "Under 2h" },
+  { value: "360", label: "2–6h" },
+  { value: "100000", label: "6h+" },
+];
+
+type ReferenceSourceOption = { key: string; name: string };
+
+export function CourseFilters({
+  sources = [],
+}: {
+  sources?: ReferenceSourceOption[];
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -100,6 +115,49 @@ export function CourseFilters() {
           </option>
         ))}
       </select>
+
+      {/* Reference source */}
+      {sources.length > 0 && (
+        <select
+          aria-label="Learning source"
+          defaultValue={searchParams.get("sourceKey") ?? ""}
+          onChange={(e) => updateParam("sourceKey", e.target.value)}
+          className="input-pretty h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
+        >
+          <option value="">All sources</option>
+          {sources.map((source) => (
+            <option key={source.key} value={source.key}>
+              {source.name}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {/* Duration */}
+      <select
+        aria-label="Duration"
+        defaultValue={searchParams.get("maxDuration") ?? ""}
+        onChange={(e) => updateParam("maxDuration", e.target.value)}
+        className="input-pretty h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
+      >
+        {DURATION_BUCKETS.map((bucket) => (
+          <option key={bucket.value || "any"} value={bucket.value}>
+            {bucket.label}
+          </option>
+        ))}
+      </select>
+
+      {/* Certificate — every published course carries a completion certificate,
+          so this toggle simply narrows to certificate-bearing courses. */}
+      <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-input bg-background px-3 text-sm">
+        <input
+          type="checkbox"
+          checked={searchParams.get("certificate") === "true"}
+          onChange={(e) => updateParam("certificate", e.target.checked ? "true" : "")}
+          className="h-4 w-4 rounded border-input"
+        />
+        <span>Certificate</span>
+      </label>
     </div>
   );
 }

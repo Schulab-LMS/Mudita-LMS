@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import {
   getPathwayBySlug,
   getPathwayProgress,
@@ -11,6 +12,10 @@ import {
   PathwayRoadmap,
   type RoadmapStage,
 } from "@/components/pathway/pathway-roadmap";
+import {
+  ReferenceSourceBadges,
+  type ReferenceSourceBadge,
+} from "@/components/course/reference-source-badges";
 import { ageGroupLabels } from "@/components/course/catalog-labels";
 import { Map as MapIcon, Milestone } from "lucide-react";
 
@@ -44,6 +49,17 @@ export default async function PathwayDetailPage({
   const progress = session?.user?.id
     ? await getPathwayProgress(session.user.id, pathway)
     : null;
+
+  const t = await getTranslations("referenceSources");
+  const referenceSources: ReferenceSourceBadge[] = pathway.referenceSources.map(
+    (link) => ({
+      name: link.source.name,
+      url: link.source.url,
+      provider: link.source.provider,
+      sourceType: link.source.sourceType,
+      status: link.source.status,
+    })
+  );
 
   // Flatten stages into roadmap nodes, localizing the bundle/course title.
   const stages: RoadmapStage[] = pathway.stages.map((stage, i) => {
@@ -122,6 +138,13 @@ export default async function PathwayDetailPage({
           <PathwayRoadmap stages={stages} />
         )}
       </div>
+
+      <ReferenceSourceBadges
+        className="mt-8"
+        sources={referenceSources}
+        heading={t("heading")}
+        note={t("note")}
+      />
     </div>
   );
 }

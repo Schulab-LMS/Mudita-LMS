@@ -80,6 +80,10 @@ export async function getPathwayBySlug(
             },
           },
         },
+        referenceSources: {
+          orderBy: { order: "asc" },
+          include: { source: true },
+        },
       },
     });
 

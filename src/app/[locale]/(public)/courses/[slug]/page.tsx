@@ -13,6 +13,10 @@ import { RatingStars } from "@/components/ui/rating-stars";
 import { EnrollButton } from "@/components/course/enroll-button";
 import { CategoryIcon } from "@/components/illustrations/category-icons";
 import {
+  ReferenceSourceBadges,
+  type ReferenceSourceBadge,
+} from "@/components/course/reference-source-badges";
+import {
   analyzeContentMix,
   collectHandsOnProjects,
   lessonKind,
@@ -73,13 +77,14 @@ export default async function CourseDetailPage({
   params,
 }: CourseDetailPageProps) {
   const { slug, locale } = await params;
-  const [course, session, t, tAge, tLevel, tCat] = await Promise.all([
+  const [course, session, t, tAge, tLevel, tCat, tRef] = await Promise.all([
     getCourseBySlug(slug),
     auth(),
     getTranslations("courseDetail"),
     getTranslations("courses.ageGroups"),
     getTranslations("courses.levels"),
     getTranslations("courses.categories"),
+    getTranslations("referenceSources"),
   ]);
 
   if (!course) notFound();
@@ -213,6 +218,31 @@ export default async function CourseDetailPage({
   // semantics we want for "published in the last 30 days".
   const isNew = daysSince(course.createdAt) < 30;
 
+  // Reference source badges — map the ordered join rows to the badge shape.
+  const referenceSourceBadges: ReferenceSourceBadge[] = course.referenceSources.map(
+    (link) => ({
+      name: link.source.name,
+      url: link.source.url,
+      provider: link.source.provider,
+      sourceType: link.source.sourceType,
+      status: link.source.status,
+    })
+  );
+
+  // Bundle / pathway membership — only surface PUBLISHED ones, and de-dupe
+  // pathways by slug (a course can appear in several stages of one pathway).
+  const publishedBundles = course.bundleLinks
+    .map((link) => link.bundle)
+    .filter((bundle) => bundle.status === "PUBLISHED");
+  const publishedPathways = Array.from(
+    new Map(
+      course.pathwayStages
+        .map((stage) => stage.pathway)
+        .filter((pathway) => pathway.status === "PUBLISHED")
+        .map((pathway) => [pathway.slug, pathway])
+    ).values()
+  );
+
   return (
     <div className="py-8 sm:py-12">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -243,6 +273,24 @@ export default async function CourseDetailPage({
                 </span>
               )}
               {course.category && <Badge variant="outline">{tCat(course.category)}</Badge>}
+              {publishedBundles.map((bundle) => (
+                <Link
+                  key={`bundle-${bundle.slug}`}
+                  href={`/bundles/${bundle.slug}`}
+                  className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors hover:border-primary/40 hover:text-primary"
+                >
+                  In bundle: {bundle.title}
+                </Link>
+              ))}
+              {publishedPathways.map((pathway) => (
+                <Link
+                  key={`pathway-${pathway.slug}`}
+                  href={`/pathways/${pathway.slug}`}
+                  className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors hover:border-primary/40 hover:text-primary"
+                >
+                  Part of pathway: {pathway.title}
+                </Link>
+              ))}
             </div>
 
             <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
@@ -291,6 +339,16 @@ export default async function CourseDetailPage({
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Reference sources the course is aligned with */}
+            {referenceSourceBadges.length > 0 && (
+              <ReferenceSourceBadges
+                sources={referenceSourceBadges}
+                heading={tRef("heading")}
+                note={tRef("note")}
+                className="mt-6"
+              />
             )}
           </div>
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import {
   getBundleBySlug,
   getBundleProgress,
@@ -11,6 +12,10 @@ import { hasBundleAccess } from "@/lib/subscription-access";
 import { Link } from "@/i18n/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { CourseCard } from "@/components/course/course-card";
+import {
+  ReferenceSourceBadges,
+  type ReferenceSourceBadge,
+} from "@/components/course/reference-source-badges";
 import { ageGroupLabels, levelLabels } from "@/components/course/catalog-labels";
 import { BookOpen, CheckCircle2, Layers, Lock, Sparkles, Target, Trophy } from "lucide-react";
 
@@ -55,6 +60,17 @@ export default async function BundleDetailPage({ params }: BundleDetailPageProps
   // the constituent courses still enforce at enrolment time.
   const hasAccess = await hasBundleAccess(session?.user?.id ?? null, bundle);
   const locked = !hasAccess;
+
+  const t = await getTranslations("referenceSources");
+  const referenceSources: ReferenceSourceBadge[] = bundle.referenceSources.map(
+    (link) => ({
+      name: link.source.name,
+      url: link.source.url,
+      provider: link.source.provider,
+      sourceType: link.source.sourceType,
+      status: link.source.status,
+    })
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -205,6 +221,12 @@ export default async function BundleDetailPage({ params }: BundleDetailPageProps
               )}
             </div>
           )}
+
+          <ReferenceSourceBadges
+            sources={referenceSources}
+            heading={t("heading")}
+            note={t("note")}
+          />
         </div>
       </div>
     </div>

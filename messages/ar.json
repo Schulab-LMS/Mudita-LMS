@@ -1202,5 +1202,25 @@
       "clickToUpload": "انقر لرفع فيديو",
       "formatsHint": "MP4 أو MOV أو WEBM حتى عدّة غيغابايت"
     }
+  },
+  "referenceSources": {
+    "heading": "مصادر ومراجع التعلّم",
+    "note": "يستند المحتوى إلى هذه المصادر التعليمية الموثوقة والمجانية.",
+    "enrichment": "إثرائي",
+    "optional": "اختياري"
+  },
+  "dashboardRecommendations": {
+    "title": "موصى به لك",
+    "subtitle": "مختار حسب فئتك العمرية وتقدّمك",
+    "pathwayLabel": "مسار التعلّم الخاص بك",
+    "bundleLabel": "الحزمة التالية للبدء",
+    "nextCourseLabel": "واصل رحلتك",
+    "viewPathway": "عرض المسار",
+    "viewBundle": "عرض الحزمة",
+    "startCourse": "ابدأ الدورة",
+    "coursesCount": "{count, plural, one {دورة واحدة} other {# دورات}}",
+    "stagesCount": "{count, plural, one {مرحلة واحدة} other {# مراحل}}",
+    "forChild": "لـ {name}",
+    "empty": "لا توجد توصيات بعد. سجّل في دورة لتبدأ."
   }
 }

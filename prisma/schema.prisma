@@ -35,11 +35,11 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     User[]
-  courses   Course[]
-  bookings  Booking[]
-  bundles   Bundle[]
-  pathways  LearningPathway[]
+  users    User[]
+  courses  Course[]
+  bookings Booking[]
+  bundles  Bundle[]
+  pathways LearningPathway[]
 
   @@index([slug])
 }
@@ -70,33 +70,33 @@ model User {
   badges       UserBadge[]
   points       PointTransaction[]
 
-  bookingsAsStudent Booking[]                 @relation("StudentBookings")
-  orders            Order[]
-  coursePurchases            CoursePurchase[] @relation("CoursePurchasePayer")
-  coursePurchasesForChildren CoursePurchase[] @relation("CoursePurchaseBeneficiary")
-  subscriptions     Subscription[]
-  invoices          Invoice[]
-  notifications     Notification[]
-  sentMessages      Message[]                 @relation("SentMessages")
-  receivedMessages  Message[]                 @relation("ReceivedMessages")
-  competitionRegs   CompetitionRegistration[]
-  consentRecords    ConsentRecord[]
-  analyticsEvents   AnalyticsEvent[]
+  bookingsAsStudent          Booking[]                 @relation("StudentBookings")
+  orders                     Order[]
+  coursePurchases            CoursePurchase[]          @relation("CoursePurchasePayer")
+  coursePurchasesForChildren CoursePurchase[]          @relation("CoursePurchaseBeneficiary")
+  subscriptions              Subscription[]
+  invoices                   Invoice[]
+  notifications              Notification[]
+  sentMessages               Message[]                 @relation("SentMessages")
+  receivedMessages           Message[]                 @relation("ReceivedMessages")
+  competitionRegs            CompetitionRegistration[]
+  consentRecords             ConsentRecord[]
+  analyticsEvents            AnalyticsEvent[]
 
   parentOf      ParentChild[]   @relation("ParentRelation")
   childOf       ParentChild[]   @relation("ChildRelation")
   consentsGiven ConsentRecord[] @relation("ConsentGivenBy")
 
-  courseReviews     CourseReview[]
-  couponRedemptions CouponRedemption[]
-  auditLogs         AuditLog[]
-  onboardingProfile OnboardingProfile?
-  dripStates        DripState[]
-  activitySubmissions ActivitySubmission[] @relation("StudentSubmissions")
+  courseReviews       CourseReview[]
+  couponRedemptions   CouponRedemption[]
+  auditLogs           AuditLog[]
+  onboardingProfile   OnboardingProfile?
+  dripStates          DripState[]
+  activitySubmissions ActivitySubmission[]  @relation("StudentSubmissions")
   studentAvailability StudentAvailability[]
-  lessonNotes         LessonNote[]         @relation("LessonNotes")
-  lessonQuestions     LessonQuestion[]     @relation("LessonQuestionsAsked")
-  lessonAnswers       LessonAnswer[]       @relation("LessonAnswersGiven")
+  lessonNotes         LessonNote[]          @relation("LessonNotes")
+  lessonQuestions     LessonQuestion[]      @relation("LessonQuestionsAsked")
+  lessonAnswers       LessonAnswer[]        @relation("LessonAnswersGiven")
 
   accounts Account[]
   sessions Session[]
@@ -203,55 +203,73 @@ enum AgeGroup {
   AGES_17_18
 }
 
+// Provenance/readiness of a catalog item's content. Drives the admin "needs
+// review" workflow and lets us distinguish freshly-seeded skeletons from
+// imported content (e.g. NASA Space Place courses mapped into the new model).
+enum ContentStatus {
+  SEED_NOW // skeleton seeded, ready to author
+  NEEDS_REVIEW // seeded, awaiting curriculum review before publish
+  OPTIONAL_ENRICHMENT // nice-to-have enrichment content
+  IMPORTED_EXISTING // mapped from pre-existing platform content
+}
+
+// Lifecycle of an external reference source (ScratchJr, NASA Space Place…).
+enum SourceStatus {
+  ACTIVE // current core source
+  HISTORICAL // kept for inspiration only, not a live source
+  OPTIONAL // optional/simulator-first or advanced use
+  ENRICHMENT // enrichment only (articles, curiosity)
+}
+
 model Course {
-  id            String       @id @default(cuid())
-  slug          String       @unique
-  title         String
-  titleAr       String?
-  titleDe       String?
-  description   String       @db.Text
-  descriptionAr String?      @db.Text
-  descriptionDe String?      @db.Text
-  thumbnail     String?
-  previewVideo  String?
-  level         CourseLevel  @default(BEGINNER)
-  ageGroup      AgeGroup
-  category      String
-  tags          String[]
+  id                        String       @id @default(cuid())
+  slug                      String       @unique
+  title                     String
+  titleAr                   String?
+  titleDe                   String?
+  description               String       @db.Text
+  descriptionAr             String?      @db.Text
+  descriptionDe             String?      @db.Text
+  thumbnail                 String?
+  previewVideo              String?
+  level                     CourseLevel  @default(BEGINNER)
+  ageGroup                  AgeGroup
+  category                  String
+  tags                      String[]
   // Catalog-page metadata. `skills` is what the learner gains; `tools` is the
   // software used (Scratch, Python…). Both locale-agnostic short labels.
-  skills        String[]     @default([])
-  tools         String[]     @default([])
+  skills                    String[]     @default([])
+  tools                     String[]     @default([])
   // Optional standalone capstone shown when the course is not inside a bundle.
   finalProjectTitle         String?
   finalProjectTitleAr       String?
   finalProjectTitleDe       String?
-  finalProjectDescription   String? @db.Text
-  finalProjectDescriptionAr String? @db.Text
-  finalProjectDescriptionDe String? @db.Text
+  finalProjectDescription   String?      @db.Text
+  finalProjectDescriptionAr String?      @db.Text
+  finalProjectDescriptionDe String?      @db.Text
   // Audience-specific blurbs for the course page; fall back to `description`.
-  parentSummary    String? @db.Text
-  parentSummaryAr  String? @db.Text
-  parentSummaryDe  String? @db.Text
-  studentSummary   String? @db.Text
-  studentSummaryAr String? @db.Text
-  studentSummaryDe String? @db.Text
-  price         Decimal      @default(0) @db.Decimal(10, 2)
-  currency      String       @default("USD")
-  isFree        Boolean      @default(false)
+  parentSummary             String?      @db.Text
+  parentSummaryAr           String?      @db.Text
+  parentSummaryDe           String?      @db.Text
+  studentSummary            String?      @db.Text
+  studentSummaryAr          String?      @db.Text
+  studentSummaryDe          String?      @db.Text
+  price                     Decimal      @default(0) @db.Decimal(10, 2)
+  currency                  String       @default("USD")
+  isFree                    Boolean      @default(false)
   // Marks a course as included with an active subscription whose plan tier
   // is >= the value set here. Nullable by design: the historical model is
   // "free (isFree) OR one-time purchase (price)", and we keep that working
   // untouched when requiredPlan is null. Tier order is FREE < LEARNER < PRO
   // < LIFETIME — see src/lib/subscription-access.ts.
-  requiredPlan  PlanTier?
-  status        CourseStatus @default(DRAFT)
-  duration      Int?
-  averageRating Decimal      @default(0) @db.Decimal(3, 2)
-  reviewCount   Int          @default(0)
-  createdById   String
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  requiredPlan              PlanTier?
+  status                    CourseStatus @default(DRAFT)
+  duration                  Int?
+  averageRating             Decimal      @default(0) @db.Decimal(3, 2)
+  reviewCount               Int          @default(0)
+  createdById               String
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
 
   // Git-managed curriculum provenance. `managedByGit` flags a course whose
   // content is owned by the STEM-Curricula repo (read-only in the admin UI).
@@ -275,9 +293,16 @@ model Course {
   enrollments Enrollment[]
   reviews     CourseReview[]
 
+  // Catalog content readiness + free-form admin notes (see ContentStatus).
+  contentStatus ContentStatus @default(SEED_NOW)
+  adminNotes    String?       @db.Text
+
   // Membership in bundles / pathway stages.
   bundleLinks   BundleCourse[]
   pathwayStages PathwayStage[]
+
+  // External reference sources credited on the course page (badges + links).
+  referenceSources CourseReferenceSource[]
 
   @@index([slug])
   @@index([category])
@@ -287,6 +312,7 @@ model Course {
   @@index([managedByGit])
   @@index([organizationId])
   @@index([nextCourseId])
+  @@index([contentStatus])
 }
 
 model Module {
@@ -327,23 +353,23 @@ enum PresentationFormat {
 }
 
 model Lesson {
-  id           String           @id @default(cuid())
-  moduleId     String
-  title        String
-  titleAr      String?
-  titleDe      String?
-  content      String?          @db.Text
-  contentAr    String?          @db.Text
-  contentDe    String?          @db.Text
+  id                    String               @id @default(cuid())
+  moduleId              String
+  title                 String
+  titleAr               String?
+  titleDe               String?
+  content               String?              @db.Text
+  contentAr             String?              @db.Text
+  contentDe             String?              @db.Text
   // Hands-on take-home activity (synced from activity.md). Student-visible.
-  activity     String?          @db.Text
-  activityAr   String?          @db.Text
-  activityDe   String?          @db.Text
+  activity              String?              @db.Text
+  activityAr            String?              @db.Text
+  activityDe            String?              @db.Text
   // Tutor-only guidance (module overview + TUTOR_ONLY fences). NEVER served
   // to students — student-facing queries omit these columns by construction.
-  tutorNotes   String?          @db.Text
-  tutorNotesAr String?          @db.Text
-  tutorNotesDe String?          @db.Text
+  tutorNotes            String?              @db.Text
+  tutorNotesAr          String?              @db.Text
+  tutorNotesDe          String?              @db.Text
   // Reveal.js slide deck (synced from presentation.md). Raw markdown is stored
   // so the client-side Reveal markdown plugin keeps slide-break semantics
   // ('---' / '--') intact. presentationConfig holds parsed YAML frontmatter
@@ -360,23 +386,23 @@ model Lesson {
   // section in the handout (see resolveResources in curriculum-structure.ts).
   // Stored as a JSON array of { title, url, type } (LessonResource).
   // Locale-agnostic: the links are shared across languages.
-  resources    Json?
-  videoUrl     String?
-  videoAssetId String?
-  thumbnail    String?
-  duration     Int?
-  type         LessonType       @default(VIDEO)
-  order        Int
-  isFree       Boolean          @default(false)
-  sourcePath   String?
-  syncStatus   SyncStatus       @default(ACTIVE)
-  module       Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  quiz         Quiz?
-  progress     LessonProgress[]
-  sessions     Booking[]
-  submissions  ActivitySubmission[]
-  notes        LessonNote[]
-  questions    LessonQuestion[]
+  resources             Json?
+  videoUrl              String?
+  videoAssetId          String?
+  thumbnail             String?
+  duration              Int?
+  type                  LessonType           @default(VIDEO)
+  order                 Int
+  isFree                Boolean              @default(false)
+  sourcePath            String?
+  syncStatus            SyncStatus           @default(ACTIVE)
+  module                Module               @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  quiz                  Quiz?
+  progress              LessonProgress[]
+  sessions              Booking[]
+  submissions           ActivitySubmission[]
+  notes                 LessonNote[]
+  questions             LessonQuestion[]
 
   // Stable upsert key for Git-synced lessons (NULL for admin-created ones).
   @@unique([moduleId, sourcePath])
@@ -432,6 +458,8 @@ model Bundle {
   sourceCommitSha String?
   syncStatus      SyncStatus @default(ACTIVE)
 
+  adminNotes String? @db.Text
+
   createdById String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -439,6 +467,9 @@ model Bundle {
   courses       BundleCourse[]
   pathwayStages PathwayStage[]
   certificates  Certificate[]
+
+  // External reference sources credited on the bundle page.
+  referenceSources BundleReferenceSource[]
 
   @@index([slug])
   @@index([themeCategory])
@@ -468,27 +499,32 @@ model BundleCourse {
 // An age-based learning journey (beginner → advanced) made of ordered stages.
 // One pathway per age band on the public site.
 model LearningPathway {
-  id            String         @id @default(cuid())
-  slug          String         @unique
+  id            String       @id @default(cuid())
+  slug          String       @unique
   title         String
   titleAr       String?
   titleDe       String?
-  description   String         @db.Text
-  descriptionAr String?        @db.Text
-  descriptionDe String?        @db.Text
+  description   String       @db.Text
+  descriptionAr String?      @db.Text
+  descriptionDe String?      @db.Text
   thumbnail     String?
   ageGroup      AgeGroup
-  status        CourseStatus   @default(DRAFT)
-  order         Int            @default(0)
+  status        CourseStatus @default(DRAFT)
+  order         Int          @default(0)
 
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  adminNotes String? @db.Text
 
   createdById String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   stages PathwayStage[]
+
+  // External reference sources credited on the pathway page.
+  referenceSources PathwayReferenceSource[]
 
   @@index([slug])
   @@index([ageGroup])
@@ -517,6 +553,77 @@ model PathwayStage {
   @@index([pathwayId, order])
   @@index([bundleId])
   @@index([courseId])
+}
+
+// ========== REFERENCE SOURCES ==========
+
+// A real, reputable external source (ScratchJr, Scratch, Code.org, NASA Space
+// Place, PhET…) credited across the catalog. Sources are platform-global and
+// reused via the three join tables below. `key` is the stable seed handle used
+// to attach a source without knowing its generated id. NO fabricated sources or
+// URLs may be added — only verified providers (see seed catalog data).
+model ReferenceSource {
+  id                  String       @id @default(cuid())
+  key                 String       @unique
+  name                String
+  url                 String
+  provider            String
+  sourceType          String
+  relatedTopics       String[]     @default([])
+  recommendedAgeRange String?
+  usageInSchulab      String       @db.Text
+  status              SourceStatus @default(ACTIVE)
+  notes               String?      @db.Text
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  courseLinks  CourseReferenceSource[]
+  bundleLinks  BundleReferenceSource[]
+  pathwayLinks PathwayReferenceSource[]
+
+  @@index([key])
+  @@index([status])
+}
+
+// Ordered course ↔ source join (a course cites many sources; a source is reused
+// by many courses). `order` controls badge display order on the course page.
+model CourseReferenceSource {
+  id       String          @id @default(cuid())
+  courseId String
+  sourceId String
+  order    Int             @default(0)
+  course   Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  source   ReferenceSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, sourceId])
+  @@index([courseId, order])
+  @@index([sourceId])
+}
+
+model BundleReferenceSource {
+  id       String          @id @default(cuid())
+  bundleId String
+  sourceId String
+  order    Int             @default(0)
+  bundle   Bundle          @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  source   ReferenceSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([bundleId, sourceId])
+  @@index([bundleId, order])
+  @@index([sourceId])
+}
+
+model PathwayReferenceSource {
+  id        String          @id @default(cuid())
+  pathwayId String
+  sourceId  String
+  order     Int             @default(0)
+  pathway   LearningPathway @relation(fields: [pathwayId], references: [id], onDelete: Cascade)
+  source    ReferenceSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([pathwayId, sourceId])
+  @@index([pathwayId, order])
+  @@index([sourceId])
 }
 
 // ========== QUIZZES ==========
@@ -694,15 +801,15 @@ model LessonNote {
 // A learner's public question on a lesson (the Q&A tab). Visible to everyone
 // enrolled in the course; answered by tutors / admins.
 model LessonQuestion {
-  id        String           @id @default(cuid())
+  id        String   @id @default(cuid())
   lessonId  String
   authorId  String
-  body      String           @db.Text
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  lesson  Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  author  User             @relation("LessonQuestionsAsked", fields: [authorId], references: [id], onDelete: Cascade)
+  lesson  Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  author  User           @relation("LessonQuestionsAsked", fields: [authorId], references: [id], onDelete: Cascade)
   answers LessonAnswer[]
 
   @@index([lessonId, createdAt])
@@ -711,12 +818,12 @@ model LessonQuestion {
 
 // A staff (tutor / admin) reply to a lesson question. Single-level threads.
 model LessonAnswer {
-  id         String         @id @default(cuid())
+  id         String   @id @default(cuid())
   questionId String
   authorId   String
-  body       String         @db.Text
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  body       String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   question LessonQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   author   User           @relation("LessonAnswersGiven", fields: [authorId], references: [id], onDelete: Cascade)
@@ -743,16 +850,16 @@ enum SyncTrigger {
 // One row per curriculum sync attempt. Observability + admin "last synced"
 // display. Written by src/services/curriculum-sync.service.ts.
 model CurriculumSyncRun {
-  id               String        @id @default(cuid())
-  commitSha        String?
-  status           SyncRunStatus @default(RUNNING)
-  trigger          SyncTrigger
-  coursesUpserted  Int           @default(0)
-  lessonsUpserted  Int           @default(0)
-  coursesArchived  Int           @default(0)
-  error            String?       @db.Text
-  startedAt        DateTime      @default(now())
-  finishedAt       DateTime?
+  id              String        @id @default(cuid())
+  commitSha       String?
+  status          SyncRunStatus @default(RUNNING)
+  trigger         SyncTrigger
+  coursesUpserted Int           @default(0)
+  lessonsUpserted Int           @default(0)
+  coursesArchived Int           @default(0)
+  error           String?       @db.Text
+  startedAt       DateTime      @default(now())
+  finishedAt      DateTime?
 
   @@index([startedAt])
 }
@@ -813,29 +920,29 @@ enum BookingStatus {
 }
 
 model Booking {
-  id             String        @id @default(cuid())
-  studentId      String
-  tutorId        String
-  subject        String
-  startTime      DateTime
-  endTime        DateTime
-  status         BookingStatus @default(PENDING)
-  meetingUrl     String?
-  meetingId      String?
-  notes          String?       @db.Text
-  rating         Int?
-  review         String?       @db.Text
-  price          Decimal       @db.Decimal(10, 2)
-  currency       String        @default("USD")
-  createdAt      DateTime      @default(now())
+  id               String            @id @default(cuid())
+  studentId        String
+  tutorId          String
+  subject          String
+  startTime        DateTime
+  endTime          DateTime
+  status           BookingStatus     @default(PENDING)
+  meetingUrl       String?
+  meetingId        String?
+  notes            String?           @db.Text
+  rating           Int?
+  review           String?           @db.Text
+  price            Decimal           @db.Decimal(10, 2)
+  currency         String            @default("USD")
+  createdAt        DateTime          @default(now())
   // The curriculum lesson taught in this session (set by the tutor). Drives
   // the role-split live-session view. Null until the tutor assigns one.
-  lessonId       String?
-  organizationId String?
-  student        User          @relation("StudentBookings", fields: [studentId], references: [id])
-  tutor          TutorProfile  @relation(fields: [tutorId], references: [id])
-  lesson         Lesson?       @relation(fields: [lessonId], references: [id])
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  lessonId         String?
+  organizationId   String?
+  student          User              @relation("StudentBookings", fields: [studentId], references: [id])
+  tutor            TutorProfile      @relation(fields: [tutorId], references: [id])
+  lesson           Lesson?           @relation(fields: [lessonId], references: [id])
+  organization     Organization?     @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   // Lazily created when the first participant joins the live classroom.
   // 1:1 with Booking; cascade-deletes if the booking is removed.
   classroomSession ClassroomSession?
@@ -943,14 +1050,14 @@ model ClassroomEvent {
 // one, students vote, and (optionally) the tutor closes it to lock in
 // results. Votes are de-duped by (pollId, userId) — one vote per student.
 model ClassroomPoll {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   sessionId String
   // Question + ordered option strings. Options are stored on the row (rather
   // than a separate table) because they're set once at open-time and never
   // mutated; vote counts are derived from ClassroomPollVote rows.
-  question  String   @db.Text
+  question  String    @db.Text
   options   String[]
-  openedAt  DateTime @default(now())
+  openedAt  DateTime  @default(now())
   closedAt  DateTime?
   // Tutor who opened the poll. Recorded for audit; not used for auth.
   openedBy  String
@@ -1407,8 +1514,8 @@ model CoursePurchase {
   createdAt             DateTime             @default(now())
   updatedAt             DateTime             @updatedAt
 
-  user        User  @relation("CoursePurchasePayer", fields: [userId], references: [id])
-  beneficiary User? @relation("CoursePurchaseBeneficiary", fields: [beneficiaryUserId], references: [id])
+  user        User     @relation("CoursePurchasePayer", fields: [userId], references: [id])
+  beneficiary User?    @relation("CoursePurchaseBeneficiary", fields: [beneficiaryUserId], references: [id])
   invoice     Invoice?
 
   @@unique([userId, courseId, beneficiaryUserId, status])

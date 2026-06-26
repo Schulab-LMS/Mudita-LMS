@@ -17,6 +17,9 @@ interface CoursesPageProps {
     ageGroup?: string;
     category?: string;
     level?: string;
+    sourceKey?: string;
+    maxDuration?: string;
+    certificate?: string;
   }>;
 }
 
@@ -62,18 +65,43 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
     }
   }
 
-  const [courses, t] = await Promise.all([
+  // Parse the numeric duration bucket (minutes); ignore anything non-numeric.
+  const maxDurationParam = params.maxDuration ? Number(params.maxDuration) : undefined;
+  const maxDuration =
+    typeof maxDurationParam === "number" && Number.isFinite(maxDurationParam)
+      ? maxDurationParam
+      : undefined;
+  const certificate = params.certificate === "true";
+
+  const [courses, referenceSources, t] = await Promise.all([
     getCourses({
       search: params.q,
       ageGroup: params.ageGroup,
       category: params.category,
       level: params.level,
+      sourceKey: params.sourceKey,
+      maxDuration,
+      certificate,
       signals,
+    }),
+    // Active reference sources for the catalog Source dropdown.
+    db.referenceSource.findMany({
+      where: { status: { in: ["ACTIVE", "ENRICHMENT", "OPTIONAL"] } },
+      select: { key: true, name: true },
+      orderBy: { name: "asc" },
     }),
     getTranslations("courses"),
   ]);
 
-  const activeFilterCount = [params.ageGroup, params.category, params.level, params.q].filter(Boolean).length;
+  const activeFilterCount = [
+    params.ageGroup,
+    params.category,
+    params.level,
+    params.q,
+    params.sourceKey,
+    params.maxDuration,
+    certificate ? "1" : "",
+  ].filter(Boolean).length;
 
   return (
     <div>
@@ -134,7 +162,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
         </div>
         <div className="mb-6">
           <Suspense>
-            <CourseFilters />
+            <CourseFilters sources={referenceSources} />
           </Suspense>
         </div>
 

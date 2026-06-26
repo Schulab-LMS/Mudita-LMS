@@ -89,6 +89,10 @@ export async function getBundleBySlug(
             },
           },
         },
+        referenceSources: {
+          orderBy: { order: "asc" },
+          include: { source: true },
+        },
       },
     });
 

@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { getChildren } from "@/services/user.service";
+import { getRecommendedForChild } from "@/services/recommendation.service";
+import { getLocalizedField } from "@/services/course.service";
 import { ChildCard } from "@/components/dashboard/child-card";
 import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/ui/page-header";
@@ -16,6 +18,9 @@ import {
   ArrowRight,
   Calendar,
   UserPlus,
+  Sparkles,
+  Compass,
+  Layers,
 } from "lucide-react";
 
 export const metadata = { title: "Parent Dashboard | Schulab" };
@@ -26,12 +31,29 @@ export default async function ParentDashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const [t, children] = await Promise.all([
+  const [t, tRec, locale, children] = await Promise.all([
     getTranslations("parentDashboard"),
+    getTranslations("dashboardRecommendations"),
+    getLocale(),
     getChildren(session.user.id),
   ]);
 
   const firstName = session.user.name?.split(" ")[0] ?? "";
+
+  // Per-child bundle/pathway recommendations, resolved in parallel.
+  const childRecommendations = await Promise.all(
+    children.map(async (child) => ({
+      child,
+      rec: await getRecommendedForChild(child.id).catch(() => ({
+        pathway: null,
+        bundle: null,
+        ageGroup: null,
+      })),
+    }))
+  );
+  const recsToShow = childRecommendations.filter(
+    (c) => c.rec.pathway || c.rec.bundle
+  );
 
   // Aggregate metrics across all children
   type E = ChildWithEnrollments["enrollments"][number];
@@ -221,6 +243,79 @@ export default async function ParentDashboardPage() {
               </div>
             </aside>
           </div>
+
+          {/* Per-child bundle / pathway recommendations */}
+          {recsToShow.length > 0 && (
+            <section>
+              <div className="mb-4">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                  <Sparkles className="h-5 w-5 text-primary" aria-hidden />
+                  {tRec("title")}
+                </h2>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {tRec("subtitle")}
+                </p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {recsToShow.map(({ child, rec }) => (
+                  <div key={child.id} className="card-premium space-y-3 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {tRec("forChild", { name: child.name ?? "" })}
+                    </p>
+                    {rec.pathway && (
+                      <Link
+                        href={`/pathways/${rec.pathway.slug}`}
+                        className="group flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
+                      >
+                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Compass className="h-4 w-4" aria-hidden />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            {tRec("pathwayLabel")}
+                          </span>
+                          <span className="block truncate text-sm font-medium text-foreground">
+                            {getLocalizedField(rec.pathway, "title", locale)}
+                          </span>
+                        </span>
+                        <ArrowRight
+                          className="ms-auto h-3.5 w-3.5 shrink-0 self-center text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+                          aria-hidden
+                        />
+                      </Link>
+                    )}
+                    {rec.bundle && (
+                      <Link
+                        href={`/bundles/${rec.bundle.slug}`}
+                        className="group flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
+                      >
+                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+                          <Layers className="h-4 w-4" aria-hidden />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            {tRec("bundleLabel")}
+                          </span>
+                          <span className="block truncate text-sm font-medium text-foreground">
+                            {getLocalizedField(rec.bundle, "title", locale)}
+                          </span>
+                          <span className="block text-[11px] text-muted-foreground">
+                            {tRec("coursesCount", {
+                              count: rec.bundle._count.courses,
+                            })}
+                          </span>
+                        </span>
+                        <ArrowRight
+                          className="ms-auto h-3.5 w-3.5 shrink-0 self-center text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+                          aria-hidden
+                        />
+                      </Link>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </>
       )}
     </div>

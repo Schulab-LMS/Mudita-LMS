@@ -1202,5 +1202,25 @@
       "clickToUpload": "Klicken, um ein Video hochzuladen",
       "formatsHint": "MP4, MOV, WEBM bis zu mehreren GB"
     }
+  },
+  "referenceSources": {
+    "heading": "Lernquellen & Referenzen",
+    "note": "Die Inhalte orientieren sich an diesen vertrauenswürdigen, kostenlosen Bildungsquellen.",
+    "enrichment": "Ergänzung",
+    "optional": "Optional"
+  },
+  "dashboardRecommendations": {
+    "title": "Für dich empfohlen",
+    "subtitle": "Ausgewählt für deine Altersgruppe und deinen Fortschritt",
+    "pathwayLabel": "Dein Lernpfad",
+    "bundleLabel": "Nächstes Paket zum Starten",
+    "nextCourseLabel": "Setze deine Reise fort",
+    "viewPathway": "Lernpfad ansehen",
+    "viewBundle": "Paket ansehen",
+    "startCourse": "Kurs starten",
+    "coursesCount": "{count, plural, one {# Kurs} other {# Kurse}}",
+    "stagesCount": "{count, plural, one {# Etappe} other {# Etappen}}",
+    "forChild": "Für {name}",
+    "empty": "Noch keine Empfehlungen. Schreibe dich in einen Kurs ein, um zu beginnen."
   }
 }

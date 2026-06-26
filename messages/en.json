@@ -1202,5 +1202,25 @@
       "clickToUpload": "Click to upload video",
       "formatsHint": "MP4, MOV, WEBM up to a few GB"
     }
+  },
+  "referenceSources": {
+    "heading": "Learning sources & references",
+    "note": "Content is aligned with these trusted, free educational sources.",
+    "enrichment": "Enrichment",
+    "optional": "Optional"
+  },
+  "dashboardRecommendations": {
+    "title": "Recommended for you",
+    "subtitle": "Picked for your age group and progress",
+    "pathwayLabel": "Your learning pathway",
+    "bundleLabel": "Next bundle to start",
+    "nextCourseLabel": "Continue your journey",
+    "viewPathway": "View pathway",
+    "viewBundle": "View bundle",
+    "startCourse": "Start course",
+    "coursesCount": "{count, plural, one {# course} other {# courses}}",
+    "stagesCount": "{count, plural, one {# stage} other {# stages}}",
+    "forChild": "For {name}",
+    "empty": "No recommendations yet. Enrol in a course to get started."
   }
 }

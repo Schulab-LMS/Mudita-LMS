@@ -27,6 +27,18 @@ interface CourseFilters {
   // courses (organizationId IS NULL) plus the viewer's own org. Anonymous /
   // un-tenanted browsing sees global courses only. Platform admins see all.
   viewer?: TenantPrincipal | null;
+  // Restricts to courses citing the reference source with this `key`.
+  sourceKey?: string;
+  // Upper bound on the course `duration` field, expressed in MINUTES. Course
+  // durations are stored in SECONDS (mirrors Lesson.duration; the detail page
+  // divides by 60 to display minutes), so the filter converts to seconds.
+  // Courses with a null duration are excluded when this filter is set.
+  maxDuration?: number;
+  // Certificate guarantee filter. SchuLab issues a completion certificate for
+  // every PUBLISHED course (see the "certificate included" guarantee on the
+  // course detail page), so when ON we simply keep the PUBLISHED restriction
+  // that already applies — there is no separate per-course certificate flag.
+  certificate?: boolean;
 }
 
 export function getLocalizedField<
@@ -56,6 +68,17 @@ export async function getCourses(filters: CourseFilters = {}) {
     if (filters.level) {
       where.level = filters.level;
     }
+    if (filters.sourceKey) {
+      where.referenceSources = { some: { source: { key: filters.sourceKey } } };
+    }
+    if (typeof filters.maxDuration === "number") {
+      // Convert the minute-based bucket to seconds (Course.duration is in
+      // seconds). A null duration can't satisfy `<=` so Prisma excludes it,
+      // which is the desired behaviour when the filter is set.
+      where.duration = { lte: filters.maxDuration * 60 };
+    }
+    // certificate === true needs no extra clause: every PUBLISHED course (the
+    // default status filter above) carries a completion certificate.
     // Tenant scope + search both want OR clauses on the same row; AND them
     // together so neither widens past what the other allows.
     const andClauses: Array<Record<string, unknown>> = [];
@@ -181,6 +204,19 @@ export async function getCourseBySlug(
             thumbnail: true,
             category: true,
           },
+        },
+        // Credited external reference sources, ordered for badge display.
+        referenceSources: {
+          orderBy: { order: "asc" },
+          include: { source: true },
+        },
+        // Bundle / pathway membership for the "In bundle" / "Part of pathway"
+        // badges on the detail page.
+        bundleLinks: {
+          include: { bundle: { select: { slug: true, title: true, status: true } } },
+        },
+        pathwayStages: {
+          include: { pathway: { select: { slug: true, title: true, status: true } } },
         },
       },
     });

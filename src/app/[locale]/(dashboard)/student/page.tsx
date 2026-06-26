@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
+import { getRecommendedNextForUser } from "@/services/recommendation.service";
+import { getLocalizedField } from "@/services/course.service";
 import { getStudentStats } from "@/services/user.service";
 import { getUserEnrollments } from "@/services/enrollment.service";
 import {
@@ -26,6 +28,9 @@ import {
   Trophy,
   Flame,
   Sparkles,
+  Compass,
+  Layers,
+  PlayCircle,
 } from "lucide-react";
 
 export const metadata = { title: "Student Dashboard | Schulab" };
@@ -34,9 +39,13 @@ export default async function StudentDashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const t = await getTranslations("dashboard");
+  const [t, tRec, locale] = await Promise.all([
+    getTranslations("dashboard"),
+    getTranslations("dashboardRecommendations"),
+    getLocale(),
+  ]);
 
-  const [stats, enrollments, today, streakDays, dynamicQuests, heatmap] =
+  const [stats, enrollments, today, streakDays, dynamicQuests, heatmap, rec] =
     await Promise.all([
       getStudentStats(session.user.id).catch(() => ({
         enrollments: 0,
@@ -49,9 +58,18 @@ export default async function StudentDashboardPage() {
       getLearningStreak(session.user.id),
       getDynamicQuests(session.user.id),
       getActivityHeatmap(session.user.id),
+      getRecommendedNextForUser(session.user.id).catch(() => ({
+        ageGroup: null,
+        pathway: null,
+        bundle: null,
+        nextCourse: null,
+      })),
     ]);
 
   const inProgress = enrollments.filter((e) => e.status !== "COMPLETED");
+  const hasRecommendations = Boolean(
+    rec.pathway || rec.bundle || rec.nextCourse
+  );
   const firstName = session.user.name?.split(" ")[0] || t("defaultName");
   const level = Math.floor(stats.totalPoints / 100) + 1;
   const levelProgress = stats.totalPoints % 100;
@@ -234,6 +252,96 @@ export default async function StudentDashboardPage() {
         </div>
         <EnrollmentList enrollments={inProgress} />
       </div>
+
+      {/* ============ RECOMMENDED FOR YOU ============ */}
+      {hasRecommendations && (
+        <div>
+          <div className="mb-4">
+            <h2 className="font-display text-xl font-bold flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              {tRec("title")}
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {tRec("subtitle")}
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {rec.pathway && (
+              <Link
+                href={`/pathways/${rec.pathway.slug}`}
+                className="card-premium group flex flex-col gap-3 p-5 transition-shadow hover:shadow-lift"
+              >
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Compass className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {tRec("pathwayLabel")}
+                  </p>
+                  <p className="mt-1 font-semibold text-foreground">
+                    {getLocalizedField(rec.pathway, "title", locale)}
+                  </p>
+                </div>
+                <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:underline">
+                  {tRec("viewPathway")}
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+                </span>
+              </Link>
+            )}
+
+            {rec.bundle && (
+              <Link
+                href={`/bundles/${rec.bundle.slug}`}
+                className="card-premium group flex flex-col gap-3 p-5 transition-shadow hover:shadow-lift"
+              >
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                  <Layers className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {tRec("bundleLabel")}
+                  </p>
+                  <p className="mt-1 font-semibold text-foreground">
+                    {getLocalizedField(rec.bundle, "title", locale)}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {tRec("coursesCount", {
+                      count: rec.bundle._count.courses,
+                    })}
+                  </p>
+                </div>
+                <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:underline">
+                  {tRec("viewBundle")}
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+                </span>
+              </Link>
+            )}
+
+            {rec.nextCourse && (
+              <Link
+                href={`/courses/${rec.nextCourse.slug}`}
+                className="card-premium group flex flex-col gap-3 p-5 transition-shadow hover:shadow-lift"
+              >
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--stem-rocket)]/10 text-[var(--stem-rocket)]">
+                  <PlayCircle className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {tRec("nextCourseLabel")}
+                  </p>
+                  <p className="mt-1 font-semibold text-foreground">
+                    {getLocalizedField(rec.nextCourse, "title", locale)}
+                  </p>
+                </div>
+                <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:underline">
+                  {tRec("startCourse")}
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+                </span>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
