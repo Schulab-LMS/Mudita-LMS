@@ -92,6 +92,39 @@ export function toResourcesMd(draft: LessonDraft): string {
   ].join("\n");
 }
 
+/** mission.md — the entertainment layer (Step 6), when present. */
+export function toMissionMd(draft: LessonDraft): string {
+  const m = draft.mission;
+  if (!m) return "";
+  return [
+    `# 🎯 ${m.title}`,
+    "",
+    m.storyHook,
+    "",
+    `**Your challenge:** ${m.challenge}`,
+    "",
+    `**Badge on completion:** ${m.badgeName}`,
+    "",
+  ].join("\n");
+}
+
+/** assessment.md — practice tasks + project rubric + certificate criteria (Step 10). */
+export function toAssessmentMd(draft: LessonDraft): string {
+  const parts: string[] = [`# Assessment — ${draft.title}`, ""];
+  if (draft.practiceTasks?.length) {
+    parts.push("## Practice tasks", "", ...draft.practiceTasks.map((t) => `- ${t}`), "");
+  }
+  if (draft.projectRubric?.length) {
+    parts.push("## Project rubric", "", "| Criterion | Meets | Exceeds |", "|---|---|---|");
+    for (const r of draft.projectRubric) parts.push(`| ${r.criterion} | ${r.meets} | ${r.exceeds} |`);
+    parts.push("");
+  }
+  if (draft.certificateCriteria?.length) {
+    parts.push("## Certificate criteria", "", ...draft.certificateCriteria.map((c) => `- [ ] ${c}`), "");
+  }
+  return parts.join("\n");
+}
+
 const FILES_REQUIRED = [
   "meta.yml",
   "handout.md",
@@ -118,10 +151,21 @@ export function writeLessonFolder(draft: LessonDraft, outDir: string): string[] 
   };
 
   const written: string[] = [];
-  for (const name of FILES_REQUIRED) {
+  const write = (name: string, body: string) => {
     const path = join(dir, name);
-    writeFileSync(path, contents[name].endsWith("\n") ? contents[name] : contents[name] + "\n");
+    writeFileSync(path, body.endsWith("\n") ? body : body + "\n");
     written.push(path);
+  };
+
+  for (const name of FILES_REQUIRED) write(name, contents[name]);
+
+  // Optional layers (Steps 6, 10, 13) — only when those agents ran.
+  if (draft.mission) write("mission.md", toMissionMd(draft));
+  if (draft.practiceTasks?.length || draft.projectRubric?.length || draft.certificateCriteria?.length) {
+    write("assessment.md", toAssessmentMd(draft));
+  }
+  if (draft.commonQuestions?.length) {
+    write("common-questions.json", JSON.stringify(draft.commonQuestions, null, 2));
   }
   return written;
 }

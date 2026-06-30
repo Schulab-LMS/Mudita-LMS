@@ -67,4 +67,32 @@ export interface LessonDraft {
   resources: LessonResource[];
 
   citations: SectionCitation[];
+
+  // ── Optional layers (Steps 6, 10, 13) — present when those agents run. ──
+  /** Entertainment layer (Step 6): mission/quest framing for the lesson. */
+  mission?: LessonMission;
+  /** Extended assessment (Step 10) beyond the quiz. */
+  practiceTasks?: string[];
+  projectRubric?: RubricCriterion[];
+  certificateCriteria?: string[];
+  /** Tutor support (Step 13): seeded as LessonQuestion at publish. */
+  commonQuestions?: CommonQuestion[];
+}
+
+export interface LessonMission {
+  title: string;
+  storyHook: string;
+  challenge: string;
+  badgeName: string;
+}
+
+export interface RubricCriterion {
+  criterion: string;
+  meets: string;
+  exceeds: string;
+}
+
+export interface CommonQuestion {
+  question: string;
+  answer: string;
 }

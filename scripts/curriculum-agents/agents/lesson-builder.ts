@@ -26,6 +26,14 @@ export const BuilderOutput = z.object({
       })
     )
     .describe("One entry per section → the source passage that grounds it"),
+  commonQuestions: z
+    .array(
+      z.object({
+        question: z.string().describe("a question a learner of this age is likely to ask"),
+        answer: z.string().describe("a clear, source-accurate answer for the tutor"),
+      })
+    )
+    .describe("3–5 likely student questions + answers, seeded for tutors at publish"),
 });
 export type BuilderResult = z.infer<typeof BuilderOutput>;
 

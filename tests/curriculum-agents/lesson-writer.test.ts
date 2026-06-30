@@ -4,6 +4,8 @@ import {
   toMetaYaml,
   toQuizMd,
   toResourcesMd,
+  toMissionMd,
+  toAssessmentMd,
 } from "../../scripts/curriculum-agents/lib/lesson-writer";
 import type { LessonDraft } from "../../scripts/curriculum-agents/lib/lesson-types";
 
@@ -96,5 +98,43 @@ describe("toResourcesMd", () => {
     expect(md).toContain("NASA Space Place (public-domain)");
     expect(md).toContain("https://spaceplace.nasa.gov/moon-phases/en/");
     expect(md).toContain("https://science.nasa.gov/moon/");
+  });
+});
+
+describe("toMissionMd (Step 6)", () => {
+  it("renders the mission title, hook, challenge, and badge", () => {
+    const md = toMissionMd(
+      draft({
+        mission: {
+          title: "Moon Detective Mission",
+          storyHook: "A mystery in the night sky!",
+          challenge: "Crack the case of the changing Moon.",
+          badgeName: "Moon Detective",
+        },
+      })
+    );
+    expect(md).toContain("# 🎯 Moon Detective Mission");
+    expect(md).toContain("**Your challenge:** Crack the case");
+    expect(md).toContain("**Badge on completion:** Moon Detective");
+  });
+  it("is empty when there is no mission", () => {
+    expect(toMissionMd(draft())).toBe("");
+  });
+});
+
+describe("toAssessmentMd (Step 10)", () => {
+  it("renders practice tasks, rubric, and certificate criteria", () => {
+    const md = toAssessmentMd(
+      draft({
+        practiceTasks: ["Draw the phases."],
+        projectRubric: [{ criterion: "Phase model", meets: "4 phases", exceeds: "8 phases labelled" }],
+        certificateCriteria: ["Complete the activity."],
+      })
+    );
+    expect(md).toContain("## Practice tasks");
+    expect(md).toContain("- Draw the phases.");
+    expect(md).toContain("| Phase model | 4 phases | 8 phases labelled |");
+    expect(md).toContain("## Certificate criteria");
+    expect(md).toContain("- [ ] Complete the activity.");
   });
 });

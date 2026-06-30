@@ -33,7 +33,9 @@ import type { LessonDraft, MetaSource, SectionCitation } from "./lib/lesson-type
 import { runMapper } from "./agents/mapper";
 import { runLessonBuilder } from "./agents/lesson-builder";
 import { runAssessment } from "./agents/assessment";
+import { runEntertainment } from "./agents/entertainment";
 import { runVideoScript, DURATION_BY_BAND } from "./agents/video-script";
+import { runCharacter } from "./agents/character";
 import { writeMediaPackage } from "./lib/media-package";
 import type { VideoScript } from "./lib/media-types";
 
@@ -125,6 +127,15 @@ async function main() {
     handoutMd: built.handoutMd,
   });
 
+  console.log("→ Entertainment layer…");
+  const mission = await runEntertainment({
+    lessonTitle: title,
+    objectives: plan.objectives,
+    ageRange: ageRangeForBand(band),
+    characterVariant: lumoForBand(band),
+    handoutMd: built.handoutMd,
+  });
+
   // 5. Assemble the LessonDraft. Primary source = closest chunk; secondaries =
   //    other distinct sources. Provenance comes straight from the KB chunks.
   const byKey = new Map<string, RetrievedChunk>();
@@ -166,6 +177,17 @@ async function main() {
     quiz: assessment.questions,
     resources: [],
     citations,
+    // Step 6 / 10 / 13 layers.
+    mission: {
+      title: mission.title,
+      storyHook: mission.storyHook,
+      challenge: mission.challenge,
+      badgeName: mission.badgeName,
+    },
+    practiceTasks: assessment.practiceTasks,
+    projectRubric: assessment.projectRubric,
+    certificateCriteria: assessment.certificateCriteria,
+    commonQuestions: built.commonQuestions,
   };
 
   // 6. Write the folder.
@@ -217,6 +239,18 @@ async function main() {
       scenes: vs.scenes,
     };
     const mediaFiles = writeMediaPackage(videoScript, lessonDir);
+
+    // Step 8 — locked Lumo character prompt-template for the media team.
+    console.log("→ Character prompts…");
+    const character = await runCharacter({
+      lessonTitle: title,
+      topic: course.category,
+      ageRange: ageRangeForBand(band),
+      characterVariant: lumoForBand(band),
+    });
+    const charPath = join(lessonDir, "video", "character-prompts.json");
+    writeFileSync(charPath, JSON.stringify(character, null, 2) + "\n");
+    mediaFiles.push(charPath);
     console.log(`→ Wrote media package: ${mediaFiles.map((f) => f.replace(lessonDir + "/", "")).join(", ")}`);
   }
 
