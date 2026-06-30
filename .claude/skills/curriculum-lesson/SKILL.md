@@ -74,9 +74,17 @@ review-gated anyway.
 ## Hard rules (same as the API pipeline)
 - Models, when the API path is used, are Opus 4.8 / Sonnet 4.6 only. On the
   subscription path, Claude Code is the model.
-- No invented facts/sources; every section cited; no verbatim copying; meta.yml
-  `status: DRAFT` so nothing auto-publishes before review.
-- Bind to the canonical catalog — never invent a course, slug, or source.
+- No invented facts/sources; every section cited; no verbatim copying.
+- **Platform is the single source of truth for metadata.** The lesson meta.yml
+  carries CONTENT + source provenance only (title, learningObjectives, source,
+  secondarySources). NEVER put course name, ageGroup, category, status, pricing,
+  enrollment, or course structure in the repo — those live in the SchuLab
+  catalog/DB. The age band still drives how the content is written; it just
+  isn't redeclared as metadata. See docs/curriculum/10-git-sync-ownership.md.
+  Nothing auto-publishes: the platform course stays DRAFT and human PR review
+  gates merge.
+- Bind to the canonical catalog (read-only) — never invent or redefine a course,
+  slug, age group, or source.
 
 ## Worked example
 "Why does the Moon change shape?" for `nasa-space-explorer-intro` (AGES_8_10,

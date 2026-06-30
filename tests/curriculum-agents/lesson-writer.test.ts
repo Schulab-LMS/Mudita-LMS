@@ -50,15 +50,25 @@ function draft(over: Partial<LessonDraft> = {}): LessonDraft {
 }
 
 describe("toMetaYaml", () => {
-  it("emits valid YAML with the repo schema + DRAFT status", () => {
+  it("emits content + provenance only", () => {
     const parsed = parseYaml(toMetaYaml(draft())) as Record<string, unknown>;
-    expect(parsed.slug).toBe("03-moon-phases");
-    expect(parsed.ageGroup).toBe("AGES_8_10");
-    expect(parsed.status).toBe("DRAFT"); // never auto-publishes
+    expect(parsed.title).toBe("Why does the Moon change shape?");
     expect(parsed.aiAssisted).toBe(true);
     expect((parsed.source as { license: string }).license).toBe("public-domain");
     expect(Array.isArray(parsed.secondarySources)).toBe(true);
     expect(Array.isArray(parsed.learningObjectives)).toBe(true);
+  });
+
+  it("NEVER emits platform-owned metadata (platform is the source of truth)", () => {
+    const parsed = parseYaml(toMetaYaml(draft())) as Record<string, unknown>;
+    // age group, category, status, pricing, structure live in the platform DB,
+    // not the curriculum repo — the repo provides content only.
+    expect(parsed.ageGroup).toBeUndefined();
+    expect(parsed.ageRange).toBeUndefined();
+    expect(parsed.category).toBeUndefined();
+    expect(parsed.status).toBeUndefined();
+    expect(parsed.requiredPlan).toBeUndefined();
+    expect(parsed.price).toBeUndefined();
   });
 
   it("omits secondarySources when there are none", () => {

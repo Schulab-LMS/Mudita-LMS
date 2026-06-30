@@ -40,6 +40,19 @@ We are adding an AI *production layer* on top of an existing *content pipeline*,
 
 Greenfield (does not exist yet): any AI/LLM integration, embeddings/vector store, RAG, generation tooling.
 
+## Source of truth: platform owns metadata, repo owns content
+
+A hard architectural boundary the whole pipeline respects (codified in [`docs/curriculum/10-git-sync-ownership.md`](../curriculum/10-git-sync-ownership.md)):
+
+| Concern | Source of truth |
+|---|---|
+| Course name/title, age group, level, category, tags, skills | **SchuLab platform** (catalog + DB) |
+| Visibility/status, pricing, `requiredPlan`, enrollment rules | **SchuLab platform** |
+| Bundles, pathways, prerequisites, course structure | **SchuLab platform** |
+| Lessons, modules, activities, handouts, presentations, quizzes, resources, projects | **Git curriculum repo** (content only) |
+
+The curriculum repo **never redefines or duplicates platform-owned metadata**. `curriculum-sync` enforces this — on an existing course it writes only provenance fields (`managedByGit`, `sourcePath`, `sourceCommitSha`, `syncStatus`); a repo-introduced course is force-seeded `status: DRAFT` and never gated/published from the repo; lesson `meta.yml` metadata fields are ignored except `source`/`secondarySources`. **The generation pipeline matches this**: agents bind to the catalog **read-only** (canonical-list binding), and generated lesson `meta.yml` carries only content + source provenance (title, objectives, sources) — never age group, category, status, or pricing. The age band still drives *how* content is written; it is not redeclared as metadata.
+
 ## The pipeline
 
 ```

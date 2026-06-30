@@ -11,20 +11,22 @@ import type { LessonDraft } from "./lesson-types";
 const OPTION_LETTERS = ["A", "B", "C", "D", "E", "F"];
 
 /**
- * meta.yml — matches the repo schema. status is DRAFT so curriculum-sync (which
- * publishes PUBLISHED only) never goes live before a human reviewer flips it.
+ * meta.yml — CONTENT + source provenance only. The curriculum repo is the
+ * content source; the SchuLab platform (catalog + DB) is the single source of
+ * truth for ALL course-level metadata — course name, ageGroup, category,
+ * pricing, status, enrollment, structure, bundles. We therefore never emit
+ * those here (the sync ignores them anyway). See
+ * docs/curriculum/10-git-sync-ownership.md. The lesson's age band still drives
+ * how the CONTENT is written — it's just not redeclared as metadata.
  */
 export function toMetaYaml(draft: LessonDraft): string {
   const meta: Record<string, unknown> = {
-    slug: draft.slug,
+    // Lesson title + objectives describe the content (not the platform course).
     title: draft.title,
-    ageGroup: draft.ageGroup,
-    ageRange: draft.ageRange,
-    category: draft.category,
-    status: "DRAFT",
+    learningObjectives: draft.learningObjectives,
+    // Source provenance — the only meta fields curriculum-sync consumes.
     source: pruneSource(draft.source),
     secondarySources: draft.secondarySources.map(pruneSource),
-    learningObjectives: draft.learningObjectives,
     // Provenance marker — every AI lesson is tagged for the reviewer.
     aiAssisted: true,
   };
