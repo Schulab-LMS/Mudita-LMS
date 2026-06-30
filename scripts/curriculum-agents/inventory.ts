@@ -1,8 +1,16 @@
 // Curriculum inventory + reconciliation (Task 0b).
 //
 // Runs BEFORE any AI generation. It enumerates what curriculum already exists
-// for the catalog — catalog data files, live DB rows, and (where present) the
-// Git-synced lessons — then classifies every lesson as:
+// for the catalog — catalog data files, live DB rows, AND the STEM-Curricula
+// repo content — then classifies every course/lesson as:
+//
+// A course is a REAL `gap` only when it is missing in BOTH the platform DB AND
+// the curriculum repo. The repo holds the actual lesson content; the DB may not
+// be synced from it, so a course whose content lives in the repo is `keep`
+// (repo-backed), never a false `gap`. Repo path: --repo or CURRICULA_REPO_PATH
+// (default ../STEM-Curricula).
+//
+// Each lesson is classified as:
 //
 //   keep      — good existing content; NEVER regenerate
 //   improve   — exists but weak (thin / missing localization / no quiz / no source)
@@ -17,8 +25,9 @@
 // Usage:  npx tsx scripts/curriculum-agents/inventory.ts [--out path] [--course slug]
 // DB is optional: without DATABASE_URL it does a catalog-only pass.
 
-import { writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { writeFileSync, existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { resolve, join, basename } from "node:path";
+import { parse as parseYaml } from "yaml";
 
 import { COURSES_AGES_3_5 } from "../../prisma/catalog/courses-ages-3-5.data";
 import { COURSES_AGES_5_7 } from "../../prisma/catalog/courses-ages-5-7.data";
@@ -63,6 +72,8 @@ interface CourseVerdict {
   contentStatus?: string;
   managedByGit?: boolean;
   bundles: string[];
+  /** Lesson folders found for this course in the STEM-Curricula repo. */
+  repoLessons: number;
   verdict: Verdict;
   reasons: string[];
   lessons: LessonVerdict[];
@@ -268,6 +279,74 @@ function catalogBundleMap(): Map<string, string[]> {
   return map;
 }
 
+// ── Curriculum-repo scan (content awareness) ───────────────────────────────
+// A course root in the repo = a dir with both meta.yml and a modules/ subdir.
+// Its slug comes from meta.yml (the same key curriculum-sync matches on); its
+// lesson count = dirs containing handout.md anywhere under modules/.
+const REPO_SKIP = new Set([".git", "_media", "_assets", "_sources", "_docs", "_text", "node_modules"]);
+
+function isDir(p: string): boolean {
+  try {
+    return statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+function countLessonFolders(dir: string): number {
+  let n = 0;
+  const stack = [dir];
+  while (stack.length) {
+    const d = stack.pop() as string;
+    let entries: string[];
+    try {
+      entries = readdirSync(d);
+    } catch {
+      continue;
+    }
+    if (entries.includes("handout.md")) n++;
+    for (const e of entries) {
+      if (REPO_SKIP.has(e)) continue;
+      const full = join(d, e);
+      if (isDir(full)) stack.push(full);
+    }
+  }
+  return n;
+}
+
+function scanCurriculaRepo(repoPath: string): Map<string, number> {
+  const out = new Map<string, number>();
+  if (!existsSync(repoPath)) return out;
+  const stack = [repoPath];
+  while (stack.length) {
+    const d = stack.pop() as string;
+    let entries: string[];
+    try {
+      entries = readdirSync(d);
+    } catch {
+      continue;
+    }
+    if (entries.includes("meta.yml") && entries.includes("modules") && isDir(join(d, "modules"))) {
+      let slug = "";
+      try {
+        const meta = parseYaml(readFileSync(join(d, "meta.yml"), "utf8")) as { slug?: unknown } | null;
+        if (meta && typeof meta === "object" && typeof meta.slug === "string") slug = meta.slug;
+      } catch {
+        // unparseable meta.yml → fall back to folder name
+      }
+      if (!slug) slug = basename(d);
+      out.set(slug, countLessonFolders(join(d, "modules")));
+      continue; // a course root is a leaf for this scan — don't nest
+    }
+    for (const e of entries) {
+      if (REPO_SKIP.has(e)) continue;
+      const full = join(d, e);
+      if (isDir(full)) stack.push(full);
+    }
+  }
+  return out;
+}
+
 async function main() {
   const filterSlug = arg("--course");
   const outPath = resolve(arg("--out") ?? "reconciliation.report.json");
@@ -275,6 +354,10 @@ async function main() {
   const dbCourses = await loadDbCourses(filterSlug);
   const dbBySlug = new Map((dbCourses ?? []).map((c) => [c.slug, c]));
   const bundleMap = catalogBundleMap();
+
+  const repoPath = resolve(arg("--repo") ?? process.env.CURRICULA_REPO_PATH ?? "../STEM-Curricula");
+  const repoCourses = scanCurriculaRepo(repoPath);
+  const repoAvailable = repoCourses.size > 0;
 
   const catalog = filterSlug
     ? ALL_CATALOG_COURSES.filter((c) => c.slug === filterSlug)
@@ -287,10 +370,22 @@ async function main() {
     const lessons: LessonVerdict[] = [];
     const reasons: string[] = [];
 
+    const repoLessons = repoCourses.get(cat.slug) ?? 0;
+
     if (!db) {
-      // With DB signals: catalog-defined but unseeded → gap. Without DB signals
-      // (catalog-only pass): we can't tell — mark `unknown`, never `gap`.
-      reasons.push(dbCourses ? "in catalog, not seeded in DB" : "DB unavailable — content state unknown");
+      // Not in the DB. But if its content is in the repo, it's repo-backed
+      // (keep), not a gap — the dev DB just isn't synced from the repo.
+      let verdict: Verdict;
+      if (repoLessons > 0) {
+        verdict = "keep";
+        reasons.push(`content in curriculum repo (${repoLessons} lessons); not yet synced to this DB`);
+      } else if (dbCourses) {
+        verdict = "gap";
+        reasons.push("missing in BOTH platform DB and curriculum repo");
+      } else {
+        verdict = "unknown";
+        reasons.push("DB unavailable — content state unknown");
+      }
       courseVerdicts.push({
         slug: cat.slug,
         title: cat.title,
@@ -299,7 +394,8 @@ async function main() {
         inDb: false,
         contentStatus: cat.contentStatus,
         bundles: bundleMap.get(cat.slug) ?? [],
-        verdict: dbCourses ? "gap" : "unknown",
+        repoLessons,
+        verdict,
         reasons,
         lessons,
       });
@@ -327,6 +423,14 @@ async function main() {
       reasons.push("all lessons complete");
     }
 
+    // Repo-backed override: if the DB lessons look empty/weak but the repo has
+    // real content for this course, the repo is authoritative (sync fills it) —
+    // it's not a content gap. Quality of that repo content is a separate review.
+    if ((verdict === "gap" || verdict === "improve") && repoLessons > 0) {
+      reasons.push(`content in curriculum repo (${repoLessons} lessons) — repo-backed; DB rows are pre-sync skeletons`);
+      verdict = "keep";
+    }
+
     courseVerdicts.push({
       slug: cat.slug,
       title: cat.title,
@@ -337,6 +441,7 @@ async function main() {
       contentStatus: db.contentStatus ?? cat.contentStatus,
       managedByGit: db.managedByGit,
       bundles: db.bundles.length ? db.bundles : (bundleMap.get(cat.slug) ?? []),
+      repoLessons,
       verdict,
       reasons,
       lessons,
@@ -357,6 +462,7 @@ async function main() {
         contentStatus: db.contentStatus ?? undefined,
         managedByGit: db.managedByGit,
         bundles: db.bundles,
+        repoLessons: repoCourses.get(db.slug) ?? 0,
         verdict: "duplicate",
         reasons: ["in DB but not in catalog data — verify it isn't a stray duplicate"],
         lessons: [],
@@ -368,15 +474,22 @@ async function main() {
 
   const lessonTally = tally(courseVerdicts.flatMap((c) => c.lessons.map((l) => l.verdict)));
   const courseTally = tally(courseVerdicts.map((c) => c.verdict));
+  const repoBacked = courseVerdicts.filter((c) => c.repoLessons > 0).length;
+  // True gaps = missing in BOTH platform and repo.
+  const trueGaps = courseVerdicts.filter((c) => c.verdict === "gap").map((c) => c.slug);
 
   const report = {
     generatedAt: new Date().toISOString(),
     dbAvailable: Boolean(dbCourses),
+    repoAvailable,
+    repoPath,
     filterSlug: filterSlug ?? null,
     summary: {
       catalogCourses: catalog.length,
       courses: courseTally,
       lessons: lessonTally,
+      repoBackedCourses: repoBacked,
+      trueGaps,
       courseTitleClashes: duplicates.courseTitleClashes.length,
       sharedAcrossBundles: duplicates.sharedAcrossBundles.length,
     },
@@ -390,10 +503,18 @@ async function main() {
   console.log("\n── Curriculum reconciliation ─────────────────────────────");
   console.log(`Catalog courses examined : ${catalog.length}`);
   console.log(`DB signals               : ${dbCourses ? "yes" : "NO (catalog-only)"}`);
+  console.log(`Curriculum repo          : ${repoAvailable ? `${repoCourses.size} course roots @ ${repoPath}` : `NOT found @ ${repoPath}`}`);
+  console.log(`Repo-backed courses      : ${repoBacked}`);
   const fmt = (t: Record<Verdict, number>) =>
     `${t.keep}/${t.improve}/${t.gap}/${t.duplicate}` + (t.unknown ? ` (unknown: ${t.unknown})` : "");
   console.log(`Courses  keep/improve/gap/dup : ${fmt(courseTally)}`);
   console.log(`Lessons  keep/improve/gap/dup : ${fmt(lessonTally)}`);
+  if (trueGaps.length) {
+    console.log(`\nTRUE gaps (missing in BOTH platform and repo) — ${trueGaps.length}:`);
+    for (const slug of trueGaps.slice(0, 30)) console.log(`   - ${slug}`);
+  } else if (repoAvailable) {
+    console.log(`\n✓ No true gaps — every catalog course has content in the platform or the repo.`);
+  }
   if (duplicates.courseTitleClashes.length) {
     console.log(`\n⚠  ${duplicates.courseTitleClashes.length} course title clash(es) to consolidate:`);
     for (const c of duplicates.courseTitleClashes) console.log(`   "${c.normalized}" → ${c.slugs.join(", ")}`);
