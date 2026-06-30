@@ -221,6 +221,19 @@ enum SourceStatus {
   ENRICHMENT // enrichment only (articles, curiosity)
 }
 
+// Lifecycle of AI-assisted content as it moves through the source-first
+// production pipeline (see docs/curriculum-production). Distinct from
+// CourseStatus (catalog visibility) and ContentStatus (catalog readiness):
+// this tracks the AI generation + human review handoff. A lesson must reach
+// APPROVED (with a non-empty source citation set) before it may be PUBLISHED.
+enum AiContentStatus {
+  SOURCE_COLLECTED // approved-source passages gathered, nothing generated yet
+  AI_GENERATED // drafted by the agent pipeline, awaiting review
+  UNDER_REVIEW // a human reviewer is working through the checklist
+  REVISION_NEEDED // sent back for changes
+  APPROVED // signed off — eligible to publish
+}
+
 model Course {
   id                        String       @id @default(cuid())
   slug                      String       @unique
@@ -302,6 +315,10 @@ model Course {
   // Catalog content readiness + free-form admin notes (see ContentStatus).
   contentStatus ContentStatus @default(SEED_NOW)
   adminNotes    String?       @db.Text
+
+  // Course-level rollup of the AI-assisted production lifecycle. NULL for
+  // hand-authored courses. Per-lesson detail lives on Lesson.aiStatus.
+  aiStatus AiContentStatus?
 
   // Membership in bundles / pathway stages.
   bundleLinks   BundleCourse[]
@@ -421,6 +438,20 @@ model Lesson {
   isFree                Boolean              @default(false)
   sourcePath            String?
   syncStatus            SyncStatus           @default(ACTIVE)
+
+  // ── AI-assisted production provenance (see docs/curriculum-production) ──
+  // NULL on hand-authored / pre-AI lessons. aiStatus gates publishing: a
+  // lesson reaches PUBLISHED only when aiStatus = APPROVED and it carries at
+  // least one source citation. aiModel records which sanctioned model produced
+  // it (claude-opus-4-8 | claude-sonnet-4-6). aiReviewedById is the User id of
+  // the human who signed off (plain id, mirrors createdById — no FK).
+  aiStatus               AiContentStatus?
+  aiModel                String?
+  aiReviewedById         String?
+  lastVerifiedAt         DateTime?
+  tutorSupportRequired   Boolean              @default(false)
+  parentGuidanceRequired Boolean              @default(false)
+
   module                Module               @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   quiz                  Quiz?
   progress              LessonProgress[]
@@ -428,11 +459,15 @@ model Lesson {
   submissions           ActivitySubmission[]
   notes                 LessonNote[]
   questions             LessonQuestion[]
+  // Per-section source provenance (queryable mirror of the lesson meta.yml
+  // citations). One row per generated section → supporting source passage.
+  sourceCitations       LessonSourceCitation[]
 
   // Stable upsert key for Git-synced lessons (NULL for admin-created ones).
   @@unique([moduleId, sourcePath])
   @@index([moduleId])
   @@index([videoAssetId])
+  @@index([aiStatus])
 }
 
 // ========== BUNDLES & PATHWAYS ==========
@@ -612,6 +647,8 @@ model ReferenceSource {
   courseLinks  CourseReferenceSource[]
   bundleLinks  BundleReferenceSource[]
   pathwayLinks PathwayReferenceSource[]
+  // RAG knowledge-base chunks embedded from this source (see SourceChunk).
+  chunks       SourceChunk[]
 
   @@index([key])
   @@index([status])
@@ -656,6 +693,58 @@ model PathwayReferenceSource {
   @@unique([pathwayId, sourceId])
   @@index([pathwayId, order])
   @@index([sourceId])
+}
+
+// ========== AI CURRICULUM PIPELINE ==========
+// Provenance + RAG knowledge base for the AI-assisted production process.
+// See docs/curriculum-production.
+
+// One row per generated lesson section → the approved source passage that
+// grounds it. Queryable mirror of the lesson meta.yml citations, so reviewers
+// (and the publish gate) can assert "every section is source-backed" in SQL
+// rather than parsing markdown. sourceKey is a soft reference to
+// ReferenceSource.key; sourceUrl is the exact page cited.
+model LessonSourceCitation {
+  id             String    @id @default(cuid())
+  lessonId       String
+  section        String // handout | activity | presentation | quiz | video | …
+  sourceKey      String? // ReferenceSource.key, if it maps to a catalog source
+  sourceUrl      String?
+  extractedNotes String?   @db.Text
+  confidence     Float?
+  reviewStatus   String? // ok | needs_human_review | needs_source
+  lastVerifiedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
+  @@index([sourceKey])
+}
+
+// RAG knowledge base. Each approved ReferenceSource is fetched, chunked, and
+// embedded; retrieval is gated to ACTIVE/OPTIONAL chunks for curriculum
+// generation. The `embedding` column is pgvector — Unsupported() because the
+// typed Prisma Client never reads it (vector similarity runs via raw SQL).
+// The `vector` extension + the cosine index are created in the migration SQL.
+model SourceChunk {
+  id         String       @id @default(cuid())
+  sourceId   String
+  chunkIndex Int
+  content    String       @db.Text
+  url        String?
+  license    String?
+  ageRange   String?
+  status     SourceStatus @default(ACTIVE)
+  tokenCount Int?
+  embedding  Unsupported("vector(1024)")?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  source ReferenceSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, chunkIndex])
+  @@index([status])
 }
 
 // ========== QUIZZES ==========

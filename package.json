@@ -16,6 +16,7 @@
     "db:seed:catalog": "tsx prisma/seed-catalog.standalone.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.107.0",
     "@auth/prisma-adapter": "^2.11.1",
     "@hookform/resolvers": "^5.2.2",
     "@livekit/components-react": "^2.9.21",
