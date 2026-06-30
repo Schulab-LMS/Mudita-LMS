@@ -23,6 +23,7 @@ generate factual content.
 | ScratchJr | https://www.scratchjr.org/ | Activity |
 | Scratch | https://scratch.mit.edu/ | Activity |
 | Code.org | https://code.org/ | Core curriculum (CC BY-NC-SA) |
+| Experience AI | https://experience-ai.org/ | Core curriculum (AI literacy, ages 11–14) |
 | Microsoft MakeCode | https://www.microsoft.com/en-us/makecode | Activity |
 | MakeCode Arcade | https://arcade.makecode.com/ | Activity |
 | MakeCode micro:bit | https://makecode.microbit.org/ | Simulation (simulator-first) |
@@ -43,6 +44,13 @@ generate factual content.
 | CK-12 Foundation | https://www.ck12.org/ | Core curriculum (CC BY-NC) |
 | Smithsonian Science Education Center | https://ssec.si.edu/ | Activity / enrichment |
 | National Geographic Kids | https://kids.nationalgeographic.com/ | Enrichment (proprietary) |
+
+## Entrepreneurship & product thinking
+| Source | URL | Category |
+|---|---|---|
+| Junior Achievement | https://www.juniorachievement.org/ | Core curriculum (ages 14–18) |
+
+Frameworks taught here (design thinking — Stanford d.school; MVP / build–measure–learn — Lean Startup; value proposition) are standard and vendor-neutral; attribute concepts and write original explanations.
 
 ## Special rules
 - **Google CS First / Experience CS** — historical inspiration only, not an active source.
