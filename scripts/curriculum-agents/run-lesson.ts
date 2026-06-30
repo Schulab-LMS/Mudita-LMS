@@ -33,6 +33,9 @@ import type { LessonDraft, MetaSource, SectionCitation } from "./lib/lesson-type
 import { runMapper } from "./agents/mapper";
 import { runLessonBuilder } from "./agents/lesson-builder";
 import { runAssessment } from "./agents/assessment";
+import { runVideoScript, DURATION_BY_BAND } from "./agents/video-script";
+import { writeMediaPackage } from "./lib/media-package";
+import type { VideoScript } from "./lib/media-types";
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -193,6 +196,30 @@ async function main() {
   writeFileSync(join(lessonDir, "verification.report.json"), JSON.stringify(report, null, 2));
 
   console.log(`→ Verification: ${report.passed ? "PASSED" : `${report.issues.length} issue(s)`}`);
+
+  // 8. Optional media package (Task 6): video script + assets manifest.
+  if (process.argv.includes("--video")) {
+    console.log("→ Video Script…");
+    const vs = await runVideoScript({
+      lessonTitle: title,
+      ageGroup: band,
+      ageRange: ageRangeForBand(band),
+      characterVariant: lumoForBand(band),
+      handoutMd: built.handoutMd,
+      targetDurationSec: DURATION_BY_BAND[band] ?? 240,
+    });
+    const videoScript: VideoScript = {
+      lessonTitle: title,
+      ageRange: ageRangeForBand(band),
+      characterVariant: lumoForBand(band),
+      voiceoverStyle: vs.voiceoverStyle,
+      thumbnailPrompt: vs.thumbnailPrompt,
+      scenes: vs.scenes,
+    };
+    const mediaFiles = writeMediaPackage(videoScript, lessonDir);
+    console.log(`→ Wrote media package: ${mediaFiles.map((f) => f.replace(lessonDir + "/", "")).join(", ")}`);
+  }
+
   console.log("\nNext: review, then PR with");
   console.log(
     `  npx tsx scripts/curriculum-agents/open-lesson-pr.ts --lesson ${lessonDir} ` +
