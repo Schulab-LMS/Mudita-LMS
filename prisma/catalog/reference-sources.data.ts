@@ -60,6 +60,17 @@ export const REFERENCE_SOURCES: CatalogReferenceSource[] = [
     status: "ACTIVE",
   },
   {
+    key: "experience-ai",
+    name: "Experience AI",
+    url: "https://experience-ai.org/",
+    provider: "Experience AI (Google DeepMind & Raspberry Pi Foundation)",
+    sourceType: "Core curriculum source",
+    relatedTopics: ["AI literacy", "machine learning", "large language models", "prompting", "responsible AI"],
+    recommendedAgeRange: "11-14",
+    usageInSchulab: "AI literacy for ages 11–14: how AI and large language models work, using AI responsibly, and writing clear, effective prompts. (Free educational resources — adapt + attribute.)",
+    status: "ACTIVE",
+  },
+  {
     key: "tynker",
     name: "Tynker",
     url: "https://www.tynker.com/",
@@ -262,5 +273,18 @@ export const REFERENCE_SOURCES: CatalogReferenceSource[] = [
     recommendedAgeRange: "8-14",
     usageInSchulab: "Historical inspiration only — not an active source. (CS First is being phased out / replaced; do not treat as live curriculum.)",
     status: "HISTORICAL",
+  },
+
+  // ── Entrepreneurship & product thinking ───────────────────────────────────
+  {
+    key: "junior-achievement",
+    name: "Junior Achievement",
+    url: "https://www.juniorachievement.org/",
+    provider: "Junior Achievement (JA Worldwide)",
+    sourceType: "Core curriculum source",
+    relatedTopics: ["entrepreneurship", "product thinking", "design thinking", "business model", "value proposition", "work readiness"],
+    recommendedAgeRange: "14-18",
+    usageInSchulab: "Youth entrepreneurship and work-readiness for ages 14–18: idea validation, customer/value proposition, business-model basics and product thinking. (Concepts adapted + attributed.)",
+    status: "ACTIVE",
   },
 ];
