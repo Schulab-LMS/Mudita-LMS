@@ -5,7 +5,7 @@ its **owner** (which agent / human / system performs it), its **output
 artifact**, and its **implementation** in this codebase with a status:
 
 - ✅ **built** — coded, tested, and runnable (on the subscription via the
-  [`/curriculum-lesson`](../../.claude/skills/curriculum-lesson/SKILL.md) skill, or
+  [`schulab-curriculum-generator`](../../.claude/skills/schulab-curriculum-generator/SKILL.md) skill, or
   via the API scripts).
 - ◑ **partial** — works but a piece is manual or not yet a discrete agent.
 - ○ **pending** — defined; needs a provider choice or build.

@@ -34,6 +34,7 @@ provenance only. If a needed course/bundle/pathway doesn't exist in the catalog,
 stop and ask — don't fabricate one.
 
 ## Core process (every generation)
+0. **Inventory / gap-check first (no duplication).** Run `scripts/curriculum-agents/inventory.ts` (or check the platform DB + STEM-Curricula repo). Generate ONLY for `gap` (missing) or `improve` (weak) targets; never regenerate a `keep` lesson — keep the better existing version.
 1. Identify the SchuLab **course, bundle, pathway, age group, and lesson topic** — selected from the existing catalog (never invented).
 2. Check the **approved trusted source list** ([trusted-sources.md](references/trusted-sources.md)). If the topic has no approved source, **stop / mark blocked**.
 3. Use **only** the provided trusted source content or source URLs. `WebFetch` the approved URL to ground on real content; quote key facts.

@@ -18,7 +18,7 @@ This is the shared source of truth for how SchuLab produces curriculum with AI a
 
 ## Two ways to run the pipeline
 
-1. **Subscription / Claude Code (no API keys)** — Claude Code authors the lesson on your Claude subscription, then reuses the deterministic pipeline (materialize + Task-7 verify + PR). Run via the [`/curriculum-lesson`](../../.claude/skills/curriculum-lesson/SKILL.md) skill → `scripts/curriculum-agents/materialize-lesson.ts`. Human-in-the-loop, zero per-token API cost. Recommended for review-gated, modest-volume production. (Note: the Anthropic **Agent SDK / API key** path may **not** use subscription credentials — that's why the no-API path is a Claude Code *skill*, not the SDK.)
+1. **Subscription / Claude Code (no API keys)** — Claude Code authors the lesson on your Claude subscription, then reuses the deterministic pipeline (materialize + Task-7 verify + PR). Run via the [`schulab-curriculum-generator`](../../.claude/skills/schulab-curriculum-generator/SKILL.md) skill → `scripts/curriculum-agents/materialize-lesson.ts`. Human-in-the-loop, zero per-token API cost. Recommended for review-gated, modest-volume production. (Note: the Anthropic **Agent SDK / API key** path may **not** use subscription credentials — that's why the no-API path is a Claude Code *skill*, not the SDK.)
 2. **Anthropic API (unattended scale)** — `scripts/curriculum-agents/run-lesson.ts` drives the agents headlessly via `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY` (RAG). Use for large unattended batches; ~cents per lesson.
 
 Both emit the same lesson-folder format and both gate on the same source-first rules, verification, and human PR review.

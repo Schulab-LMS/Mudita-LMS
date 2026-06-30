@@ -5,8 +5,8 @@
 // lesson is independently reviewed + PR'd.
 //
 // Needs DATABASE_URL + VOYAGE_API_KEY (RAG) + ANTHROPIC_API_KEY (outline agent),
-// OR run the equivalent on the Claude subscription via the /curriculum-lesson
-// skill. Loads the canonical catalog (read-only) without keys.
+// OR run the equivalent on the Claude subscription via the
+// schulab-curriculum-generator skill. Loads the canonical catalog (read-only) without keys.
 //
 // Usage:
 //   npx tsx --env-file=.env scripts/curriculum-agents/run-course.ts \
