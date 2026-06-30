@@ -45,3 +45,7 @@ next-env.d.ts
 
 # Generated Prisma client
 src/generated/
+
+# Curriculum pipeline output — generated lesson artifacts staged here before
+# being PR'd into the separate STEM-Curricula repo. Regenerable; not source.
+curriculum-out/
