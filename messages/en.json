@@ -45,6 +45,7 @@
     "bundles": "Bundles",
     "pathways": "Pathways",
     "curriculum": "Curriculum (Git)",
+    "aiContent": "AI Content",
     "stemKits": "STEM Kits",
     "competitions": "Competitions",
     "events": "Events & Competitions",
@@ -1006,6 +1007,26 @@
     "learnMore": "Learn more about Schulab"
   },
   "admin": {
+    "aiContent": {
+      "pageTitle": "AI Content Review | Admin",
+      "title": "AI Content",
+      "subtitle": "Review AI-assisted lessons before they publish. Generation is source-grounded; approval requires at least one cited source.",
+      "empty": "Nothing in the AI pipeline yet",
+      "emptyHint": "Lessons drafted by the AI curriculum pipeline appear here for review.",
+      "colLesson": "Lesson",
+      "colModel": "Model",
+      "colSources": "Sources",
+      "colVerified": "Verified",
+      "changeStatus": "Change status",
+      "noCitationsWarning": "No source citations — cannot be approved.",
+      "status": {
+        "SOURCE_COLLECTED": "Source collected",
+        "AI_GENERATED": "AI generated",
+        "UNDER_REVIEW": "Under review",
+        "REVISION_NEEDED": "Revision needed",
+        "APPROVED": "Approved"
+      }
+    },
     "common": {
       "actions": "Actions",
       "back": "Back",

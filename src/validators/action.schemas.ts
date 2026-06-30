@@ -24,6 +24,19 @@ export const compAccessSchema = z.object({
   userId: cuidSchema,
 });
 
+// ── Admin: AI content review queue ──────────────────────────────────────
+
+export const setLessonAiStatusSchema = z.object({
+  lessonId: cuidSchema,
+  status: z.enum([
+    "SOURCE_COLLECTED",
+    "AI_GENERATED",
+    "UNDER_REVIEW",
+    "REVISION_NEEDED",
+    "APPROVED",
+  ]),
+});
+
 // ── Admin: Courses ──────────────────────────────────────────────────────
 
 const planTierEnum = z.enum(["FREE", "LEARNER", "PRO", "LIFETIME"]);

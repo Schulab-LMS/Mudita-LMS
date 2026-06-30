@@ -45,6 +45,7 @@
     "bundles": "Pakete",
     "pathways": "Lernpfade",
     "curriculum": "Lehrplan (Git)",
+    "aiContent": "KI-Inhalte",
     "stemKits": "STEM-Kits",
     "competitions": "Wettbewerbe",
     "events": "Events & Wettbewerbe",
@@ -1006,6 +1007,26 @@
     "learnMore": "Mehr über Schulab erfahren"
   },
   "admin": {
+    "aiContent": {
+      "pageTitle": "KI-Inhaltsprüfung | Admin",
+      "title": "KI-Inhalte",
+      "subtitle": "Prüfe KI-gestützte Lektionen vor der Veröffentlichung. Die Generierung ist quellenbasiert; eine Freigabe erfordert mindestens eine zitierte Quelle.",
+      "empty": "Noch nichts in der KI-Pipeline",
+      "emptyHint": "Von der KI-Lehrplan-Pipeline erstellte Lektionen erscheinen hier zur Prüfung.",
+      "colLesson": "Lektion",
+      "colModel": "Modell",
+      "colSources": "Quellen",
+      "colVerified": "Geprüft",
+      "changeStatus": "Status ändern",
+      "noCitationsWarning": "Keine Quellenangaben – kann nicht freigegeben werden.",
+      "status": {
+        "SOURCE_COLLECTED": "Quellen gesammelt",
+        "AI_GENERATED": "KI-generiert",
+        "UNDER_REVIEW": "In Prüfung",
+        "REVISION_NEEDED": "Überarbeitung nötig",
+        "APPROVED": "Freigegeben"
+      }
+    },
     "common": {
       "actions": "Aktionen",
       "back": "Zurück",

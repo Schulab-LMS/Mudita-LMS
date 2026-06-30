@@ -33,6 +33,7 @@ import {
   Sparkles,
   Briefcase,
   Inbox,
+  Bot,
 } from "lucide-react";
 import { SchulabLogo } from "@/components/brand/schulab-logo";
 import { PreviewSwitcher } from "@/components/layout/preview-switcher";
@@ -64,6 +65,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Sparkles,
   Briefcase,
   Inbox,
+  Bot,
 };
 
 interface SidebarProps {
