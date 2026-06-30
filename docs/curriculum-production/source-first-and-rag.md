@@ -32,16 +32,26 @@ Enforced by the RAG gate + reviewer checklist + automated checks:
 
 ## The Trusted Source Library
 
-Each source is a `ReferenceSource` row classified by `SourceStatus`. Only `ACTIVE`/`OPTIONAL` sources are retrievable for **curriculum** generation; `ENRICHMENT`/`HISTORICAL` are retrievable only for enrichment/inspiration prompts.
+Approved sources only — seeded in [`reference-sources.data.ts`](../../prisma/catalog/reference-sources.data.ts). No fabricated sources/providers/URLs, ever. Each source carries a **6-category classification** (`sourceType`) and a **retrieval status** (`SourceStatus`) that drives the RAG gate.
 
-| Classification (`SourceStatus`) | Meaning | Use |
-|---|---|---|
-| `ACTIVE` | Current core source | Direct curriculum/activity reference |
-| `OPTIONAL` | Simulator-first / advanced | Activity + simulation reference |
-| `ENRICHMENT` | Articles, curiosity | Enrichment only |
-| `HISTORICAL` | Kept for inspiration | Inspiration only (e.g. an inactive provider) |
+| Category (`sourceType`) | Meaning | `status` | Grounds curriculum? |
+|---|---|---|---|
+| **Core curriculum source** | Direct scope/sequence | `ACTIVE` | ✅ yes |
+| **Activity source** | Projects / activities | `ACTIVE` | ✅ yes |
+| **Simulation source** | Interactive sims (simulator-first) | `OPTIONAL` | ✅ yes |
+| **Enrichment source** | Curiosity / extension only | `ENRICHMENT` | ❌ enrichment prompts only |
+| **Marketplace/discovery inspiration** | Commercial platform — model/idea only | `ENRICHMENT` | ❌ inspiration only, never grounding |
+| **Historical reference only** | Inactive provider | `HISTORICAL` | ❌ inspiration only |
 
-Approved sources are seeded in [`reference-sources.data.ts`](../../prisma/catalog/reference-sources.data.ts). Examples: ScratchJr, Scratch, Code.org, Tynker, Create & Learn, MakeCode / MakeCode Arcade, MIT App Inventor, Khan Academy Computing, Raspberry Pi Projects, Code Club (coding/AI); NASA Space Place, NASA Kids' Club, ESA Kids, PhET, CK-12, NatGeo Kids, Smithsonian Science Education Center (science/STEM). Inactive providers (e.g. Google CS First) are `HISTORICAL` — inspiration only.
+Curriculum generation retrieves **only `ACTIVE` + `OPTIONAL`** chunks (rag.service `CURRICULUM_STATUSES`) — i.e. Core curriculum, Activity, and Simulation sources. Enrichment, Marketplace, and Historical sources are never used to ground a lesson.
+
+**The library:**
+- *Core curriculum:* Code.org, Khan Academy Computing, CK-12, NASA Space Place, ESA Kids.
+- *Activity:* ScratchJr, Scratch, MakeCode, MakeCode Arcade, MIT App Inventor, Raspberry Pi Projects, Code Club, NASA Kids' Club, Smithsonian Science Education Center.
+- *Simulation:* PhET, micro:bit.
+- *Enrichment:* National Geographic Kids.
+- *Marketplace/discovery inspiration:* Tynker, Create & Learn, Outschool (commercial — never copied or used to ground lessons).
+- *Historical:* Google CS First (phased out — inspiration only).
 
 ## License handling (wired to `MetaSourceRef.license` + `SourceStatus`)
 
