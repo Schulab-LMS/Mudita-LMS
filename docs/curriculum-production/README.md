@@ -16,6 +16,13 @@ This is the shared source of truth for how SchuLab produces curriculum with AI a
 
 **Claude Opus 4.8 and Claude Sonnet 4.6 only.** Opus 4.8 for drafting/mapping/scripts; Sonnet 4.6 for lighter classification, URL/similarity checks, and high-volume passes. No other model is used.
 
+## Two ways to run the pipeline
+
+1. **Subscription / Claude Code (no API keys)** — Claude Code authors the lesson on your Claude subscription, then reuses the deterministic pipeline (materialize + Task-7 verify + PR). Run via the [`/curriculum-lesson`](../../.claude/skills/curriculum-lesson/SKILL.md) skill → `scripts/curriculum-agents/materialize-lesson.ts`. Human-in-the-loop, zero per-token API cost. Recommended for review-gated, modest-volume production. (Note: the Anthropic **Agent SDK / API key** path may **not** use subscription credentials — that's why the no-API path is a Claude Code *skill*, not the SDK.)
+2. **Anthropic API (unattended scale)** — `scripts/curriculum-agents/run-lesson.ts` drives the agents headlessly via `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY` (RAG). Use for large unattended batches; ~cents per lesson.
+
+Both emit the same lesson-folder format and both gate on the same source-first rules, verification, and human PR review.
+
 ## How it fits the platform we already have
 
 We are adding an AI *production layer* on top of an existing *content pipeline*, not building from scratch. SchuLab already authors curriculum as markdown + `meta.yml` in a separate `STEM-Curricula` Git repo; [`curriculum-sync.service.ts`](../../src/services/curriculum-sync.service.ts) ingests it into the DB. **AI-generated content lands as a PR into that repo** — human review = PR review, merge triggers the existing sync. We reuse the whole publish pipeline and get version history + diffs for free.
