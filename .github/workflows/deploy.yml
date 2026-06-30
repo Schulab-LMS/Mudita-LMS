@@ -162,7 +162,14 @@ jobs:
             cat > docker-compose.yml <<'COMPOSE_EOF'
             services:
               postgres:
-                image: postgres:15-alpine
+                # pgvector/pgvector:pg15 = stock Postgres 15 + the pgvector
+                # extension preinstalled (needed by the SourceChunk RAG table).
+                # Same major version as the previous postgres:15-alpine, so the
+                # postgres_data volume is reused as-is. NOTE: this is a glibc
+                # (Debian) image replacing a musl (Alpine) one — back up the DB
+                # first and watch for collation-version warnings on text indexes
+                # (REINDEX DATABASE if any appear).
+                image: pgvector/pgvector:pg15
                 restart: unless-stopped
                 environment:
                   POSTGRES_USER: ${DB_USER}
@@ -210,6 +217,14 @@ jobs:
 
             echo "==> Pulling ${{ env.IMAGE }}:${IMAGE_TAG}"
             docker pull ${{ env.IMAGE }}:${IMAGE_TAG}
+
+            # Bring postgres up (and recreate it if the image changed, e.g. the
+            # switch to pgvector) BEFORE migrating — the workflow otherwise only
+            # recreates `web`, so an image change to postgres would never take
+            # effect. --wait blocks until the healthcheck passes. The
+            # postgres_data volume persists across the recreate.
+            echo "==> Ensuring postgres is up (recreates on image change)"
+            docker compose up -d --wait postgres
 
             echo "==> Running prisma migrate deploy"
             docker run --rm \
