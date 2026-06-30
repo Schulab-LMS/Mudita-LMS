@@ -55,6 +55,8 @@ The curriculum repo **never redefines or duplicates platform-owned metadata**. `
 
 ## The pipeline
 
+The authoritative 14-step definition — owner, artifact, and implementation status per step — is in **[pipeline.md](pipeline.md)**. In brief:
+
 ```
 0. Inventory & reconcile  → keep / improve / gap / duplicate   (NEVER regenerate `keep`)
 1. Select course          → curriculum lead picks a target, reviews the report
@@ -75,6 +77,7 @@ The curriculum repo **never redefines or duplicates platform-owned metadata**. `
 
 ## Documents in this folder
 
+- [pipeline.md](pipeline.md) — **the canonical 14-step production pipeline** (owner · artifact · implementation status per step)
 - [agents.md](agents.md) — the 11 AI agents, their I/O contracts and hard rules
 - [source-first-and-rag.md](source-first-and-rag.md) — source-first workflow, the source library, RAG gating rules
 - [templates.md](templates.md) — lesson + course structure templates, content metadata fields
