@@ -1,0 +1,21 @@
+{
+  "courseTitle": "<existing SchuLab course title — selected from the catalog, not invented>",
+  "courseSlug": "<existing course slug>",
+  "lessonTitle": "<lesson title>",
+  "lessonSlug": "<kebab-case-lesson-slug>",
+  "ageGroup": "AGES_3_5 | AGES_5_7 | AGES_8_10 | AGES_11_13 | AGES_14_16 | AGES_17_18",
+  "level": "BEGINNER | INTERMEDIATE | ADVANCED",
+  "bundle": "<existing bundle slug or empty>",
+  "pathway": "<existing pathway slug or empty>",
+  "category": "<existing category, e.g. SCIENCE | CODING | AI | ...>",
+  "learningObjectives": ["<objective grounded in sources>"],
+  "skillsGained": ["<skill>"],
+  "toolsUsed": ["<digital tool — no required hardware>"],
+  "sourceReferences": ["<source key/name, e.g. nasa-space-place>"],
+  "estimatedDurationMinutes": 0,
+  "videoDurationMinutes": 0,
+  "characterVersion": "Lumo Mini | Lumo Junior | Lumo Creator | Lumo Explorer | Lumo Innovator | Lumo Mentor",
+  "finalTask": "<the lesson's final task / project connection>",
+  "certificateEligible": true,
+  "publishingStatus": "needs_review"
+}

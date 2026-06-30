@@ -1,0 +1,13 @@
+{
+  "lessonTitle": "<lesson title>",
+  "lessonSlug": "<kebab-case-lesson-slug>",
+  "aiAssisted": true,
+  "sourceReferences": ["<source key/name>"],
+  "sourceUrls": ["<official source url>"],
+  "contentType": "lesson",
+  "lastVerifiedDate": "<YYYY-MM-DD>",
+  "tutorSupportRequired": false,
+  "parentGuidanceRequired": false,
+  "publishingStatus": "needs_review",
+  "_note": "Platform-owned metadata (course/age/bundle/pathway/pricing/structure) lives in the SchuLab catalog/DB and is referenced in lesson.json, NOT duplicated or redefined here."
+}

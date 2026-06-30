@@ -1,0 +1,15 @@
+{
+  "quizTitle": "<lesson title> — quick check",
+  "ageGroup": "AGES_8_10",
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "question": "<question answerable from the lesson>",
+      "options": ["<option A>", "<option B>", "<option C>"],
+      "correctAnswer": "<the correct option text>",
+      "explanation": "<why it's correct, from the lesson>",
+      "sourceReference": "<source key/url that supports this>"
+    }
+  ],
+  "passingScore": 70
+}

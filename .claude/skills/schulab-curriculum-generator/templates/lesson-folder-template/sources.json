@@ -1,0 +1,15 @@
+{
+  "sources": [
+    {
+      "sourceName": "<approved source name, e.g. NASA Space Place>",
+      "provider": "<provider, e.g. NASA>",
+      "officialUrl": "<exact official URL — never invented>",
+      "sourceType": "Core curriculum source | Activity source | Simulation source",
+      "usedFor": "<which concept(s)/section(s) this grounds>",
+      "relatedConcepts": ["<concept>"],
+      "licenseNotes": "<e.g. public domain | CC BY | CC BY-NC-SA — adapt + attribute>",
+      "lastVerifiedDate": "<YYYY-MM-DD>",
+      "confidence": "high"
+    }
+  ]
+}
