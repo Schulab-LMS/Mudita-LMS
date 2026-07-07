@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { assertEmailVerified } from "@/lib/auth-helpers";
 import { isInPreviewMode, PREVIEW_WRITE_BLOCKED_MESSAGE } from "@/lib/view-as.server";
 import { revalidatePath } from "next/cache";
-import { sendMessage, markThreadAsRead, canMessageRole } from "@/services/message.service";
+import { sendMessage, markThreadAsRead, canMessage } from "@/services/message.service";
 import { sendMessageSchema, markThreadReadSchema } from "@/validators/action.schemas";
 import { createNotification } from "@/services/notification.service";
 import { sendNewMessageEmail } from "@/lib/email";
@@ -44,9 +44,10 @@ export async function sendMessageAction(data: {
     }
 
     // Verify the receiver exists AND the sender is permitted to contact them.
-    // Safeguarding gate: without the canMessageRole check, any authenticated
-    // account can DM any user by id (incl. adult→minor). The relationship policy
-    // lives in MESSAGEABLE_ROLES (message.service.ts).
+    // Safeguarding gate: without canMessage(), any authenticated account could
+    // DM any user by id (incl. adult→minor). canMessage enforces both the role
+    // policy AND a booking relationship for tutor↔student / tutor↔parent pairs
+    // (message.service.ts).
     const receiver = await db.user.findUnique({
       where: { id: parsed.data.receiverId },
       select: { id: true, name: true, email: true, role: true },
@@ -54,7 +55,13 @@ export async function sendMessageAction(data: {
     if (!receiver) return { success: false, error: "Recipient not found" };
 
     const senderRole = session.user.role;
-    if (!senderRole || !canMessageRole(senderRole, receiver.role)) {
+    if (
+      !senderRole ||
+      !(await canMessage(
+        { id: session.user.id, role: senderRole },
+        { id: receiver.id, role: receiver.role }
+      ))
+    ) {
       return { success: false, error: "You aren't allowed to message this user." };
     }
 
