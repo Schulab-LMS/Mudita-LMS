@@ -8,7 +8,11 @@ const roleRedirectMap: Record<Role, string> = {
   TUTOR: "/tutor",
   ADMIN: "/admin",
   SUPER_ADMIN: "/admin",
-  B2B_PARTNER: "/admin",
+  // B2B_PARTNER / ORG_ADMIN have no dedicated dashboard yet — land them on
+  // /account (a neutral authenticated page) rather than /admin, which the admin
+  // gate bounces (previously an infinite /dashboard ↔ /admin loop).
+  B2B_PARTNER: "/account",
+  ORG_ADMIN: "/account",
 };
 
 export default async function DashboardPage({

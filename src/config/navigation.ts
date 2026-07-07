@@ -8,7 +8,7 @@ export const publicNavItems = [
   { href: "/pricing", labelKey: "nav.pricing" },
 ] as const;
 
-export type Role = "STUDENT" | "PARENT" | "TUTOR" | "ADMIN" | "SUPER_ADMIN" | "B2B_PARTNER";
+export type Role = "STUDENT" | "PARENT" | "TUTOR" | "ADMIN" | "SUPER_ADMIN" | "B2B_PARTNER" | "ORG_ADMIN";
 
 type NavItem = { href: string; labelKey: string; icon: string };
 
@@ -68,9 +68,10 @@ export const dashboardNavItems: Record<Role, NavItem[]> = {
   ],
   ADMIN: adminItems,
   SUPER_ADMIN: adminItems,
-  B2B_PARTNER: [
-    { href: "/admin", labelKey: "nav.dashboard", icon: "LayoutDashboard" },
-    { href: "/admin/users", labelKey: "nav.users", icon: "Users" },
-    ...accountItems,
-  ],
+  // B2B_PARTNER / ORG_ADMIN have no dedicated dashboard yet (deferred). Until
+  // one exists they land on /account with a minimal, non-looping nav. Pointing
+  // them at /admin bounced them (the admin layout rejects non-admin roles),
+  // which produced an infinite /dashboard ↔ /admin redirect loop.
+  B2B_PARTNER: [...accountItems],
+  ORG_ADMIN: [...accountItems],
 };

@@ -1,5 +1,44 @@
 import { db } from "@/lib/db";
 
+// ── Messaging policy (safeguarding) ───────────────────────────────────────
+// Who may INITIATE a message to whom, keyed by the sender's role. On a platform
+// used by minors this is a safeguarding control: only vetted adult roles
+// (TUTOR, ADMIN, SUPER_ADMIN) may reach a STUDENT at all, and a student may only
+// reach a TUTOR — so no learner can be cold-messaged by an arbitrary account.
+//
+// This is the single source of truth for BOTH the send guard
+// (sendMessageAction) and the recipient picker (getMessageableUsers), so the UI
+// can never offer — and the server can never accept — a message the policy
+// forbids. Edit this map to change who-can-message-whom.
+//
+// NOTE: this is ROLE-scoped, not relationship-scoped — a TUTOR may currently
+// message ANY student, not only their booked students. Tightening to
+// relationship scope (tutor ↔ their booked students; parent ↔ their children's
+// tutors) is a tracked follow-up.
+const ALL_ROLES = [
+  "STUDENT",
+  "PARENT",
+  "TUTOR",
+  "ADMIN",
+  "SUPER_ADMIN",
+  "B2B_PARTNER",
+  "ORG_ADMIN",
+];
+export const MESSAGEABLE_ROLES: Record<string, string[]> = {
+  STUDENT: ["TUTOR"],
+  PARENT: ["TUTOR", "ADMIN", "SUPER_ADMIN"],
+  TUTOR: ["STUDENT", "PARENT"],
+  ADMIN: ALL_ROLES,
+  SUPER_ADMIN: ALL_ROLES,
+  B2B_PARTNER: ["ADMIN", "SUPER_ADMIN"],
+  ORG_ADMIN: ["ADMIN", "SUPER_ADMIN"],
+};
+
+/** Whether a sender with `senderRole` may initiate a message to `recipientRole`. */
+export function canMessageRole(senderRole: string, recipientRole: string): boolean {
+  return (MESSAGEABLE_ROLES[senderRole] ?? []).includes(recipientRole);
+}
+
 /**
  * Returns one row per conversation partner, with the most recent message
  * and the count of unread messages for the given user.
@@ -110,19 +149,17 @@ export async function markThreadAsRead(userId: string, otherUserId: string) {
 }
 
 /**
- * Get basic user info to seed the new-message recipient selector.
- * Returns tutors for students, and students for tutors.
+ * Get basic user info to seed the new-message recipient selector. Returns only
+ * users the current user is actually permitted to message, per MESSAGEABLE_ROLES
+ * — the same policy the send guard enforces, so the picker and the server agree.
  */
 export async function getMessageableUsers(currentUserId: string, currentRole: string) {
   try {
-    // Students can message tutors; tutors can message their students
-    let roleFilter: string;
-    if (currentRole === "STUDENT") roleFilter = "TUTOR";
-    else if (currentRole === "TUTOR") roleFilter = "STUDENT";
-    else roleFilter = "STUDENT"; // Admins can message anyone — default to students
+    const allowedRoles = MESSAGEABLE_ROLES[currentRole] ?? [];
+    if (allowedRoles.length === 0) return [];
 
     return await db.user.findMany({
-      where: { role: roleFilter as never, isActive: true, id: { not: currentUserId } },
+      where: { role: { in: allowedRoles as never }, isActive: true, id: { not: currentUserId } },
       select: { id: true, name: true, avatar: true, role: true },
       orderBy: { name: "asc" },
       take: 100,

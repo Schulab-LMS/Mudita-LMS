@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { assertEmailVerified } from "@/lib/auth-helpers";
 import { isInPreviewMode, PREVIEW_WRITE_BLOCKED_MESSAGE } from "@/lib/view-as.server";
 import { revalidatePath } from "next/cache";
-import { sendMessage, markThreadAsRead } from "@/services/message.service";
+import { sendMessage, markThreadAsRead, canMessageRole } from "@/services/message.service";
 import { sendMessageSchema, markThreadReadSchema } from "@/validators/action.schemas";
 import { createNotification } from "@/services/notification.service";
 import { sendNewMessageEmail } from "@/lib/email";
@@ -43,12 +43,20 @@ export async function sendMessageAction(data: {
       return { success: false, error: "Cannot send a message to yourself" };
     }
 
-    // Verify receiver exists
+    // Verify the receiver exists AND the sender is permitted to contact them.
+    // Safeguarding gate: without the canMessageRole check, any authenticated
+    // account can DM any user by id (incl. adult→minor). The relationship policy
+    // lives in MESSAGEABLE_ROLES (message.service.ts).
     const receiver = await db.user.findUnique({
       where: { id: parsed.data.receiverId },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, role: true },
     });
     if (!receiver) return { success: false, error: "Recipient not found" };
+
+    const senderRole = session.user.role;
+    if (!senderRole || !canMessageRole(senderRole, receiver.role)) {
+      return { success: false, error: "You aren't allowed to message this user." };
+    }
 
     // Throttle email notifications: only mail the recipient when this is the
     // first message they haven't yet read from this sender. During an active
