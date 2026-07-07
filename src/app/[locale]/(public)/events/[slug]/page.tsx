@@ -32,7 +32,7 @@ interface EventDetailPageProps {
 export async function generateMetadata({ params }: EventDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
   const event = await getEventBySlug(slug);
-  if (!event) return { title: "Event | Schulab" };
+  if (!event) return { title: "Event" };
   return {
     title: `${event.title} | Events & Competitions | Schulab`,
     description: event.description.slice(0, 160),

@@ -27,7 +27,7 @@ import { AuroraBlobs } from "@/components/ui/aurora-blobs";
 import { TestimonialCard } from "@/components/shared/testimonial-card";
 
 export const metadata: Metadata = {
-  title: "About Us | Schulab",
+  title: "About Us",
   description:
     "Learn about Schulab's mission, vision, team, and approach to joyful STEM education for children ages 3-18.",
 };

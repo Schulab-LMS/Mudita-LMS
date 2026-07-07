@@ -9,7 +9,7 @@ import { NoCoursesScene } from "@/components/illustrations/empty-scenes";
 import { FileText, Plus, Pencil, ExternalLink } from "lucide-react";
 import { DeletePageButton, TogglePublishButton } from "./page-actions";
 
-export const metadata = { title: "CMS Pages | Admin | Schulab" };
+export const metadata = { title: "CMS Pages | Admin" };
 
 export default async function AdminPagesPage() {
   const session = await auth();

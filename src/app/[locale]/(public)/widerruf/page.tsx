@@ -5,7 +5,7 @@ import {
 } from "@/components/shared/legal-layout";
 
 export const metadata: Metadata = {
-  title: "Widerrufsbelehrung | Schulab",
+  title: "Widerrufsbelehrung",
   description:
     "14-tägiges Widerrufsrecht für Verbraucher nach § 312g BGB. Schulab-Plattform.",
 };

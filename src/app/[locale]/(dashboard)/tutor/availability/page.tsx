@@ -5,7 +5,7 @@ import { AvailabilityGrid } from "./availability-grid";
 import { PageHeader } from "@/components/ui/page-header";
 import { Calendar, Info } from "lucide-react";
 
-export const metadata = { title: "Availability | Schulab" };
+export const metadata = { title: "Availability" };
 
 export default async function TutorAvailabilityPage() {
   const session = await auth();

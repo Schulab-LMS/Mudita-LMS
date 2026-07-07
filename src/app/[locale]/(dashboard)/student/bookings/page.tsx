@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
-export const metadata = { title: "My Bookings | Schulab" };
+export const metadata = { title: "My Bookings" };
 
 const statusChip: Record<string, string> = {
   PENDING: "chip chip-accent",

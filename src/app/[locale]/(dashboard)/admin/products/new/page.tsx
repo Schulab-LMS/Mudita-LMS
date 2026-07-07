@@ -5,7 +5,7 @@ import ProductForm from "../product-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { Package } from "lucide-react";
 
-export const metadata = { title: "New Product | Admin | Schulab" };
+export const metadata = { title: "New Product | Admin" };
 
 export default async function NewProductPage() {
   const session = await auth();

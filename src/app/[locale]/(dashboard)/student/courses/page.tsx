@@ -15,7 +15,7 @@ import {
   Trophy,
 } from "lucide-react";
 
-export const metadata = { title: "My Courses | Schulab" };
+export const metadata = { title: "My Courses" };
 
 export default async function StudentCoursesPage() {
   const session = await auth();

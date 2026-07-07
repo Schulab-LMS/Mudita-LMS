@@ -10,7 +10,7 @@ import { NoResultsScene } from "@/components/illustrations/empty-scenes";
 import { Users, MessageSquare, Calendar, Trophy } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
-export const metadata = { title: "My Students | Schulab" };
+export const metadata = { title: "My Students" };
 
 export default async function TutorStudentsPage() {
   const session = await auth();

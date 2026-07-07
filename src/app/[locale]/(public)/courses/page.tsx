@@ -24,7 +24,7 @@ interface CoursesPageProps {
 }
 
 export const metadata = {
-  title: "Courses | Schulab",
+  title: "Courses",
   description: "Browse our STEM courses designed for children ages 3–18.",
 };
 

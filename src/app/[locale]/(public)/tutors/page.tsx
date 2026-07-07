@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Find a Tutor | Schulab",
+  title: "Find a Tutor",
   description:
     "Browse verified STEM tutors and book personalized sessions for children ages 3-18 on Schulab.",
 };

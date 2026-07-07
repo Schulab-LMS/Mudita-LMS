@@ -29,7 +29,7 @@ type SearchParams = {
   page?: string;
 };
 
-export const metadata = { title: "Audit Log | Schulab" };
+export const metadata = { title: "Audit Log" };
 
 export default async function AdminAuditLogPage({
   searchParams,

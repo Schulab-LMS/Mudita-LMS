@@ -10,7 +10,7 @@ import { Link } from "@/i18n/navigation";
 import { Calendar, ExternalLink, Clock, Video } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
-export const metadata = { title: "Tutor Bookings | Schulab" };
+export const metadata = { title: "Tutor Bookings" };
 
 const statusChip: Record<string, string> = {
   PENDING: "chip chip-accent",

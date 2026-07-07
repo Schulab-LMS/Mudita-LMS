@@ -29,7 +29,7 @@ import {
   PenLine,
 } from "lucide-react";
 
-export const metadata = { title: "Live Session | Schulab" };
+export const metadata = { title: "Live Session" };
 
 const statusChip: Record<string, string> = {
   PENDING: "chip chip-accent",

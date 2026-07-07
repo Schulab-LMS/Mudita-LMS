@@ -8,7 +8,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
 import { Calendar, Shield, Globe, BadgeCheck } from "lucide-react";
 
-export const metadata = { title: "Account | Schulab" };
+export const metadata = { title: "Account" };
 
 export default async function AccountPage() {
   const session = await auth();

@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { NoCoursesScene } from "@/components/illustrations/empty-scenes";
 import { Award, Trophy, Lock } from "lucide-react";
 
-export const metadata = { title: "My Badges | Schulab" };
+export const metadata = { title: "My Badges" };
 
 export default async function StudentBadgesPage() {
   const session = await auth();

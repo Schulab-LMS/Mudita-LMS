@@ -5,7 +5,7 @@ import { HelpArticleForm } from "../help-article-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { HelpCircle } from "lucide-react";
 
-export const metadata = { title: "New Help Article | Admin | Schulab" };
+export const metadata = { title: "New Help Article | Admin" };
 
 export default async function NewHelpArticlePage() {
   const session = await auth();

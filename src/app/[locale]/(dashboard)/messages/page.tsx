@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
-export const metadata = { title: "Messages | Schulab" };
+export const metadata = { title: "Messages" };
 
 function formatRelative(date: Date, locale: string): string {
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });

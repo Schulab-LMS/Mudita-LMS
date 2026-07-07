@@ -23,7 +23,7 @@ import {
   Layers,
 } from "lucide-react";
 
-export const metadata = { title: "Parent Dashboard | Schulab" };
+export const metadata = { title: "Parent Dashboard" };
 
 type ChildWithEnrollments = Awaited<ReturnType<typeof getChildren>>[number];
 

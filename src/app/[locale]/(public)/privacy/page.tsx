@@ -54,12 +54,12 @@ export async function generateMetadata({
   const { locale } = await params;
   return locale === "de"
     ? {
-        title: "Datenschutzerklärung | Schulab",
+        title: "Datenschutzerklärung",
         description:
           "Datenschutzerklärung der Schulab-Plattform: Welche Daten wir verarbeiten, auf welcher Rechtsgrundlage, und welche Rechte Sie haben (DSGVO).",
       }
     : {
-        title: "Privacy Policy | Schulab",
+        title: "Privacy Policy",
         description:
           "Privacy policy for Schulab: what data we process, on which legal basis, and your rights under the GDPR.",
       };

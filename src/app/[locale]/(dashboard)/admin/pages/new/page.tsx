@@ -5,7 +5,7 @@ import { PageForm } from "../page-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { FileText } from "lucide-react";
 
-export const metadata = { title: "New Page | Admin | Schulab" };
+export const metadata = { title: "New Page | Admin" };
 
 export default async function NewPagePage() {
   const session = await auth();

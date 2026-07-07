@@ -14,7 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-export const metadata = { title: "Competitions | Admin | Schulab" };
+export const metadata = { title: "Competitions | Admin" };
 
 const STATUS_CHIP: Record<string, string> = {
   UPCOMING: "chip chip-primary",

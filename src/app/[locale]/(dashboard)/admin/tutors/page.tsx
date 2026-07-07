@@ -13,7 +13,7 @@ import {
   DeleteTutorButton,
 } from "./tutor-actions";
 
-export const metadata = { title: "Tutor Verification | Admin | Schulab" };
+export const metadata = { title: "Tutor Verification | Admin" };
 
 function initialsOf(name: string): string {
   return name

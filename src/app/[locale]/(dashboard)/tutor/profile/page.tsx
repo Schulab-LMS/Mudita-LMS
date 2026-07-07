@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ShieldCheck, Eye, User as UserIcon } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
-export const metadata = { title: "Tutor Profile | Schulab" };
+export const metadata = { title: "Tutor Profile" };
 
 export default async function TutorProfilePage() {
   const session = await auth();

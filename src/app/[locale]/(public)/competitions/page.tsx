@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Competitions | Schulab",
+  title: "Competitions",
   description:
     "Join STEM competitions on Schulab. Showcase your skills and compete with students worldwide.",
 };

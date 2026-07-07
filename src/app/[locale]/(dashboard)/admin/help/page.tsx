@@ -23,7 +23,7 @@ import {
   ToggleHelpPublishButton,
 } from "./help-article-actions";
 
-export const metadata = { title: "Help Articles | Admin | Schulab" };
+export const metadata = { title: "Help Articles | Admin" };
 
 export default async function AdminHelpPage() {
   const session = await auth();

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "STEM Kits | Schulab",
+  title: "STEM Kits",
   description:
     "Browse hands-on STEM kits for children ages 3-18. Science, engineering, and technology kits delivered to your door.",
 };

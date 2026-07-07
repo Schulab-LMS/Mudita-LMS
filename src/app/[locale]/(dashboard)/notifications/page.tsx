@@ -19,7 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export const metadata = { title: "Notifications | Schulab" };
+export const metadata = { title: "Notifications" };
 
 // Map notification `type` strings to a visual treatment. Unknown types fall
 // back to a generic Bell icon on primary tone.

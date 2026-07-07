@@ -5,7 +5,7 @@ import {
 } from "@/components/shared/legal-layout";
 
 export const metadata: Metadata = {
-  title: "Impressum | Schulab",
+  title: "Impressum",
   description:
     "Impressum gemäß § 5 TMG für Schulab, betrieben von Mudita IT Solutions UG.",
 };
