@@ -31,14 +31,30 @@ export async function getQuizByLessonId(lessonId: string) {
 
 export async function getQuizById(quizId: string) {
   try {
+    // Answers are selected WITHOUT `isCorrect`: this quiz object is handed to
+    // the client QuizPlayer, and shipping the answer key would let a learner
+    // read the correct answers before submitting. Grading is server-side in
+    // submitAttempt, which reveals the correct answers only after submission.
     const quiz = await db.quiz.findUnique({
       where: { id: quizId },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        passingScore: true,
+        timeLimit: true,
+        lessonId: true,
         questions: {
           orderBy: { order: "asc" },
-          include: {
+          select: {
+            id: true,
+            text: true,
+            type: true,
+            points: true,
+            order: true,
+            explanation: true,
             answers: {
               orderBy: { order: "asc" },
+              select: { id: true, text: true, order: true },
             },
           },
         },

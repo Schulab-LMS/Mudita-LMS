@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getQuizById } from "@/services/quiz.service";
+import { checkLessonAccess } from "@/services/access.service";
 import { QuizPlayer } from "@/components/quiz/quiz-player";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Link } from "@/i18n/navigation";
@@ -23,6 +24,16 @@ export default async function QuizPage({ params }: QuizPageProps) {
 
   const quiz = await getQuizById(quizId);
   if (!quiz) notFound();
+
+  // Gate on the same content-access rules as the lesson this quiz belongs to,
+  // so a learner can't open (or read the questions of) a quiz for a course they
+  // aren't entitled to. submitAttempt enforces the equivalent server-side.
+  const access = await checkLessonAccess({
+    lessonId: quiz.lessonId,
+    userId: session.user.id,
+    role: session.user.role,
+  });
+  if (!access.allowed) notFound();
 
   const questionCount = quiz.questions.length;
   const passingScore = quiz.passingScore;
