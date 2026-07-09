@@ -22,7 +22,9 @@ const dashboardHref: Record<Role, string> = {
   TUTOR: "/tutor",
   ADMIN: "/admin",
   SUPER_ADMIN: "/admin",
-  B2B_PARTNER: "/admin",
+  // No dedicated dashboard yet — /account avoids the admin-gate redirect loop.
+  B2B_PARTNER: "/account",
+  ORG_ADMIN: "/account",
 };
 
 const profileHref: Record<Role, string | null> = {
@@ -32,6 +34,7 @@ const profileHref: Record<Role, string | null> = {
   ADMIN: null,
   SUPER_ADMIN: null,
   B2B_PARTNER: null,
+  ORG_ADMIN: null,
 };
 
 const settingsHref: Record<Role, string | null> = {
@@ -41,6 +44,7 @@ const settingsHref: Record<Role, string | null> = {
   ADMIN: "/admin/settings",
   SUPER_ADMIN: "/admin/settings",
   B2B_PARTNER: null,
+  ORG_ADMIN: null,
 };
 
 interface UserMenuProps {

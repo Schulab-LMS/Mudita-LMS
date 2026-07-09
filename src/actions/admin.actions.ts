@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireAdmin, requireSuperAdmin } from "@/lib/auth-helpers";
 import { assertCourseEditable } from "@/lib/curriculum-guard";
 import { audit } from "@/lib/audit";
 import { grantComp, revokeComp } from "@/services/comp-access.service";
@@ -18,9 +18,15 @@ import {
 
 export async function updateUserRole(userId: string, role: string) {
   try {
-    const session = await requireAdmin();
+    // Role changes are SUPER_ADMIN-only. A plain ADMIN must not be able to mint
+    // a SUPER_ADMIN — that was a self-escalation path (ADMIN → promote self →
+    // SUPER_ADMIN). Also block changing your own role in either direction.
+    const session = await requireSuperAdmin();
     const parsed = updateUserRoleSchema.safeParse({ userId, role });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+    if (parsed.data.userId === session.user!.id) {
+      return { success: false, error: "You cannot change your own role" };
+    }
 
     const prev = await db.user.findUnique({
       where: { id: parsed.data.userId },
