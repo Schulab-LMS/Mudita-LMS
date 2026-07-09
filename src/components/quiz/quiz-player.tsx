@@ -17,7 +17,6 @@ import {
 interface Answer {
   id: string;
   text: string;
-  isCorrect: boolean;
   order: number;
 }
 

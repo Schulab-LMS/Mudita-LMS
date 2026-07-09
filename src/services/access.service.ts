@@ -1,15 +1,19 @@
 import { db } from "@/lib/db";
 import { hasActivePlanAtLeast } from "@/lib/subscription-access";
+import { assertMinorConsent } from "@/lib/compliance";
 
-// Centralised access check for lesson content. Enforced by both the video
-// playback endpoint and the SSR lesson page. Rules (first match wins):
+// Centralised access check for lesson content. Enforced by the video-playback
+// and lesson-preview endpoints (and mirrored by the SSR lesson page). Rules
+// (first match wins):
 // 1. Lessons flagged isFree (free-preview) are always viewable.
 // 2. Admins and super-admins always have access.
 // 3. Course authors can preview their own unpublished content.
-// 4. Users with an ACTIVE Enrollment for the course are in.
-// 5. Users with an active subscription whose tier satisfies the course's
+// 4. Minors without verified parental consent are denied non-free content,
+//    regardless of entitlement (COPPA/GDPR-K — mirrors the enrolment gate).
+// 5. Users with an ACTIVE Enrollment for the course are in.
+// 6. Users with an active subscription whose tier satisfies the course's
 //    requiredPlan are in (even if they have not yet been auto-enrolled).
-// 6. Otherwise: not_enrolled.
+// 7. Otherwise: not_enrolled.
 
 export type LessonAccess = {
   allowed: boolean;
@@ -17,6 +21,7 @@ export type LessonAccess = {
     | "free_preview"
     | "admin"
     | "author"
+    | "consent_required"
     | "enrolled"
     | "subscription"
     | "not_authenticated"
@@ -57,6 +62,11 @@ export async function checkLessonAccess(params: {
   if (lesson.module.course.createdById === params.userId) {
     return { allowed: true, reason: "author" };
   }
+
+  // Minors need verified parental consent for non-free content. Enforced here
+  // so the video/preview APIs can't be used to bypass the enrolment-time gate.
+  const consent = await assertMinorConsent(params.userId);
+  if (!consent.ok) return { allowed: false, reason: "consent_required" };
 
   const enrollment = await db.enrollment.findUnique({
     where: { userId_courseId: { userId: params.userId, courseId } },

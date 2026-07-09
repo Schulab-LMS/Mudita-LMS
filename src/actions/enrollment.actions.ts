@@ -163,6 +163,26 @@ export async function markLessonDone(lessonId: string, courseId: string) {
     const parsed = markLessonDoneSchema.safeParse({ lessonId, courseId });
     if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
+    // The lesson must belong to the named course, and the caller must be
+    // enrolled in it — the client supplies both ids, so without this a user
+    // could mark progress for a course they never joined, or inflate one
+    // course's progress with another course's lessons.
+    const lesson = await db.lesson.findFirst({
+      where: { id: parsed.data.lessonId, module: { courseId: parsed.data.courseId } },
+      select: { id: true },
+    });
+    if (!lesson) return { success: false, error: "Lesson not found in this course" };
+
+    const enrollment = await db.enrollment.findUnique({
+      where: {
+        userId_courseId: { userId: session.user.id, courseId: parsed.data.courseId },
+      },
+      select: { id: true },
+    });
+    if (!enrollment) {
+      return { success: false, error: "You are not enrolled in this course" };
+    }
+
     const progress = await markLessonComplete(session.user.id, parsed.data.lessonId);
     if (!progress) {
       return { success: false, error: "Failed to mark lesson complete" };
