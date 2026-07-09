@@ -22,7 +22,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 
-export const metadata = { title: "Tutor Dashboard | Schulab" };
+export const metadata = { title: "Tutor Dashboard" };
 
 // Plain helpers — outside render to satisfy purity lint on Server Component.
 function nowMs(): number {

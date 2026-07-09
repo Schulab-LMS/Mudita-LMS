@@ -30,7 +30,7 @@ import { AuroraBlobs } from "@/components/ui/aurora-blobs";
 import { TestimonialCard } from "@/components/shared/testimonial-card";
 
 export const metadata: Metadata = {
-  title: "How It Works | Schulab",
+  title: "How It Works",
   description:
     "Discover how Schulab's STEM education platform works. Browse courses, learn interactively, and achieve real results.",
 };

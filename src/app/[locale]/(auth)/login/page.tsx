@@ -20,7 +20,6 @@ import {
   EyeOff,
   AlertCircle,
   ArrowRight,
-  KeyRound,
   HelpCircle,
 } from "lucide-react";
 
@@ -100,8 +99,9 @@ export default function LoginPage() {
         </div>
       )}
 
-      {/* Social / passwordless — surfaced first for conversion */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      {/* Social sign-in — surfaced first for conversion. (Passkey/WebAuthn was a
+          non-functional stub; removed until it's actually implemented.) */}
+      <div className="grid grid-cols-1 gap-2">
         <Button
           variant="outline"
           className="h-11"
@@ -127,16 +127,6 @@ export default function LoginPage() {
             />
           </svg>
           <span>{t("google")}</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-11"
-          type="button"
-          // Placeholder: hook up navigator.credentials.get() when WebAuthn is enabled.
-          onClick={() => setError("Passkey sign-in is coming soon — please use email or Google for now.")}
-        >
-          <KeyRound className="h-4 w-4" aria-hidden />
-          <span>Passkey</span>
         </Button>
       </div>
 

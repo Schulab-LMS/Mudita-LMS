@@ -6,7 +6,7 @@ import { PageForm } from "../../page-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pencil } from "lucide-react";
 
-export const metadata = { title: "Edit Page | Admin | Schulab" };
+export const metadata = { title: "Edit Page | Admin" };
 
 export default async function EditPagePage({
   params,

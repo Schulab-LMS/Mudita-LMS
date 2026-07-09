@@ -14,7 +14,7 @@ interface BundlesPageProps {
 }
 
 export const metadata = {
-  title: "Bundles | Schulab",
+  title: "Bundles",
   description: "Themed course bundles that guide learners from first steps to a final project.",
 };
 

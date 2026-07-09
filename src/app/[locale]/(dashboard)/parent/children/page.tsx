@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { NoCoursesScene } from "@/components/illustrations/empty-scenes";
 import { UserPlus, Users } from "lucide-react";
 
-export const metadata = { title: "Manage Children | Schulab" };
+export const metadata = { title: "Manage Children" };
 
 export default async function ParentChildrenPage() {
   const session = await auth();

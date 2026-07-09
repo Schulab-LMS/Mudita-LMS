@@ -6,7 +6,7 @@ import ProductForm from "../../product-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pencil } from "lucide-react";
 
-export const metadata = { title: "Edit Product | Admin | Schulab" };
+export const metadata = { title: "Edit Product | Admin" };
 
 export default async function EditProductPage({
   params,

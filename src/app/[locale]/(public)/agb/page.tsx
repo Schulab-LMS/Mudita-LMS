@@ -6,7 +6,7 @@ import {
 } from "@/components/shared/legal-layout";
 
 export const metadata: Metadata = {
-  title: "Allgemeine Geschäftsbedingungen | Schulab",
+  title: "Allgemeine Geschäftsbedingungen",
   description:
     "Allgemeine Geschäftsbedingungen (AGB) der Schulab-Plattform für Nutzerinnen und Nutzer in Deutschland, Österreich und der Schweiz.",
 };

@@ -5,7 +5,7 @@ import {
 } from "@/components/shared/legal-layout";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | Schulab",
+  title: "Terms of Service",
   description: "Terms of service for Schulab platform.",
 };
 

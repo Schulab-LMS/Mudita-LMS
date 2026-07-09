@@ -11,7 +11,7 @@ interface PathwaysPageProps {
 }
 
 export const metadata = {
-  title: "Learning Pathways | Schulab",
+  title: "Learning Pathways",
   description: "Step-by-step, age-based journeys that take learners from first steps to advanced skills.",
 };
 

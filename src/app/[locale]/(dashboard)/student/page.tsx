@@ -35,7 +35,7 @@ import {
   PlayCircle,
 } from "lucide-react";
 
-export const metadata = { title: "Student Dashboard | Schulab" };
+export const metadata = { title: "Student Dashboard" };
 
 export default async function StudentDashboardPage() {
   const session = await auth();

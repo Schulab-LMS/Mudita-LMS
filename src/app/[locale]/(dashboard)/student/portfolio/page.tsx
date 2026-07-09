@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { NoCoursesScene } from "@/components/illustrations/empty-scenes";
 import { Briefcase, MessageSquare, ExternalLink } from "lucide-react";
 
-export const metadata = { title: "Portfolio | Schulab" };
+export const metadata = { title: "Portfolio" };
 
 export default async function StudentPortfolioPage() {
   const session = await auth();

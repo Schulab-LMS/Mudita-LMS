@@ -21,7 +21,7 @@ import { getLocale } from "next-intl/server";
 
 export async function generateMetadata() {
   return {
-    title: "Help Center | Schulab",
+    title: "Help Center",
     description:
       "Find answers, guides, and support for using Schulab.",
   };

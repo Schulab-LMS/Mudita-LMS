@@ -15,7 +15,7 @@ import {
 } from "@/components/events/event-format";
 
 export const metadata: Metadata = {
-  title: "Events & Competitions | Schulab",
+  title: "Events & Competitions",
   description:
     "Reputable global STEM events and competitions your child can prepare for on Schulab — robotics, space coding, computational thinking and digital making.",
 };

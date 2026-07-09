@@ -11,7 +11,7 @@ import { CategoryIcon } from "@/components/illustrations/category-icons";
 import { Plus, Pencil, Search, AlertTriangle } from "lucide-react";
 import { DeleteProductButton } from "./product-actions";
 
-export const metadata = { title: "Products | Admin | Schulab" };
+export const metadata = { title: "Products | Admin" };
 
 const AGE_SHORT: Record<string, string> = {
   AGES_3_5: "3–5",
