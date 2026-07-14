@@ -72,7 +72,11 @@ export function AddChildForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="max-w-md space-y-4"
+      noValidate
+    >
       <div>
         <label className="mb-1.5 block text-sm font-medium">Full Name</label>
         <input

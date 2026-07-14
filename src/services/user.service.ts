@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getUserEnrollments } from "@/services/enrollment.service";
 
 export async function getUserById(userId: string) {
   try {
@@ -16,17 +17,17 @@ export async function getChildren(parentId: string) {
     const links = await db.parentChild.findMany({
       where: { parentId },
       include: {
-        child: {
-          include: {
-            enrollments: {
-              include: { course: true },
-            },
-          },
-        },
+        child: true,
       },
     });
-    return links.map((l) => l.child);
-  } catch {
+    return await Promise.all(
+      links.map(async ({ child }) => ({
+        ...child,
+        enrollments: await getUserEnrollments(child.id),
+      }))
+    );
+  } catch (error) {
+    console.error("Failed to get linked children:", error);
     return [];
   }
 }

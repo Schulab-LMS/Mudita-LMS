@@ -44,30 +44,64 @@ export async function getUserEnrollments(userId: string) {
   try {
     const enrollments = await db.enrollment.findMany({
       where: { userId },
-      include: {
-        course: {
-          include: {
-            // Active set only. Git-removed modules/lessons are soft-archived
-            // (syncStatus REMOVED), not deleted, so enrollment FKs survive —
-            // but the dashboard "my courses" lesson counts must match the
-            // course page (getCourseBySlug) and not tally hidden lessons.
-            // Module-level filter is required: removing a whole module leaves
-            // its lessons ACTIVE.
-            modules: {
-              where: { syncStatus: "ACTIVE" },
-              include: {
-                lessons: { where: { syncStatus: "ACTIVE" } },
-              },
-            },
-          },
-        },
+      select: {
+        id: true,
+        userId: true,
+        courseId: true,
+        status: true,
+        progress: true,
+        enrolledAt: true,
+        completedAt: true,
       },
       orderBy: { enrolledAt: "desc" },
     });
-    return enrollments;
+
+    // Hydrate courses independently. A single malformed legacy course should
+    // never make every otherwise-valid enrollment disappear from the learner
+    // and parent dashboards.
+    const hydrated = await Promise.all(
+      enrollments.map(async (enrollment) => {
+        const course = await getEnrollmentCourse(enrollment.courseId);
+        return course ? { ...enrollment, course } : null;
+      })
+    );
+
+    return hydrated.filter(
+      (enrollment): enrollment is NonNullable<typeof enrollment> =>
+        enrollment !== null
+    );
   } catch (error) {
     console.error("Failed to get user enrollments:", error);
     return [];
+  }
+}
+
+async function getEnrollmentCourse(courseId: string) {
+  try {
+    return await db.course.findUnique({
+      where: { id: courseId },
+      include: {
+        // Active set only. Git-removed modules/lessons are soft-archived
+        // (syncStatus REMOVED), not deleted, so enrollment FKs survive.
+        modules: {
+          where: { syncStatus: "ACTIVE" },
+          include: {
+            lessons: { where: { syncStatus: "ACTIVE" } },
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error(
+      `Failed to load curriculum for enrolled course ${courseId}; using course metadata only:`,
+      error
+    );
+
+    // Preserve the enrollment card even if legacy curriculum data cannot be
+    // decoded. The learner can still see the course and support can repair the
+    // content instead of the UI falsely claiming there are no enrollments.
+    const course = await db.course.findUnique({ where: { id: courseId } });
+    return course ? { ...course, modules: [] } : null;
   }
 }
 

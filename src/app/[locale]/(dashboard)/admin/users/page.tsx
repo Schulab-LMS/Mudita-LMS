@@ -5,9 +5,9 @@ import { isAdminRole, isSuperAdmin } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { compStatusFor } from "@/services/comp-access.service";
 import { PageHeader } from "@/components/ui/page-header";
-import { UserPlus, Download } from "lucide-react";
 import { ADMIN_USER_ROLES } from "./user-filter";
 import { UsersTable } from "./users-table";
+import { ExportUsersButton } from "./export-users-button";
 
 export async function generateMetadata() {
   const t = await getTranslations("admin.users");
@@ -78,24 +78,7 @@ export default async function AdminUsersPage() {
           active: activeCount,
         })}
         breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Users" }]}
-        actions={
-          <>
-            <button
-              type="button"
-              className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-input bg-background px-3 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
-            >
-              <Download className="h-3.5 w-3.5" aria-hidden />
-              Export CSV
-            </button>
-            <button
-              type="button"
-              className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-            >
-              <UserPlus className="h-3.5 w-3.5" aria-hidden />
-              Invite user
-            </button>
-          </>
-        }
+        actions={<ExportUsersButton users={tableUsers} />}
       />
 
       {/* Role summary tiles */}

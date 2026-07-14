@@ -52,8 +52,8 @@ export function ChildDateOfBirthForm({
             Child details
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Date of birth determines age-appropriate access and whether {childName}
-            needs parental consent.
+            Date of birth determines age-appropriate access and whether{" "}
+            {childName} needs parental consent.
           </p>
           <form
             onSubmit={handleSubmit}
