@@ -20,6 +20,12 @@ type RawEnrollment = {
   enrolledAt: Date;
 };
 
+type RawEnrollmentOwner = RawEnrollment & {
+  userEmail: string;
+  userName: string;
+  courseTitle: string;
+};
+
 const enrollmentSelect = {
   id: true,
   userId: true,
@@ -58,7 +64,7 @@ export async function GET(request: Request) {
     return noStoreJson({ error: "user_not_found" }, 404);
   }
 
-  const [direct, relational, raw] = await Promise.all([
+  const [direct, relational, raw, allRawOwners] = await Promise.all([
     db.enrollment.findMany({
       where: { userId: user.id },
       select: enrollmentSelect,
@@ -74,6 +80,22 @@ export async function GET(request: Request) {
       FROM "Enrollment"
       WHERE "userId" = ${user.id}
       ORDER BY "enrolledAt" DESC
+    `,
+    db.$queryRaw<RawEnrollmentOwner[]>`
+      SELECT
+        e."id",
+        e."userId",
+        e."courseId",
+        e."status"::text,
+        e."progress",
+        e."enrolledAt",
+        u."email" AS "userEmail",
+        u."name" AS "userName",
+        c."title" AS "courseTitle"
+      FROM "Enrollment" e
+      JOIN "User" u ON u."id" = e."userId"
+      JOIN "Course" c ON c."id" = e."courseId"
+      ORDER BY e."enrolledAt" DESC
     `,
   ]);
 
@@ -95,6 +117,7 @@ export async function GET(request: Request) {
       direct,
       relational,
       raw,
+      allRawOwners,
     },
   });
 }

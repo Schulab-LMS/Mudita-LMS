@@ -67,7 +67,16 @@ describe("admin enrollment diagnostics", () => {
       enrollments: [row],
     });
     mocks.enrollmentFindMany.mockResolvedValue([row]);
-    mocks.queryRaw.mockResolvedValue([row]);
+    mocks.queryRaw
+      .mockResolvedValueOnce([row])
+      .mockResolvedValueOnce([
+        {
+          ...row,
+          userEmail: "aisha@example.com",
+          userName: "Aisha Mohammed",
+          courseTitle: "Wonder Lab",
+        },
+      ]);
 
     const response = await GET(
       new Request("https://example.test/api/admin/diagnostics/enrollments?email=AISHA@example.com")
@@ -84,6 +93,7 @@ describe("admin enrollment diagnostics", () => {
       rawRows: 1,
     });
     expect(mocks.enrollmentFindMany).toHaveBeenCalledTimes(2);
-    expect(mocks.queryRaw).toHaveBeenCalledOnce();
+    expect(mocks.queryRaw).toHaveBeenCalledTimes(2);
+    expect(body.rows.allRawOwners).toHaveLength(1);
   });
 });
