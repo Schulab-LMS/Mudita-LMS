@@ -96,6 +96,30 @@ describe("admin enrollment diagnostics", () => {
             utf8Hex: "73747564656e745f31",
           },
         ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            tableName: "Enrollment",
+            columnName: "userId",
+            dataType: "text",
+            characterMaximumLength: null,
+            udtName: "text",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: row.id,
+            userId: row.userId,
+            databaseType: "text",
+            defaultEqual: true,
+            textEqual: true,
+            logicalLength: 9,
+            storageBytes: 9,
+          },
+        ],
       });
     mocks.pgEnd.mockResolvedValue(undefined);
 
@@ -121,6 +145,15 @@ describe("admin enrollment diagnostics", () => {
     expect(body.rows.allRawOwners).toHaveLength(1);
     expect(body.rows.nodePg).toHaveLength(1);
     expect(body.rows.nodePgAll).toHaveLength(1);
+    expect(body.rows.equalityProbe[0]).toMatchObject({
+      defaultEqual: true,
+      textEqual: true,
+    });
+    expect(body.schema[0]).toMatchObject({
+      tableName: "Enrollment",
+      columnName: "userId",
+      dataType: "text",
+    });
     expect(body.fingerprints.userId).toEqual(
       body.fingerprints.nodePgParameter
     );

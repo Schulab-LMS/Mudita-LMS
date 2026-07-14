@@ -33,6 +33,24 @@ type TextFingerprint = {
   utf8Hex: string;
 };
 
+type ColumnMetadata = {
+  tableName: string;
+  columnName: string;
+  dataType: string;
+  characterMaximumLength: number | null;
+  udtName: string;
+};
+
+type EqualityProbe = {
+  id: string;
+  userId: string;
+  databaseType: string;
+  defaultEqual: boolean;
+  textEqual: boolean;
+  logicalLength: number;
+  storageBytes: number;
+};
+
 const enrollmentSelect = {
   id: true,
   userId: true,
@@ -114,14 +132,22 @@ export async function GET(request: Request) {
   let nodePg: RawEnrollment[];
   let nodePgAll: RawEnrollment[];
   let nodePgParameter: TextFingerprint;
+  let columnMetadata: ColumnMetadata[];
+  let equalityProbe: EqualityProbe[];
   try {
-    const [filteredResult, allResult, parameterResult] = await Promise.all([
+    const [
+      filteredResult,
+      allResult,
+      parameterResult,
+      columnMetadataResult,
+      equalityProbeResult,
+    ] = await Promise.all([
       nativePool.query<RawEnrollment>(
-      `SELECT "id", "userId", "courseId", "status"::text, "progress", "enrolledAt"
-       FROM "Enrollment"
-       WHERE "userId" = $1
-       ORDER BY "enrolledAt" DESC`,
-      [user.id]
+        `SELECT "id", "userId", "courseId", "status"::text, "progress", "enrolledAt"
+         FROM "Enrollment"
+         WHERE "userId" = $1
+         ORDER BY "enrolledAt" DESC`,
+        [user.id]
       ),
       nativePool.query<RawEnrollment>(
         `SELECT "id", "userId", "courseId", "status"::text, "progress", "enrolledAt"
@@ -135,10 +161,41 @@ export async function GET(request: Request) {
            encode(convert_to($1::text, 'UTF8'), 'hex') AS "utf8Hex"`,
         [user.id]
       ),
+      nativePool.query<ColumnMetadata>(
+        `SELECT
+           table_name AS "tableName",
+           column_name AS "columnName",
+           data_type AS "dataType",
+           character_maximum_length AS "characterMaximumLength",
+           udt_name AS "udtName"
+         FROM information_schema.columns
+         WHERE table_schema = current_schema()
+           AND (
+             (table_name = 'User' AND column_name = 'id') OR
+             (table_name = 'Course' AND column_name = 'id') OR
+             (table_name = 'Enrollment' AND column_name IN ('id', 'userId', 'courseId'))
+           )
+         ORDER BY table_name, column_name`
+      ),
+      nativePool.query<EqualityProbe>(
+        `SELECT
+           e."id",
+           e."userId",
+           pg_typeof(e."userId")::text AS "databaseType",
+           (e."userId" = $1) AS "defaultEqual",
+           (e."userId"::text = $1::text) AS "textEqual",
+           length(e."userId")::int AS "logicalLength",
+           octet_length(e."userId")::int AS "storageBytes"
+         FROM "Enrollment" e
+         ORDER BY e."enrolledAt" DESC`,
+        [user.id]
+      ),
     ]);
     nodePg = filteredResult.rows;
     nodePgAll = allResult.rows;
     nodePgParameter = parameterResult.rows[0];
+    columnMetadata = columnMetadataResult.rows;
+    equalityProbe = equalityProbeResult.rows;
   } finally {
     await nativePool.end();
   }
@@ -172,12 +229,14 @@ export async function GET(request: Request) {
       allRawOwners,
       nodePg,
       nodePgAll,
+      equalityProbe,
     },
     fingerprints: {
       userId: userIdFingerprint,
       matchingOwnerIds: matchingOwnerFingerprints,
       nodePgParameter,
     },
+    schema: columnMetadata,
   });
 }
 
