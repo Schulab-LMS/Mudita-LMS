@@ -93,12 +93,17 @@ export async function getSessionView(bookingId: string, userId: string) {
   return { booking, role, tutorNotes, submission };
 }
 
-// Courses/modules/lessons a tutor can assign to a session. Includes
-// non-archived courses (DRAFT curriculum is teachable in a private session
-// even before it's published to the public catalog).
-export async function getAssignableLessons() {
+// Courses/modules/lessons a tutor can assign to a session. A tutor may only
+// teach curriculum that the booked learner is actively enrolled in (or has
+// completed and is reviewing); unrelated catalog content is never exposed.
+export async function getAssignableLessons(studentId: string) {
   return db.course.findMany({
-    where: { status: { not: "ARCHIVED" } },
+    where: {
+      status: { not: "ARCHIVED" },
+      enrollments: {
+        some: { userId: studentId, status: { in: ["ACTIVE", "COMPLETED"] } },
+      },
+    },
     select: {
       id: true,
       title: true,

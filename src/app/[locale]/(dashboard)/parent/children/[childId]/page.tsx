@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getChildren } from "@/services/user.service";
 import { getUserEnrollments } from "@/services/enrollment.service";
+import { getStudentAssignments } from "@/services/tutor-assignment.service";
 import { isMinor } from "@/lib/compliance";
 import {
   getActiveSubscriptionTier,
@@ -45,7 +46,10 @@ export default async function ChildDetailPage({
   const child = children.find((c) => c.id === childId);
   if (!child) notFound();
 
-  const enrollments = await getUserEnrollments(childId);
+  const [enrollments, tutorAssignments] = await Promise.all([
+    getUserEnrollments(childId),
+    getStudentAssignments(childId),
+  ]);
   const completed = enrollments.filter((e) => e.status === "COMPLETED").length;
   const active = enrollments.filter((e) => e.status === "ACTIVE").length;
   const avgProgress =
@@ -202,6 +206,42 @@ export default async function ChildDetailPage({
         disabled={Boolean(enrolDisabledReason)}
         disabledReason={enrolDisabledReason}
       />
+
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Tutor assignments</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Published tasks, submission status, feedback, and grades for {child.name}.</p>
+        </div>
+        {tutorAssignments.length === 0 ? (
+          <div className="card-premium p-5 text-sm text-muted-foreground">No tutor assignments yet.</div>
+        ) : (
+          tutorAssignments.map((assignment) => {
+            const submission = assignment.submissions[0] ?? null;
+            return (
+              <article key={assignment.id} className="card-premium p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold">{assignment.title}</h3>
+                    <p className="text-xs text-muted-foreground">{assignment.course.title} · {assignment.tutor.user.name}</p>
+                  </div>
+                  <span className={submission?.status === "REVIEWED" ? "chip chip-success" : submission ? "chip chip-accent" : "chip chip-neutral"}>
+                    {submission?.status.toLowerCase() ?? "not submitted"}
+                  </span>
+                </div>
+                <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">{assignment.instructions}</p>
+                {submission?.feedback && (
+                  <div className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50/60 p-4 dark:border-emerald-800 dark:bg-emerald-950/30">
+                    <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                      Tutor feedback{submission.points != null ? ` · ${submission.points}/${assignment.maxPoints}` : ""}
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm">{submission.feedback}</p>
+                  </div>
+                )}
+              </article>
+            );
+          })
+        )}
+      </section>
 
       {/* Courses */}
       {enrollments.length === 0 ? (

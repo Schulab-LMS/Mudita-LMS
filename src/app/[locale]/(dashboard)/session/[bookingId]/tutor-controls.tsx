@@ -2,11 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
-import { BookOpen, Link2, CheckCircle2 } from "lucide-react";
+import { BookOpen, Link2, CheckCircle2, UserX } from "lucide-react";
 import {
   setSessionLesson,
   setSessionMeetingUrl,
   completeSession,
+  markSessionNoShow,
 } from "@/actions/session.actions";
 
 interface CourseTree {
@@ -47,7 +48,8 @@ export function TutorControls({
     });
   }
 
-  const isDone = status === "COMPLETED" || status === "CANCELLED";
+  const isDone =
+    status === "COMPLETED" || status === "CANCELLED" || status === "NO_SHOW";
 
   return (
     <div className="card-premium space-y-5 p-5">
@@ -112,16 +114,36 @@ export function TutorControls({
         </button>
       </div>
 
-      {/* Complete */}
+      {/* Manual attendance outcome */}
       {!isDone && (
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() => run(() => completeSession(bookingId), "Session marked complete")}
-          className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-launch-gradient px-3 text-xs font-semibold text-white hover:-translate-y-0.5 disabled:opacity-50"
-        >
-          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Mark session complete
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() =>
+              run(
+                () => completeSession(bookingId),
+                "Attendance saved: present"
+              )
+            }
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-launch-gradient px-3 text-xs font-semibold text-white hover:-translate-y-0.5 disabled:opacity-50"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Present
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() =>
+              run(
+                () => markSessionNoShow(bookingId),
+                "Attendance saved: no-show"
+              )
+            }
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-destructive/40 px-3 text-xs font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          >
+            <UserX className="h-3.5 w-3.5" aria-hidden /> No-show
+          </button>
+        </div>
       )}
 
       {msg && (

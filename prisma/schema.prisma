@@ -87,16 +87,18 @@ model User {
   childOf       ParentChild[]   @relation("ChildRelation")
   consentsGiven ConsentRecord[] @relation("ConsentGivenBy")
 
-  courseReviews       CourseReview[]
-  couponRedemptions   CouponRedemption[]
-  auditLogs           AuditLog[]
-  onboardingProfile   OnboardingProfile?
-  dripStates          DripState[]
-  activitySubmissions ActivitySubmission[]  @relation("StudentSubmissions")
-  studentAvailability StudentAvailability[]
-  lessonNotes         LessonNote[]          @relation("LessonNotes")
-  lessonQuestions     LessonQuestion[]      @relation("LessonQuestionsAsked")
-  lessonAnswers       LessonAnswer[]        @relation("LessonAnswersGiven")
+  courseReviews              CourseReview[]
+  couponRedemptions          CouponRedemption[]
+  auditLogs                  AuditLog[]
+  onboardingProfile          OnboardingProfile?
+  dripStates                 DripState[]
+  activitySubmissions        ActivitySubmission[]        @relation("StudentSubmissions")
+  tutorAssignmentTargets     TutorAssignment[]           @relation("TutorAssignmentStudent")
+  tutorAssignmentSubmissions TutorAssignmentSubmission[] @relation("TutorAssignmentSubmissionStudent")
+  studentAvailability        StudentAvailability[]
+  lessonNotes                LessonNote[]                @relation("LessonNotes")
+  lessonQuestions            LessonQuestion[]            @relation("LessonQuestionsAsked")
+  lessonAnswers              LessonAnswer[]              @relation("LessonAnswersGiven")
 
   accounts Account[]
   sessions Session[]
@@ -308,9 +310,10 @@ model Course {
   prerequisites CoursePrerequisite[] @relation("CourseRequires")
   requiredFor   CoursePrerequisite[] @relation("CoursePrereqOf")
 
-  modules     Module[]
-  enrollments Enrollment[]
-  reviews     CourseReview[]
+  modules          Module[]
+  enrollments      Enrollment[]
+  reviews          CourseReview[]
+  tutorAssignments TutorAssignment[]
 
   // Catalog content readiness + free-form admin notes (see ContentStatus).
   contentStatus ContentStatus @default(SEED_NOW)
@@ -395,23 +398,23 @@ enum PresentationFormat {
 }
 
 model Lesson {
-  id                    String               @id @default(cuid())
+  id                    String              @id @default(cuid())
   moduleId              String
   title                 String
   titleAr               String?
   titleDe               String?
-  content               String?              @db.Text
-  contentAr             String?              @db.Text
-  contentDe             String?              @db.Text
+  content               String?             @db.Text
+  contentAr             String?             @db.Text
+  contentDe             String?             @db.Text
   // Hands-on take-home activity (synced from activity.md). Student-visible.
-  activity              String?              @db.Text
-  activityAr            String?              @db.Text
-  activityDe            String?              @db.Text
+  activity              String?             @db.Text
+  activityAr            String?             @db.Text
+  activityDe            String?             @db.Text
   // Tutor-only guidance (module overview + TUTOR_ONLY fences). NEVER served
   // to students — student-facing queries omit these columns by construction.
-  tutorNotes            String?              @db.Text
-  tutorNotesAr          String?              @db.Text
-  tutorNotesDe          String?              @db.Text
+  tutorNotes            String?             @db.Text
+  tutorNotesAr          String?             @db.Text
+  tutorNotesDe          String?             @db.Text
   // Reveal.js slide deck (synced from presentation.md). Raw markdown is stored
   // so the client-side Reveal markdown plugin keeps slide-break semantics
   // ('---' / '--') intact. presentationConfig holds parsed YAML frontmatter
@@ -419,9 +422,9 @@ model Lesson {
   // lesson's `type` is PRESENTATION and the renderer takes over the main
   // content surface.
   presentationFormat    PresentationFormat?
-  presentationContent   String?              @db.Text
-  presentationContentAr String?              @db.Text
-  presentationContentDe String?              @db.Text
+  presentationContent   String?             @db.Text
+  presentationContentAr String?             @db.Text
+  presentationContentDe String?             @db.Text
   presentationConfig    Json?
   // Downloadable resources / reference links, synced from the lesson folder:
   // a resources.md list, else the meta.yml source fields, else a "Resources"
@@ -433,11 +436,11 @@ model Lesson {
   videoAssetId          String?
   thumbnail             String?
   duration              Int?
-  type                  LessonType           @default(VIDEO)
+  type                  LessonType          @default(VIDEO)
   order                 Int
-  isFree                Boolean              @default(false)
+  isFree                Boolean             @default(false)
   sourcePath            String?
-  syncStatus            SyncStatus           @default(ACTIVE)
+  syncStatus            SyncStatus          @default(ACTIVE)
 
   // ── AI-assisted production provenance (see docs/curriculum-production) ──
   // NULL on hand-authored / pre-AI lessons. aiStatus gates publishing: a
@@ -449,19 +452,20 @@ model Lesson {
   aiModel                String?
   aiReviewedById         String?
   lastVerifiedAt         DateTime?
-  tutorSupportRequired   Boolean              @default(false)
-  parentGuidanceRequired Boolean              @default(false)
+  tutorSupportRequired   Boolean          @default(false)
+  parentGuidanceRequired Boolean          @default(false)
 
-  module                Module               @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  quiz                  Quiz?
-  progress              LessonProgress[]
-  sessions              Booking[]
-  submissions           ActivitySubmission[]
-  notes                 LessonNote[]
-  questions             LessonQuestion[]
+  module           Module                 @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  quiz             Quiz?
+  progress         LessonProgress[]
+  sessions         Booking[]
+  submissions      ActivitySubmission[]
+  tutorAssignments TutorAssignment[]
+  notes            LessonNote[]
+  questions        LessonQuestion[]
   // Per-section source provenance (queryable mirror of the lesson meta.yml
   // citations). One row per generated section → supporting source passage.
-  sourceCitations       LessonSourceCitation[]
+  sourceCitations  LessonSourceCitation[]
 
   // Stable upsert key for Git-synced lessons (NULL for admin-created ones).
   @@unique([moduleId, sourcePath])
@@ -728,18 +732,18 @@ model LessonSourceCitation {
 // typed Prisma Client never reads it (vector similarity runs via raw SQL).
 // The `vector` extension + the cosine index are created in the migration SQL.
 model SourceChunk {
-  id         String       @id @default(cuid())
+  id         String                       @id @default(cuid())
   sourceId   String
   chunkIndex Int
-  content    String       @db.Text
+  content    String                       @db.Text
   url        String?
   license    String?
   ageRange   String?
-  status     SourceStatus @default(ACTIVE)
+  status     SourceStatus                 @default(ACTIVE)
   tokenCount Int?
   embedding  Unsupported("vector(1024)")?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  createdAt  DateTime                     @default(now())
+  updatedAt  DateTime                     @updatedAt
 
   source ReferenceSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
 
@@ -910,6 +914,74 @@ model ActivitySubmission {
   @@index([bookingId])
 }
 
+enum TutorAssignmentKind {
+  ASSIGNMENT
+  QUIZ
+  PROJECT
+}
+
+enum TutorAssignmentStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum TutorAssignmentSubmissionStatus {
+  SUBMITTED
+  REVIEWED
+  RETURNED
+}
+
+// A tutor-authored task for one learner in a course they are enrolled in.
+// Targeting one learner keeps authorization explicit and makes parent/student
+// visibility deterministic. A later cohort feature can group several rows.
+model TutorAssignment {
+  id           String                @id @default(cuid())
+  tutorId      String
+  studentId    String
+  courseId     String
+  lessonId     String?
+  title        String
+  instructions String                @db.Text
+  kind         TutorAssignmentKind   @default(ASSIGNMENT)
+  status       TutorAssignmentStatus @default(PUBLISHED)
+  dueAt        DateTime?
+  maxPoints    Int                   @default(100)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  tutor       TutorProfile                @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  student     User                        @relation("TutorAssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  course      Course                      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson      Lesson?                     @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  submissions TutorAssignmentSubmission[]
+
+  @@index([tutorId, status])
+  @@index([studentId, status])
+  @@index([courseId])
+  @@index([dueAt])
+}
+
+model TutorAssignmentSubmission {
+  id           String                          @id @default(cuid())
+  assignmentId String
+  studentId    String
+  content      String                          @db.Text
+  status       TutorAssignmentSubmissionStatus @default(SUBMITTED)
+  points       Int?
+  feedback     String?                         @db.Text
+  feedbackById String?
+  feedbackAt   DateTime?
+  submittedAt  DateTime                        @default(now())
+  updatedAt    DateTime                        @updatedAt
+
+  assignment TutorAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    User            @relation("TutorAssignmentSubmissionStudent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, studentId])
+  @@index([studentId, status])
+}
+
 // A learner's private, personal note for a lesson. One row per (user, lesson);
 // the Notes tab autosaves into it. Never shown to anyone but the author.
 model LessonNote {
@@ -1011,6 +1083,7 @@ model TutorProfile {
 
   availability TutorAvailability[]
   bookings     Booking[]
+  assignments  TutorAssignment[]
 }
 
 model TutorAvailability {

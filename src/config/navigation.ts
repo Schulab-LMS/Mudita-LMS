@@ -44,6 +44,7 @@ export const dashboardNavItems: Record<Role, NavItem[]> = {
   STUDENT: [
     { href: "/student", labelKey: "nav.dashboard", icon: "LayoutDashboard" },
     { href: "/student/courses", labelKey: "nav.myCourses", icon: "BookOpen" },
+    { href: "/student/assignments", labelKey: "nav.assignments", icon: "ClipboardList" },
     { href: "/student/portfolio", labelKey: "nav.portfolio", icon: "Briefcase" },
     { href: "/student/badges", labelKey: "nav.badges", icon: "Award" },
     { href: "/student/certificates", labelKey: "nav.certificates", icon: "GraduationCap" },
@@ -60,6 +61,7 @@ export const dashboardNavItems: Record<Role, NavItem[]> = {
   ],
   TUTOR: [
     { href: "/tutor", labelKey: "nav.dashboard", icon: "LayoutDashboard" },
+    { href: "/tutor/teaching", labelKey: "nav.teaching", icon: "ClipboardList" },
     { href: "/tutor/profile", labelKey: "nav.profile", icon: "User" },
     { href: "/tutor/availability", labelKey: "nav.availability", icon: "Clock" },
     { href: "/tutor/bookings", labelKey: "nav.bookings", icon: "Calendar" },

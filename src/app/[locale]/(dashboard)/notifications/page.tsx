@@ -57,6 +57,10 @@ const TYPE_VISUAL: Record<string, TypeVisual> = {
     icon: Settings,
     tone: "bg-muted text-muted-foreground",
   },
+  ASSIGNMENT: {
+    icon: BookOpen,
+    tone: "bg-primary/10 text-primary",
+  },
 };
 
 function getVisual(type: string): TypeVisual {
