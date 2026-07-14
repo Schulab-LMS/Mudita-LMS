@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import {
   addChildAccountSchema,
+  updateChildDateOfBirthSchema,
   removeChildSchema,
   grantChildConsentSchema,
   withdrawChildConsentSchema,
@@ -75,6 +76,49 @@ export async function addChildAccount(data: {
   } catch (error) {
     console.error("addChildAccount action error:", error);
     return { success: false, error: "Failed to add child account" };
+  }
+}
+
+export async function updateChildDateOfBirth(input: {
+  childId: string;
+  dateOfBirth: string | Date;
+}) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "Not authenticated" };
+    }
+    if (session.user.role !== "PARENT") {
+      return { success: false, error: "Only parents can update child accounts" };
+    }
+
+    const parsed = updateChildDateOfBirthSchema.safeParse(input);
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0].message };
+    }
+
+    const link = await db.parentChild.findUnique({
+      where: {
+        parentId_childId: {
+          parentId: session.user.id,
+          childId: parsed.data.childId,
+        },
+      },
+    });
+    if (!link) return { success: false, error: "Child not found" };
+
+    await db.user.update({
+      where: { id: parsed.data.childId },
+      data: { dateOfBirth: parsed.data.dateOfBirth },
+    });
+
+    revalidatePath(`/parent/children/${parsed.data.childId}`);
+    revalidatePath("/parent/children");
+    revalidatePath("/parent");
+    return { success: true };
+  } catch (error) {
+    console.error("updateChildDateOfBirth action error:", error);
+    return { success: false, error: "Failed to update date of birth" };
   }
 }
 

@@ -7,7 +7,7 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/lib/db", () => ({
   db: {
     parentChild: { findUnique: vi.fn(), findMany: vi.fn() },
-    user: { findUnique: vi.fn() },
+    user: { findUnique: vi.fn(), update: vi.fn() },
     course: { findUnique: vi.fn() },
     consentRecord: { create: vi.fn() },
     $transaction: vi.fn(),
@@ -64,6 +64,7 @@ import {
   withdrawChildConsent,
   bulkGrantChildConsent,
   buyCourseForChild,
+  updateChildDateOfBirth,
 } from "./parent.actions";
 
 const parentSession = {
@@ -72,6 +73,55 @@ const parentSession = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe("updateChildDateOfBirth", () => {
+  it("updates only a child linked to the calling parent", async () => {
+    vi.mocked(auth).mockResolvedValue(parentSession as never);
+    vi.mocked(db.parentChild.findUnique).mockResolvedValue({
+      id: "link1",
+      parentId: "parent1",
+      childId: "child_____________________1",
+    } as never);
+    vi.mocked(db.user.update).mockResolvedValue({} as never);
+
+    const result = await updateChildDateOfBirth({
+      childId: "child_____________________1",
+      dateOfBirth: "2018-05-04",
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(db.user.update).toHaveBeenCalledWith({
+      where: { id: "child_____________________1" },
+      data: { dateOfBirth: new Date("2018-05-04") },
+    });
+  });
+
+  it("does not update an unlinked child", async () => {
+    vi.mocked(auth).mockResolvedValue(parentSession as never);
+    vi.mocked(db.parentChild.findUnique).mockResolvedValue(null);
+
+    const result = await updateChildDateOfBirth({
+      childId: "child_____________________1",
+      dateOfBirth: "2018-05-04",
+    });
+
+    expect(result).toEqual({ success: false, error: "Child not found" });
+    expect(db.user.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects future dates before accessing the database", async () => {
+    vi.mocked(auth).mockResolvedValue(parentSession as never);
+
+    const result = await updateChildDateOfBirth({
+      childId: "child_____________________1",
+      dateOfBirth: "2999-01-01",
+    });
+
+    expect(result.success).toBe(false);
+    expect(db.parentChild.findUnique).not.toHaveBeenCalled();
+    expect(db.user.update).not.toHaveBeenCalled();
+  });
 });
 
 // ── withdrawChildConsent ───────────────────────────────────────────────

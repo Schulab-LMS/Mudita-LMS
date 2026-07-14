@@ -1123,6 +1123,7 @@
       "PARENT": "Elternteil",
       "TUTOR": "Tutor",
       "ADMIN": "Administrator",
+      "ORG_ADMIN": "Organisationsadministrator",
       "SUPER_ADMIN": "Super-Administrator",
       "B2B_PARTNER": "B2B-Partner"
     },

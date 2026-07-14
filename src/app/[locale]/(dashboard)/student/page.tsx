@@ -253,7 +253,10 @@ export default async function StudentDashboardPage() {
             </Link>
           )}
         </div>
-        <EnrollmentList enrollments={inProgress} />
+        <EnrollmentList
+          enrollments={inProgress}
+          hasAnyEnrollments={enrollments.length > 0}
+        />
       </div>
 
       {/* ============ RECOMMENDED FOR YOU ============ */}

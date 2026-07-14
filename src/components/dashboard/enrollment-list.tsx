@@ -3,6 +3,7 @@ import { Progress } from "@/components/ui/progress";
 import { BookOpen, Play, CheckCircle2 } from "lucide-react";
 
 interface EnrollmentListProps {
+  hasAnyEnrollments?: boolean;
   enrollments: Array<{
     id: string;
     progress: number;
@@ -43,7 +44,10 @@ const categoryColors: Record<string, string> = {
   physics: "bg-indigo-100",
 };
 
-export function EnrollmentList({ enrollments }: EnrollmentListProps) {
+export function EnrollmentList({
+  enrollments,
+  hasAnyEnrollments = false,
+}: EnrollmentListProps) {
   if (enrollments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-14 text-center">
@@ -51,10 +55,12 @@ export function EnrollmentList({ enrollments }: EnrollmentListProps) {
           🚀
         </div>
         <p className="font-display text-lg font-semibold text-foreground">
-          Ready for an adventure?
+          {hasAnyEnrollments ? "All caught up!" : "Ready for an adventure?"}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Start your first course and begin earning XP!
+          {hasAnyEnrollments
+            ? "You have completed every enrolled course. Pick another adventure when you are ready."
+            : "Start your first course and begin earning XP!"}
         </p>
         <Link
           href="/courses"

@@ -27,6 +27,7 @@ export default async function AccountPage() {
         role: true,
         passwordHash: true,
         createdAt: true,
+        dateOfBirth: true,
       },
     }),
   ]);
@@ -108,6 +109,7 @@ export default async function AccountPage() {
           role: user.role,
           hasPassword: Boolean(user.passwordHash),
           createdAt: user.createdAt.toISOString(),
+          dateOfBirth: user.dateOfBirth?.toISOString().slice(0, 10) ?? "",
         }}
       />
     </div>

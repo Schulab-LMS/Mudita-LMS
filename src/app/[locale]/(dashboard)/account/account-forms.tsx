@@ -34,6 +34,16 @@ const profileSchema = z.object({
     .max(100),
   locale: z.enum(["en", "de", "ar"]),
   avatar: z.string().url("Must be a valid URL").max(500).or(z.literal("")),
+  dateOfBirth: z
+    .string()
+    .refine(
+      (value) =>
+        value === "" ||
+        (/^\d{4}-\d{2}-\d{2}$/.test(value) &&
+          value >= "1900-01-01" &&
+          value <= new Date().toISOString().slice(0, 10)),
+      "Please enter a valid date of birth"
+    ),
 });
 
 const passwordSchema = z
@@ -61,6 +71,7 @@ interface AccountUser {
   role: string;
   hasPassword: boolean;
   createdAt: string;
+  dateOfBirth: string;
 }
 
 export function AccountForms({ user }: { user: AccountUser }) {
@@ -92,6 +103,7 @@ function ProfileSection({ user }: { user: AccountUser }) {
       name: user.name,
       locale: (user.locale as "en" | "de" | "ar") ?? "en",
       avatar: user.avatar ?? "",
+      dateOfBirth: user.dateOfBirth,
     },
   });
 
@@ -162,6 +174,25 @@ function ProfileSection({ user }: { user: AccountUser }) {
           />
           {errors.avatar && (
             <p className="text-sm text-destructive">{errors.avatar.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="dateOfBirth">Date of birth</Label>
+          <Input
+            id="dateOfBirth"
+            type="date"
+            min="1900-01-01"
+            max={new Date().toISOString().slice(0, 10)}
+            {...register("dateOfBirth")}
+          />
+          <p className="text-xs text-muted-foreground">
+            Used for age-appropriate course access and parental-consent checks.
+          </p>
+          {errors.dateOfBirth && (
+            <p className="text-sm text-destructive">
+              {errors.dateOfBirth.message}
+            </p>
           )}
         </div>
 

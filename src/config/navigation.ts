@@ -13,6 +13,7 @@ export type Role = "STUDENT" | "PARENT" | "TUTOR" | "ADMIN" | "SUPER_ADMIN" | "B
 type NavItem = { href: string; labelKey: string; icon: string };
 
 const accountItems: NavItem[] = [
+  { href: "/account", labelKey: "nav.account", icon: "UserCog" },
   { href: "/notifications", labelKey: "nav.notifications", icon: "Bell" },
   { href: "/help", labelKey: "nav.help", icon: "HelpCircle" },
 ];

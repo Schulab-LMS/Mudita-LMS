@@ -28,6 +28,7 @@ import { Link } from "@/i18n/navigation";
 import { getInitials } from "@/lib/utils";
 import { ConsentPanel } from "./consent-panel";
 import { EnrollChildPanel } from "./enroll-child-panel";
+import { ChildDateOfBirthForm } from "./child-date-of-birth-form";
 
 interface ChildDetailPageProps {
   params: Promise<{ childId: string }>;
@@ -178,6 +179,13 @@ export default async function ChildDetailPage({
       </div>
 
       {/* Parental controls */}
+      <ChildDateOfBirthForm
+        childId={child.id}
+        childName={child.name}
+        initialDateOfBirth={
+          child.dateOfBirth?.toISOString().slice(0, 10) ?? ""
+        }
+      />
       {childIsMinor && (
         <ConsentPanel
           childId={child.id}

@@ -49,6 +49,7 @@ export async function updateAccountProfile(input: {
   name: string;
   locale: string;
   avatar?: string;
+  dateOfBirth?: string | Date;
 }): Promise<ActionResult> {
   const sess = await requireSessionUserId();
   if (!sess.ok) return { success: false, error: sess.error };
@@ -70,9 +71,14 @@ export async function updateAccountProfile(input: {
         name: parsed.data.name,
         locale: parsed.data.locale,
         avatar,
+        ...(parsed.data.dateOfBirth instanceof Date
+          ? { dateOfBirth: parsed.data.dateOfBirth }
+          : {}),
       },
     });
     revalidatePath("/account");
+    revalidatePath("/student");
+    revalidatePath("/student/courses");
     return { success: true };
   } catch (err) {
     console.error("updateAccountProfile error:", err);

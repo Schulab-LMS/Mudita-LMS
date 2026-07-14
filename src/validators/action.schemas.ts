@@ -290,6 +290,14 @@ export const addChildAccountSchema = z.object({
     .min(new Date("1900-01-01"), "Please enter a valid date of birth"),
 });
 
+export const updateChildDateOfBirthSchema = z.object({
+  childId: cuidSchema,
+  dateOfBirth: z.coerce
+    .date({ message: "Please enter a valid date of birth" })
+    .max(new Date(), "Date of birth cannot be in the future")
+    .min(new Date("1900-01-01"), "Please enter a valid date of birth"),
+});
+
 export const removeChildSchema = z.object({ childId: cuidSchema });
 
 export const grantChildConsentSchema = z.object({
@@ -552,6 +560,15 @@ export const updateAccountProfileSchema = z.object({
     .max(500)
     .optional()
     .or(z.literal("")),
+  dateOfBirth: z
+    .union([
+      z.literal(""),
+      z.coerce
+        .date({ message: "Please enter a valid date of birth" })
+        .max(new Date(), "Date of birth cannot be in the future")
+        .min(new Date("1900-01-01"), "Please enter a valid date of birth"),
+    ])
+    .optional(),
 });
 
 export const changePasswordSchema = z
