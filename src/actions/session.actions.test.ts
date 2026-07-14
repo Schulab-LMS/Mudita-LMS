@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   bookingUpdate: vi.fn(),
   lessonFindUnique: vi.fn(),
   enrollmentFindUnique: vi.fn(),
+  tutorCourseFindUnique: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 
@@ -18,6 +19,7 @@ vi.mock("@/lib/db", () => ({
     },
     lesson: { findUnique: mocks.lessonFindUnique },
     enrollment: { findUnique: mocks.enrollmentFindUnique },
+    tutorCourseAssignment: { findUnique: mocks.tutorCourseFindUnique },
   },
 }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
@@ -29,11 +31,13 @@ describe("session tutor controls", () => {
     vi.clearAllMocks();
     mocks.auth.mockResolvedValue({ user: { id: "tutor_user_1", role: "TUTOR" } });
     mocks.bookingUpdate.mockResolvedValue({});
+    mocks.tutorCourseFindUnique.mockResolvedValue({ id: "course_assignment_1" });
   });
 
   it("rejects a tutor who does not own the booking", async () => {
     mocks.bookingFindUnique.mockResolvedValue({
       studentId: "student_1",
+      tutorId: "tutor_1",
       tutor: { userId: "another_tutor" },
     });
 
@@ -46,6 +50,7 @@ describe("session tutor controls", () => {
   it("does not expose a lesson from a course the booked learner is not enrolled in", async () => {
     mocks.bookingFindUnique.mockResolvedValue({
       studentId: "student_1",
+      tutorId: "tutor_1",
       tutor: { userId: "tutor_user_1" },
     });
     mocks.lessonFindUnique.mockResolvedValue({
@@ -64,6 +69,7 @@ describe("session tutor controls", () => {
   it("assigns a lesson when the booked learner has an active enrollment", async () => {
     mocks.bookingFindUnique.mockResolvedValue({
       studentId: "student_1",
+      tutorId: "tutor_1",
       tutor: { userId: "tutor_user_1" },
     });
     mocks.lessonFindUnique.mockResolvedValue({
@@ -81,9 +87,30 @@ describe("session tutor controls", () => {
     });
   });
 
+  it("rejects a lesson when the tutor is not assigned to its course", async () => {
+    mocks.bookingFindUnique.mockResolvedValue({
+      studentId: "student_1",
+      tutorId: "tutor_1",
+      tutor: { userId: "tutor_user_1" },
+    });
+    mocks.lessonFindUnique.mockResolvedValue({
+      id: "lesson_1",
+      module: { courseId: "course_1" },
+    });
+    mocks.enrollmentFindUnique.mockResolvedValue({ status: "ACTIVE" });
+    mocks.tutorCourseFindUnique.mockResolvedValue(null);
+
+    const result = await setSessionLesson("booking_1", "lesson_1");
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/not assigned to teach/i);
+    expect(mocks.bookingUpdate).not.toHaveBeenCalled();
+  });
+
   it("records a no-show only on a booking owned by the tutor", async () => {
     mocks.bookingFindUnique.mockResolvedValue({
       studentId: "student_1",
+      tutorId: "tutor_1",
       tutor: { userId: "tutor_user_1" },
     });
 

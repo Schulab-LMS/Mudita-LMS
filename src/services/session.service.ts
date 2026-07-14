@@ -96,12 +96,15 @@ export async function getSessionView(bookingId: string, userId: string) {
 // Courses/modules/lessons a tutor can assign to a session. A tutor may only
 // teach curriculum that the booked learner is actively enrolled in (or has
 // completed and is reviewing); unrelated catalog content is never exposed.
-export async function getAssignableLessons(studentId: string) {
+export async function getAssignableLessons(studentId: string, tutorUserId: string) {
   return db.course.findMany({
     where: {
       status: { not: "ARCHIVED" },
       enrollments: {
         some: { userId: studentId, status: { in: ["ACTIVE", "COMPLETED"] } },
+      },
+      tutorCourseAssignments: {
+        some: { tutor: { userId: tutorUserId } },
       },
     },
     select: {

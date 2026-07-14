@@ -33,7 +33,10 @@ describe("getTutorTeachingOverview", () => {
   });
 
   it("returns an empty scoped workspace when the tutor has no learners", async () => {
-    mocks.tutorFindUnique.mockResolvedValue({ id: "tutor_1" });
+    mocks.tutorFindUnique.mockResolvedValue({
+      id: "tutor_1",
+      courseAssignments: [{ courseId: "course_1" }],
+    });
     mocks.bookingFindMany.mockResolvedValue([]);
 
     const result = await getTutorTeachingOverview("tutor_user_1");
@@ -48,7 +51,10 @@ describe("getTutorTeachingOverview", () => {
   });
 
   it("aggregates only the tutor's booked learners, progress, reviews, quizzes, and attendance", async () => {
-    mocks.tutorFindUnique.mockResolvedValue({ id: "tutor_1" });
+    mocks.tutorFindUnique.mockResolvedValue({
+      id: "tutor_1",
+      courseAssignments: [{ courseId: "course_1" }],
+    });
     mocks.bookingFindMany.mockResolvedValue([
       {
         id: "booking_1",

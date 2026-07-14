@@ -9,20 +9,25 @@ import { db } from "@/lib/db";
 async function assertSessionTutor(
   bookingId: string
 ): Promise<
-  | { ok: true; userId: string; studentId: string }
+  | { ok: true; userId: string; studentId: string; tutorId: string }
   | { ok: false; error: string }
 > {
   const session = await auth();
   if (!session?.user?.id) return { ok: false, error: "Unauthorized" };
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    select: { studentId: true, tutor: { select: { userId: true } } },
+    select: { studentId: true, tutorId: true, tutor: { select: { userId: true } } },
   });
   if (!booking) return { ok: false, error: "Session not found" };
   if (booking.tutor.userId !== session.user.id) {
     return { ok: false, error: "Only the session tutor can do that" };
   }
-  return { ok: true, userId: session.user.id, studentId: booking.studentId };
+  return {
+    ok: true,
+    userId: session.user.id,
+    studentId: booking.studentId,
+    tutorId: booking.tutorId,
+  };
 }
 
 export async function setSessionLesson(bookingId: string, lessonId: string) {
@@ -49,6 +54,19 @@ export async function setSessionLesson(bookingId: string, lessonId: string) {
       success: false,
       error: "This learner is not enrolled in the selected lesson's course",
     };
+  }
+
+  const courseAssignment = await db.tutorCourseAssignment.findUnique({
+    where: {
+      tutorId_courseId: {
+        tutorId: guard.tutorId,
+        courseId: lesson.module.courseId,
+      },
+    },
+    select: { id: true },
+  });
+  if (!courseAssignment) {
+    return { success: false, error: "You are not assigned to teach this course" };
   }
 
   await db.booking.update({ where: { id: bookingId }, data: { lessonId } });

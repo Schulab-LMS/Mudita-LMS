@@ -55,7 +55,9 @@ export default async function SessionPage({
   const isTutor = role === "TUTOR";
   const watermark = siteConfig.domain;
 
-  const courses = isTutor ? await getAssignableLessons(booking.studentId) : [];
+  const courses = isTutor
+    ? await getAssignableLessons(booking.studentId, session.user.id)
+    : [];
 
   const lesson = booking.lesson;
   const lessonTitle = lesson ? getLocalizedField(lesson, "title", locale) : null;

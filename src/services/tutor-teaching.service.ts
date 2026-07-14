@@ -3,7 +3,10 @@ import { db } from "@/lib/db";
 export async function getTutorTeachingOverview(userId: string) {
   const tutor = await db.tutorProfile.findUnique({
     where: { userId },
-    select: { id: true },
+    select: {
+      id: true,
+      courseAssignments: { select: { courseId: true } },
+    },
   });
   if (!tutor) return null;
 
@@ -37,6 +40,7 @@ export async function getTutorTeachingOverview(userId: string) {
   });
 
   const studentIds = [...new Set(bookings.map((booking) => booking.studentId))];
+  const courseIds = tutor.courseAssignments.map((assignment) => assignment.courseId);
   if (studentIds.length === 0) {
     return {
       tutorId: tutor.id,
@@ -51,7 +55,11 @@ export async function getTutorTeachingOverview(userId: string) {
 
   const [enrollments, lessonProgress, quizAttempts, submissions] = await Promise.all([
     db.enrollment.findMany({
-      where: { userId: { in: studentIds }, status: { in: ["ACTIVE", "COMPLETED"] } },
+      where: {
+        userId: { in: studentIds },
+        courseId: { in: courseIds },
+        status: { in: ["ACTIVE", "COMPLETED"] },
+      },
       orderBy: { enrolledAt: "desc" },
       select: {
         userId: true,
@@ -64,7 +72,7 @@ export async function getTutorTeachingOverview(userId: string) {
     db.lessonProgress.findMany({
       where: {
         userId: { in: studentIds },
-        lesson: { module: { course: { enrollments: { some: { userId: { in: studentIds } } } } } },
+        lesson: { module: { courseId: { in: courseIds } } },
       },
       select: {
         userId: true,
@@ -73,7 +81,11 @@ export async function getTutorTeachingOverview(userId: string) {
       },
     }),
     db.quizAttempt.findMany({
-      where: { userId: { in: studentIds }, completedAt: { not: null } },
+      where: {
+        userId: { in: studentIds },
+        completedAt: { not: null },
+        quiz: { lesson: { module: { courseId: { in: courseIds } } } },
+      },
       orderBy: { completedAt: "desc" },
       take: 30,
       select: {
@@ -96,7 +108,11 @@ export async function getTutorTeachingOverview(userId: string) {
       },
     }),
     db.activitySubmission.findMany({
-      where: { studentId: { in: studentIds }, lessonId: { not: null } },
+      where: {
+        studentId: { in: studentIds },
+        lessonId: { not: null },
+        lesson: { module: { courseId: { in: courseIds } } },
+      },
       orderBy: { updatedAt: "desc" },
       take: 30,
       select: {

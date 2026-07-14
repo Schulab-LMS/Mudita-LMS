@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { NoResultsScene } from "@/components/illustrations/empty-scenes";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { GraduationCap, Clock, BadgeCheck } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import {
   VerifyTutorButton,
   RejectTutorButton,
@@ -257,6 +258,12 @@ export default async function AdminTutorsPage() {
                       </td>
                       <td className="px-5 py-3">
                         <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/admin/tutors/${tutor.id}/courses`}
+                            className="inline-flex h-8 items-center rounded-md border border-input px-3 text-xs font-semibold hover:bg-muted"
+                          >
+                            Courses
+                          </Link>
                           <RejectTutorButton tutorId={tutor.id} />
                           <DeleteTutorButton
                             tutorId={tutor.id}

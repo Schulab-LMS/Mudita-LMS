@@ -310,10 +310,11 @@ model Course {
   prerequisites CoursePrerequisite[] @relation("CourseRequires")
   requiredFor   CoursePrerequisite[] @relation("CoursePrereqOf")
 
-  modules          Module[]
-  enrollments      Enrollment[]
-  reviews          CourseReview[]
-  tutorAssignments TutorAssignment[]
+  modules                Module[]
+  enrollments            Enrollment[]
+  reviews                CourseReview[]
+  tutorAssignments       TutorAssignment[]
+  tutorCourseAssignments TutorCourseAssignment[]
 
   // Catalog content readiness + free-form admin notes (see ContentStatus).
   contentStatus ContentStatus @default(SEED_NOW)
@@ -1081,9 +1082,27 @@ model TutorProfile {
   isVerified    Boolean  @default(false)
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  availability TutorAvailability[]
-  bookings     Booking[]
-  assignments  TutorAssignment[]
+  availability      TutorAvailability[]
+  bookings          Booking[]
+  assignments       TutorAssignment[]
+  courseAssignments TutorCourseAssignment[]
+}
+
+// Durable Admin-managed authorization for which curriculum a tutor may teach.
+// Bookings establish the tutor↔learner relationship; this row establishes the
+// independent tutor↔course permission used by lesson and assignment actions.
+model TutorCourseAssignment {
+  id           String   @id @default(cuid())
+  tutorId      String
+  courseId     String
+  assignedById String?
+  createdAt    DateTime @default(now())
+
+  tutor  TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorId, courseId])
+  @@index([courseId])
 }
 
 model TutorAvailability {

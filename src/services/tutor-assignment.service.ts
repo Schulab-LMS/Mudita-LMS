@@ -23,7 +23,10 @@ const assignmentInclude = {
 export async function getTutorAssignmentOptions(userId: string) {
   const tutor = await db.tutorProfile.findUnique({
     where: { userId },
-    select: { id: true },
+    select: {
+      id: true,
+      courseAssignments: { select: { courseId: true } },
+    },
   });
   if (!tutor) return null;
 
@@ -36,10 +39,12 @@ export async function getTutorAssignmentOptions(userId: string) {
   });
   const studentIds = bookings.map((booking) => booking.student.id);
   if (studentIds.length === 0) return { tutorId: tutor.id, learners: [] };
+  const courseIds = tutor.courseAssignments.map((assignment) => assignment.courseId);
 
   const enrollments = await db.enrollment.findMany({
     where: {
       userId: { in: studentIds },
+      courseId: { in: courseIds },
       status: { in: ["ACTIVE", "COMPLETED"] },
     },
     orderBy: { course: { title: "asc" } },
@@ -86,7 +91,10 @@ export async function getTutorAssignmentOptions(userId: string) {
 
 export async function getTutorAssignments(userId: string) {
   return db.tutorAssignment.findMany({
-    where: { tutor: { userId } },
+    where: {
+      tutor: { userId },
+      course: { tutorCourseAssignments: { some: { tutor: { userId } } } },
+    },
     orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
     include: assignmentInclude,
   });
@@ -94,7 +102,11 @@ export async function getTutorAssignments(userId: string) {
 
 export async function getTutorAssignmentForReview(userId: string, assignmentId: string) {
   return db.tutorAssignment.findFirst({
-    where: { id: assignmentId, tutor: { userId } },
+    where: {
+      id: assignmentId,
+      tutor: { userId },
+      course: { tutorCourseAssignments: { some: { tutor: { userId } } } },
+    },
     include: assignmentInclude,
   });
 }

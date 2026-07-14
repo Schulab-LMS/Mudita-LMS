@@ -45,10 +45,18 @@ export async function createTutorAssignment(input: CreateTutorAssignmentInput) {
     select: {
       id: true,
       bookings: { where: { studentId: data.studentId }, take: 1, select: { id: true } },
+      courseAssignments: {
+        where: { courseId: data.courseId },
+        take: 1,
+        select: { id: true },
+      },
     },
   });
   if (!tutor || tutor.bookings.length === 0) {
     return { success: false, error: "You can only assign work to your booked learners" };
+  }
+  if (tutor.courseAssignments.length === 0) {
+    return { success: false, error: "You are not assigned to teach this course" };
   }
 
   const enrollment = await db.enrollment.findUnique({
@@ -159,7 +167,14 @@ export async function gradeTutorAssignment(input: z.input<typeof gradeSchema>) {
   const submission = await db.tutorAssignmentSubmission.findFirst({
     where: {
       id: parsed.data.submissionId,
-      assignment: { tutor: { userId: session.user.id } },
+      assignment: {
+        tutor: { userId: session.user.id },
+        course: {
+          tutorCourseAssignments: {
+            some: { tutor: { userId: session.user.id } },
+          },
+        },
+      },
     },
     select: {
       id: true,

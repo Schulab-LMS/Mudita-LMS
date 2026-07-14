@@ -61,7 +61,11 @@ describe("tutor assignment authorization and lifecycle", () => {
   });
 
   it("rejects assignment creation when the learner has never booked the tutor", async () => {
-    mocks.tutorFindUnique.mockResolvedValue({ id: "tutor_1", bookings: [] });
+    mocks.tutorFindUnique.mockResolvedValue({
+      id: "tutor_1",
+      bookings: [],
+      courseAssignments: [{ id: "course_assignment_1" }],
+    });
 
     const result = await createTutorAssignment(validAssignment);
 
@@ -71,7 +75,11 @@ describe("tutor assignment authorization and lifecycle", () => {
   });
 
   it("rejects assignment creation for a course the learner is not enrolled in", async () => {
-    mocks.tutorFindUnique.mockResolvedValue({ id: "tutor_1", bookings: [{ id: "booking_1" }] });
+    mocks.tutorFindUnique.mockResolvedValue({
+      id: "tutor_1",
+      bookings: [{ id: "booking_1" }],
+      courseAssignments: [{ id: "course_assignment_1" }],
+    });
     mocks.enrollmentFindUnique.mockResolvedValue(null);
 
     const result = await createTutorAssignment(validAssignment);
@@ -81,8 +89,27 @@ describe("tutor assignment authorization and lifecycle", () => {
     expect(mocks.assignmentCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects assignment creation when Admin has not assigned the tutor to the course", async () => {
+    mocks.tutorFindUnique.mockResolvedValue({
+      id: "tutor_1",
+      bookings: [{ id: "booking_1" }],
+      courseAssignments: [],
+    });
+
+    const result = await createTutorAssignment(validAssignment);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/not assigned to teach/i);
+    expect(mocks.enrollmentFindUnique).not.toHaveBeenCalled();
+    expect(mocks.assignmentCreate).not.toHaveBeenCalled();
+  });
+
   it("rejects a lesson ID from another course", async () => {
-    mocks.tutorFindUnique.mockResolvedValue({ id: "tutor_1", bookings: [{ id: "booking_1" }] });
+    mocks.tutorFindUnique.mockResolvedValue({
+      id: "tutor_1",
+      bookings: [{ id: "booking_1" }],
+      courseAssignments: [{ id: "course_assignment_1" }],
+    });
     mocks.enrollmentFindUnique.mockResolvedValue({ status: "ACTIVE" });
     mocks.lessonFindFirst.mockResolvedValue(null);
 
@@ -93,7 +120,11 @@ describe("tutor assignment authorization and lifecycle", () => {
   });
 
   it("publishes an authorized assignment and notifies its learner", async () => {
-    mocks.tutorFindUnique.mockResolvedValue({ id: "tutor_1", bookings: [{ id: "booking_1" }] });
+    mocks.tutorFindUnique.mockResolvedValue({
+      id: "tutor_1",
+      bookings: [{ id: "booking_1" }],
+      courseAssignments: [{ id: "course_assignment_1" }],
+    });
     mocks.enrollmentFindUnique.mockResolvedValue({ status: "ACTIVE" });
     mocks.lessonFindFirst.mockResolvedValue({ id: "lesson_1" });
     mocks.assignmentCreate.mockResolvedValue({ id: "assignment_1", title: "Build a rover" });
@@ -132,7 +163,9 @@ describe("tutor assignment authorization and lifecycle", () => {
 
     expect(result.success).toBe(false);
     expect(mocks.submissionFindFirst).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({ assignment: { tutor: { userId: "tutor_user_1" } } }),
+      where: expect.objectContaining({
+        assignment: expect.objectContaining({ tutor: { userId: "tutor_user_1" } }),
+      }),
     }));
     expect(mocks.submissionUpdate).not.toHaveBeenCalled();
   });
