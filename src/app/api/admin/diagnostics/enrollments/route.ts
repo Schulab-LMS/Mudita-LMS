@@ -27,6 +27,12 @@ type RawEnrollmentOwner = RawEnrollment & {
   courseTitle: string;
 };
 
+type TextFingerprint = {
+  value: string;
+  length: number;
+  utf8Hex: string;
+};
+
 const enrollmentSelect = {
   id: true,
   userId: true,
@@ -106,18 +112,41 @@ export async function GET(request: Request) {
   // from the database, schema, and input value in the diagnostic result.
   const nativePool = new Pool({ connectionString: process.env.DATABASE_URL });
   let nodePg: RawEnrollment[];
+  let nodePgAll: RawEnrollment[];
+  let nodePgParameter: TextFingerprint;
   try {
-    const result = await nativePool.query<RawEnrollment>(
+    const [filteredResult, allResult, parameterResult] = await Promise.all([
+      nativePool.query<RawEnrollment>(
       `SELECT "id", "userId", "courseId", "status"::text, "progress", "enrolledAt"
        FROM "Enrollment"
        WHERE "userId" = $1
        ORDER BY "enrolledAt" DESC`,
       [user.id]
-    );
-    nodePg = result.rows;
+      ),
+      nativePool.query<RawEnrollment>(
+        `SELECT "id", "userId", "courseId", "status"::text, "progress", "enrolledAt"
+         FROM "Enrollment"
+         ORDER BY "enrolledAt" DESC`
+      ),
+      nativePool.query<TextFingerprint>(
+        `SELECT
+           $1::text AS "value",
+           length($1::text)::int AS "length",
+           encode(convert_to($1::text, 'UTF8'), 'hex') AS "utf8Hex"`,
+        [user.id]
+      ),
+    ]);
+    nodePg = filteredResult.rows;
+    nodePgAll = allResult.rows;
+    nodePgParameter = parameterResult.rows[0];
   } finally {
     await nativePool.end();
   }
+
+  const userIdFingerprint = fingerprint(user.id);
+  const matchingOwnerFingerprints = allRawOwners
+    .filter((row) => row.userId === user.id)
+    .map((row) => fingerprint(row.userId));
 
   const counts = {
     relationCount: user._count.enrollments,
@@ -126,6 +155,8 @@ export async function GET(request: Request) {
     relationalRows: relational.length,
     rawRows: raw.length,
     nodePgRows: nodePg.length,
+    nodePgAllRows: nodePgAll.length,
+    jsOwnerMatches: matchingOwnerFingerprints.length,
   };
 
   return noStoreJson({
@@ -140,8 +171,22 @@ export async function GET(request: Request) {
       raw,
       allRawOwners,
       nodePg,
+      nodePgAll,
+    },
+    fingerprints: {
+      userId: userIdFingerprint,
+      matchingOwnerIds: matchingOwnerFingerprints,
+      nodePgParameter,
     },
   });
+}
+
+function fingerprint(value: string): TextFingerprint {
+  return {
+    value,
+    length: value.length,
+    utf8Hex: Buffer.from(value, "utf8").toString("hex"),
+  };
 }
 
 function noStoreJson(body: unknown, status = 200) {

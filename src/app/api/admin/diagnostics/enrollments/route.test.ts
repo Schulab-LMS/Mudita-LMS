@@ -85,7 +85,18 @@ describe("admin enrollment diagnostics", () => {
           courseTitle: "Wonder Lab",
         },
       ]);
-    mocks.pgQuery.mockResolvedValue({ rows: [row] });
+    mocks.pgQuery
+      .mockResolvedValueOnce({ rows: [row] })
+      .mockResolvedValueOnce({ rows: [row] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            value: "student_1",
+            length: 9,
+            utf8Hex: "73747564656e745f31",
+          },
+        ],
+      });
     mocks.pgEnd.mockResolvedValue(undefined);
 
     const response = await GET(
@@ -102,11 +113,17 @@ describe("admin enrollment diagnostics", () => {
       relationalRows: 1,
       rawRows: 1,
       nodePgRows: 1,
+      nodePgAllRows: 1,
+      jsOwnerMatches: 1,
     });
     expect(mocks.enrollmentFindMany).toHaveBeenCalledTimes(2);
     expect(mocks.queryRaw).toHaveBeenCalledTimes(2);
     expect(body.rows.allRawOwners).toHaveLength(1);
     expect(body.rows.nodePg).toHaveLength(1);
+    expect(body.rows.nodePgAll).toHaveLength(1);
+    expect(body.fingerprints.userId).toEqual(
+      body.fingerprints.nodePgParameter
+    );
     expect(mocks.pgEnd).toHaveBeenCalledOnce();
   });
 });
