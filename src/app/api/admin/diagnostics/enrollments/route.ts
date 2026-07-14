@@ -64,40 +64,41 @@ export async function GET(request: Request) {
     return noStoreJson({ error: "user_not_found" }, 404);
   }
 
-  const [direct, relational, raw, allRawOwners] = await Promise.all([
-    db.enrollment.findMany({
-      where: { userId: user.id },
-      select: enrollmentSelect,
-      orderBy: { enrolledAt: "desc" },
-    }),
-    db.enrollment.findMany({
-      where: { user: { email: user.email } },
-      select: enrollmentSelect,
-      orderBy: { enrolledAt: "desc" },
-    }),
-    db.$queryRaw<RawEnrollment[]>`
-      SELECT "id", "userId", "courseId", "status"::text, "progress", "enrolledAt"
-      FROM "Enrollment"
-      WHERE "userId" = ${user.id}
-      ORDER BY "enrolledAt" DESC
-    `,
-    db.$queryRaw<RawEnrollmentOwner[]>`
-      SELECT
-        e."id",
-        e."userId",
-        e."courseId",
-        e."status"::text,
-        e."progress",
-        e."enrolledAt",
-        u."email" AS "userEmail",
-        u."name" AS "userName",
-        c."title" AS "courseTitle"
-      FROM "Enrollment" e
-      JOIN "User" u ON u."id" = e."userId"
-      JOIN "Course" c ON c."id" = e."courseId"
-      ORDER BY e."enrolledAt" DESC
-    `,
-  ]);
+  // Deliberately execute these in sequence. This probe exists to determine
+  // whether the pg driver adapter is crossing parameter values between
+  // concurrent requests made on the shared Prisma client.
+  const direct = await db.enrollment.findMany({
+    where: { userId: user.id },
+    select: enrollmentSelect,
+    orderBy: { enrolledAt: "desc" },
+  });
+  const relational = await db.enrollment.findMany({
+    where: { user: { email: user.email } },
+    select: enrollmentSelect,
+    orderBy: { enrolledAt: "desc" },
+  });
+  const raw = await db.$queryRaw<RawEnrollment[]>`
+    SELECT "id", "userId", "courseId", "status"::text, "progress", "enrolledAt"
+    FROM "Enrollment"
+    WHERE "userId" = ${user.id}
+    ORDER BY "enrolledAt" DESC
+  `;
+  const allRawOwners = await db.$queryRaw<RawEnrollmentOwner[]>`
+    SELECT
+      e."id",
+      e."userId",
+      e."courseId",
+      e."status"::text,
+      e."progress",
+      e."enrolledAt",
+      u."email" AS "userEmail",
+      u."name" AS "userName",
+      c."title" AS "courseTitle"
+    FROM "Enrollment" e
+    JOIN "User" u ON u."id" = e."userId"
+    JOIN "Course" c ON c."id" = e."courseId"
+    ORDER BY e."enrolledAt" DESC
+  `;
 
   const counts = {
     relationCount: user._count.enrollments,
