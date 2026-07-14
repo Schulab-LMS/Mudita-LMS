@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { audit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { sanitizeText } from "@/lib/sanitize";
 import { createNotification } from "@/services/notification.service";
@@ -23,6 +24,19 @@ const submitSchema = z.object({
   content: z.string().trim().min(1, "Write something before submitting").max(10_000),
 });
 
+const updateSchema = createSchema.omit({ studentId: true, courseId: true, lessonId: true }).extend({
+  assignmentId: z.string().min(1),
+});
+
+const statusSchema = z.object({
+  assignmentId: z.string().min(1),
+  status: z.enum(["PUBLISHED", "CLOSED"]),
+});
+
+const deleteSchema = z.object({
+  assignmentId: z.string().min(1),
+});
+
 const gradeSchema = z.object({
   submissionId: z.string().min(1),
   points: z.coerce.number().int().min(0).optional().nullable(),
@@ -31,6 +45,21 @@ const gradeSchema = z.object({
 });
 
 export type CreateTutorAssignmentInput = z.input<typeof createSchema>;
+export type UpdateTutorAssignmentInput = z.input<typeof updateSchema>;
+
+function parseDueAt(value: string | null | undefined) {
+  if (!value) return { value: null as Date | null };
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return { value: null, error: "Enter a valid due date" };
+  return { value: date };
+}
+
+function revalidateAssignmentPaths(assignmentId: string, studentId: string) {
+  revalidatePath(`/tutor/teaching/assignments/${assignmentId}`);
+  revalidatePath("/tutor/teaching");
+  revalidatePath("/student/assignments");
+  revalidatePath(`/parent/children/${studentId}`);
+}
 
 export async function createTutorAssignment(input: CreateTutorAssignmentInput) {
   const session = await auth();
@@ -75,11 +104,8 @@ export async function createTutorAssignment(input: CreateTutorAssignmentInput) {
     if (!lesson) return { success: false, error: "The selected lesson is not in this course" };
   }
 
-  let dueAt: Date | null = null;
-  if (data.dueAt) {
-    dueAt = new Date(data.dueAt);
-    if (Number.isNaN(dueAt.getTime())) return { success: false, error: "Enter a valid due date" };
-  }
+  const dueAt = parseDueAt(data.dueAt);
+  if (dueAt.error) return { success: false, error: dueAt.error };
 
   const assignment = await db.tutorAssignment.create({
     data: {
@@ -90,7 +116,7 @@ export async function createTutorAssignment(input: CreateTutorAssignmentInput) {
       title: sanitizeText(data.title),
       instructions: sanitizeText(data.instructions),
       kind: data.kind,
-      dueAt,
+      dueAt: dueAt.value,
       maxPoints: data.maxPoints,
       status: "PUBLISHED",
     },
@@ -106,6 +132,148 @@ export async function createTutorAssignment(input: CreateTutorAssignmentInput) {
   revalidatePath("/tutor/teaching");
   revalidatePath("/student/assignments");
   return { success: true, assignmentId: assignment.id };
+}
+
+export async function updateTutorAssignment(input: UpdateTutorAssignmentInput) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+  const parsed = updateSchema.safeParse(input);
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+  const data = parsed.data;
+
+  const assignment = await db.tutorAssignment.findFirst({
+    where: {
+      id: data.assignmentId,
+      tutor: { userId: session.user.id },
+      course: { tutorCourseAssignments: { some: { tutor: { userId: session.user.id } } } },
+    },
+    select: {
+      id: true,
+      title: true,
+      studentId: true,
+      status: true,
+      submissions: { select: { id: true }, take: 1 },
+    },
+  });
+  if (!assignment) return { success: false, error: "Assignment not found" };
+  if (assignment.submissions.length > 0) {
+    return { success: false, error: "Assignment terms cannot be edited after work has been submitted" };
+  }
+
+  const dueAt = parseDueAt(data.dueAt);
+  if (dueAt.error) return { success: false, error: dueAt.error };
+  const title = sanitizeText(data.title);
+
+  await db.tutorAssignment.update({
+    where: { id: assignment.id },
+    data: {
+      title,
+      instructions: sanitizeText(data.instructions),
+      kind: data.kind,
+      dueAt: dueAt.value,
+      maxPoints: data.maxPoints,
+    },
+  });
+  await audit({
+    actorId: session.user.id,
+    action: "tutor.assignment_update",
+    resource: "TutorAssignment",
+    resourceId: assignment.id,
+    metadata: { previousTitle: assignment.title, title, status: assignment.status },
+  });
+  await createNotification(assignment.studentId, {
+    title: "Assignment updated",
+    message: title,
+    type: "ASSIGNMENT",
+    link: "/student/assignments",
+  });
+  revalidateAssignmentPaths(assignment.id, assignment.studentId);
+  return { success: true };
+}
+
+export async function setTutorAssignmentStatus(input: z.input<typeof statusSchema>) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+  const parsed = statusSchema.safeParse(input);
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+  const assignment = await db.tutorAssignment.findFirst({
+    where: {
+      id: parsed.data.assignmentId,
+      tutor: { userId: session.user.id },
+      course: { tutorCourseAssignments: { some: { tutor: { userId: session.user.id } } } },
+    },
+    select: { id: true, title: true, studentId: true, status: true },
+  });
+  if (!assignment) return { success: false, error: "Assignment not found" };
+  if (assignment.status === parsed.data.status) return { success: true };
+
+  await db.tutorAssignment.update({
+    where: { id: assignment.id },
+    data: { status: parsed.data.status },
+  });
+  const closed = parsed.data.status === "CLOSED";
+  await audit({
+    actorId: session.user.id,
+    action: closed ? "tutor.assignment_close" : "tutor.assignment_reopen",
+    resource: "TutorAssignment",
+    resourceId: assignment.id,
+    metadata: { previousStatus: assignment.status, status: parsed.data.status },
+  });
+  await createNotification(assignment.studentId, {
+    title: closed ? "Assignment closed" : "Assignment reopened",
+    message: assignment.title,
+    type: "ASSIGNMENT",
+    link: "/student/assignments",
+  });
+  revalidateAssignmentPaths(assignment.id, assignment.studentId);
+  return { success: true };
+}
+
+export async function deleteTutorAssignment(input: z.input<typeof deleteSchema>) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+  const parsed = deleteSchema.safeParse(input);
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
+
+  const assignment = await db.tutorAssignment.findFirst({
+    where: {
+      id: parsed.data.assignmentId,
+      tutor: { userId: session.user.id },
+      course: { tutorCourseAssignments: { some: { tutor: { userId: session.user.id } } } },
+    },
+    select: { id: true, title: true, studentId: true, _count: { select: { submissions: true } } },
+  });
+  if (!assignment) return { success: false, error: "Assignment not found" };
+  if (assignment._count.submissions > 0) {
+    return { success: false, error: "Assignments with submitted work cannot be deleted; close the assignment instead" };
+  }
+
+  const deleted = await db.tutorAssignment.deleteMany({
+    where: {
+      id: assignment.id,
+      tutor: { userId: session.user.id },
+      course: { tutorCourseAssignments: { some: { tutor: { userId: session.user.id } } } },
+      submissions: { none: {} },
+    },
+  });
+  if (deleted.count !== 1) return { success: false, error: "Assignment changed before it could be deleted" };
+
+  await audit({
+    actorId: session.user.id,
+    action: "tutor.assignment_delete",
+    resource: "TutorAssignment",
+    resourceId: assignment.id,
+    metadata: { title: assignment.title, studentId: assignment.studentId },
+  });
+  await createNotification(assignment.studentId, {
+    title: "Assignment removed",
+    message: assignment.title,
+    type: "ASSIGNMENT",
+    link: "/student/assignments",
+  });
+  revalidateAssignmentPaths(assignment.id, assignment.studentId);
+  return { success: true };
 }
 
 export async function submitTutorAssignment(input: z.input<typeof submitSchema>) {

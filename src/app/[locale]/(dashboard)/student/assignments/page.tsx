@@ -29,6 +29,7 @@ export default async function StudentAssignmentsPage() {
                   <div>
                     <div className="mb-2 flex flex-wrap gap-2">
                       <span className="chip chip-primary">{assignment.kind.toLowerCase()}</span>
+                      {assignment.status === "CLOSED" && <span className="chip chip-accent">closed</span>}
                       {overdue && <span className="chip chip-accent">overdue</span>}
                       {submission && <span className={submission.status === "REVIEWED" ? "chip chip-success" : "chip chip-neutral"}>{submission.status.toLowerCase()}</span>}
                     </div>
@@ -46,6 +47,11 @@ export default async function StudentAssignmentsPage() {
                     <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">Tutor feedback{submission.points != null ? ` · ${submission.points}/${assignment.maxPoints}` : ""}</p>
                     <p className="mt-1 whitespace-pre-wrap text-sm">{submission.feedback}</p>
                   </div>
+                )}
+                {assignment.status === "CLOSED" && (
+                  <p className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
+                    This assignment is closed. Your existing submission and feedback remain available, but new submissions are not accepted.
+                  </p>
                 )}
                 {assignment.status === "PUBLISHED" && (
                   <AssignmentSubmissionForm assignmentId={assignment.id} existingContent={submission?.content ?? null} />

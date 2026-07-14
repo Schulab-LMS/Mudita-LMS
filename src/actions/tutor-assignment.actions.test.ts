@@ -7,10 +7,13 @@ const mocks = vi.hoisted(() => ({
   lessonFindFirst: vi.fn(),
   assignmentCreate: vi.fn(),
   assignmentFindFirst: vi.fn(),
+  assignmentUpdate: vi.fn(),
+  assignmentDeleteMany: vi.fn(),
   submissionFindFirst: vi.fn(),
   submissionUpsert: vi.fn(),
   submissionUpdate: vi.fn(),
   createNotification: vi.fn(),
+  audit: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 
@@ -23,6 +26,8 @@ vi.mock("@/lib/db", () => ({
     tutorAssignment: {
       create: mocks.assignmentCreate,
       findFirst: mocks.assignmentFindFirst,
+      update: mocks.assignmentUpdate,
+      deleteMany: mocks.assignmentDeleteMany,
     },
     tutorAssignmentSubmission: {
       findFirst: mocks.submissionFindFirst,
@@ -34,12 +39,16 @@ vi.mock("@/lib/db", () => ({
 vi.mock("@/services/notification.service", () => ({
   createNotification: mocks.createNotification,
 }));
+vi.mock("@/lib/audit", () => ({ audit: mocks.audit }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 
 import {
   createTutorAssignment,
+  deleteTutorAssignment,
   gradeTutorAssignment,
+  setTutorAssignmentStatus,
   submitTutorAssignment,
+  updateTutorAssignment,
 } from "./tutor-assignment.actions";
 
 const validAssignment = {
@@ -51,6 +60,15 @@ const validAssignment = {
   kind: "PROJECT" as const,
   dueAt: "2026-08-01T12:00",
   maxPoints: 100,
+};
+
+const validUpdate = {
+  assignmentId: "assignment_1",
+  title: "Build a safer rover",
+  instructions: "Create, test, and explain your rover.",
+  kind: "PROJECT" as const,
+  dueAt: "2026-08-02T12:00",
+  maxPoints: 120,
 };
 
 describe("tutor assignment authorization and lifecycle", () => {
@@ -136,6 +154,131 @@ describe("tutor assignment authorization and lifecycle", () => {
       data: expect.objectContaining({ tutorId: "tutor_1", studentId: "student_1", courseId: "course_1" }),
     }));
     expect(mocks.createNotification).toHaveBeenCalledWith("student_1", expect.objectContaining({ type: "ASSIGNMENT" }));
+  });
+
+  it("does not let another tutor edit an assignment", async () => {
+    mocks.assignmentFindFirst.mockResolvedValue(null);
+
+    const result = await updateTutorAssignment(validUpdate);
+
+    expect(result).toEqual({ success: false, error: "Assignment not found" });
+    expect(mocks.assignmentFindFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        tutor: { userId: "tutor_user_1" },
+        course: { tutorCourseAssignments: { some: { tutor: { userId: "tutor_user_1" } } } },
+      }),
+    }));
+    expect(mocks.assignmentUpdate).not.toHaveBeenCalled();
+  });
+
+  it("preserves submitted terms by rejecting assignment edits after submission", async () => {
+    mocks.assignmentFindFirst.mockResolvedValue({
+      id: "assignment_1",
+      title: "Build a rover",
+      studentId: "student_1",
+      status: "PUBLISHED",
+      submissions: [{ id: "submission_1" }],
+    });
+
+    const result = await updateTutorAssignment(validUpdate);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/cannot be edited after work has been submitted/i);
+    expect(mocks.assignmentUpdate).not.toHaveBeenCalled();
+  });
+
+  it("updates an unsubmitted assignment and records an audit entry", async () => {
+    mocks.assignmentFindFirst.mockResolvedValue({
+      id: "assignment_1",
+      title: "Build a rover",
+      studentId: "student_1",
+      status: "PUBLISHED",
+      submissions: [],
+    });
+    mocks.assignmentUpdate.mockResolvedValue({});
+
+    const result = await updateTutorAssignment(validUpdate);
+
+    expect(result).toEqual({ success: true });
+    expect(mocks.assignmentUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: "assignment_1" },
+      data: expect.objectContaining({ title: "Build a safer rover", maxPoints: 120 }),
+    }));
+    expect(mocks.audit).toHaveBeenCalledWith(expect.objectContaining({
+      actorId: "tutor_user_1",
+      action: "tutor.assignment_update",
+      resourceId: "assignment_1",
+    }));
+    expect(mocks.createNotification).toHaveBeenCalledWith("student_1", expect.objectContaining({ title: "Assignment updated" }));
+  });
+
+  it("closes an owned assignment and notifies the learner", async () => {
+    mocks.assignmentFindFirst.mockResolvedValue({
+      id: "assignment_1",
+      title: "Build a rover",
+      studentId: "student_1",
+      status: "PUBLISHED",
+    });
+    mocks.assignmentUpdate.mockResolvedValue({});
+
+    const result = await setTutorAssignmentStatus({ assignmentId: "assignment_1", status: "CLOSED" });
+
+    expect(result).toEqual({ success: true });
+    expect(mocks.assignmentUpdate).toHaveBeenCalledWith({ where: { id: "assignment_1" }, data: { status: "CLOSED" } });
+    expect(mocks.audit).toHaveBeenCalledWith(expect.objectContaining({ action: "tutor.assignment_close" }));
+    expect(mocks.createNotification).toHaveBeenCalledWith("student_1", expect.objectContaining({ title: "Assignment closed" }));
+  });
+
+  it("does not let another tutor close or reopen an assignment", async () => {
+    mocks.assignmentFindFirst.mockResolvedValue(null);
+
+    const result = await setTutorAssignmentStatus({ assignmentId: "assignment_1", status: "CLOSED" });
+
+    expect(result).toEqual({ success: false, error: "Assignment not found" });
+    expect(mocks.assignmentUpdate).not.toHaveBeenCalled();
+  });
+
+  it("does not delete an assignment that has submitted work", async () => {
+    mocks.assignmentFindFirst.mockResolvedValue({
+      id: "assignment_1",
+      title: "Build a rover",
+      studentId: "student_1",
+      _count: { submissions: 1 },
+    });
+
+    const result = await deleteTutorAssignment({ assignmentId: "assignment_1" });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/cannot be deleted/i);
+    expect(mocks.assignmentDeleteMany).not.toHaveBeenCalled();
+  });
+
+  it("does not let another tutor delete an assignment", async () => {
+    mocks.assignmentFindFirst.mockResolvedValue(null);
+
+    const result = await deleteTutorAssignment({ assignmentId: "assignment_1" });
+
+    expect(result).toEqual({ success: false, error: "Assignment not found" });
+    expect(mocks.assignmentDeleteMany).not.toHaveBeenCalled();
+  });
+
+  it("deletes an unsubmitted assignment with a guarded write and audit entry", async () => {
+    mocks.assignmentFindFirst.mockResolvedValue({
+      id: "assignment_1",
+      title: "Build a rover",
+      studentId: "student_1",
+      _count: { submissions: 0 },
+    });
+    mocks.assignmentDeleteMany.mockResolvedValue({ count: 1 });
+
+    const result = await deleteTutorAssignment({ assignmentId: "assignment_1" });
+
+    expect(result).toEqual({ success: true });
+    expect(mocks.assignmentDeleteMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: "assignment_1", submissions: { none: {} } }),
+    }));
+    expect(mocks.audit).toHaveBeenCalledWith(expect.objectContaining({ action: "tutor.assignment_delete" }));
+    expect(mocks.createNotification).toHaveBeenCalledWith("student_1", expect.objectContaining({ title: "Assignment removed" }));
   });
 
   it("does not let a student submit another learner's assignment", async () => {

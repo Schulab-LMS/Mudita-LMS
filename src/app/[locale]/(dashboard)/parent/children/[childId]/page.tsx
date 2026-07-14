@@ -224,9 +224,12 @@ export default async function ChildDetailPage({
                     <h3 className="font-semibold">{assignment.title}</h3>
                     <p className="text-xs text-muted-foreground">{assignment.course.title} · {assignment.tutor.user.name}</p>
                   </div>
-                  <span className={submission?.status === "REVIEWED" ? "chip chip-success" : submission ? "chip chip-accent" : "chip chip-neutral"}>
-                    {submission?.status.toLowerCase() ?? "not submitted"}
-                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {assignment.status === "CLOSED" && <span className="chip chip-accent">closed</span>}
+                    <span className={submission?.status === "REVIEWED" ? "chip chip-success" : submission ? "chip chip-accent" : "chip chip-neutral"}>
+                      {submission?.status.toLowerCase() ?? "not submitted"}
+                    </span>
+                  </div>
                 </div>
                 <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">{assignment.instructions}</p>
                 {submission?.feedback && (

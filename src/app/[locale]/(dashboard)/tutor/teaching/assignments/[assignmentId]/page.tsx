@@ -4,6 +4,7 @@ import { getTutorAssignmentForReview } from "@/services/tutor-assignment.service
 import { PageHeader } from "@/components/ui/page-header";
 import { ClipboardCheck } from "lucide-react";
 import { GradeForm } from "./grade-form";
+import { AssignmentLifecyclePanel } from "./assignment-lifecycle-panel";
 
 export default async function TutorAssignmentReviewPage({ params }: { params: Promise<{ assignmentId: string }> }) {
   const session = await auth();
@@ -25,6 +26,7 @@ export default async function TutorAssignmentReviewPage({ params }: { params: Pr
       <section className="card-premium space-y-4 p-6">
         <div className="flex flex-wrap gap-2">
           <span className="chip chip-primary">{assignment.kind.toLowerCase()}</span>
+          <span className={assignment.status === "CLOSED" ? "chip chip-accent" : "chip chip-success"}>{assignment.status.toLowerCase()}</span>
           <span className="chip chip-neutral">{assignment.maxPoints} points</span>
           {assignment.dueAt && <span className="chip chip-neutral">Due {dateFmt.format(assignment.dueAt)}</span>}
         </div>
@@ -34,6 +36,18 @@ export default async function TutorAssignmentReviewPage({ params }: { params: Pr
         </div>
         {assignment.lesson && <p className="text-xs text-muted-foreground">Lesson: {assignment.lesson.title}</p>}
       </section>
+      <AssignmentLifecyclePanel
+        assignment={{
+          id: assignment.id,
+          title: assignment.title,
+          instructions: assignment.instructions,
+          kind: assignment.kind,
+          status: assignment.status,
+          dueAt: assignment.dueAt?.toISOString().slice(0, 16) ?? "",
+          maxPoints: assignment.maxPoints,
+        }}
+        hasSubmission={Boolean(submission)}
+      />
       <section className="card-premium space-y-4 p-6">
         <div>
           <h2 className="font-semibold">Learner submission</h2>

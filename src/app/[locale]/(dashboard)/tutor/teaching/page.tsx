@@ -142,6 +142,9 @@ export default async function TutorTeachingPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
+                    <span className={assignment.status === "CLOSED" ? "chip chip-accent" : "chip chip-success"}>
+                      {assignment.status.toLowerCase()}
+                    </span>
                     <span className={submission?.status === "REVIEWED" ? "chip chip-success" : submission ? "chip chip-accent" : "chip chip-neutral"}>
                       {submission?.status.toLowerCase() ?? "not submitted"}
                     </span>
