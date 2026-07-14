@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Pool } from "pg";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
@@ -100,12 +101,31 @@ export async function GET(request: Request) {
     ORDER BY e."enrolledAt" DESC
   `;
 
+  // Bypass Prisma's query compiler/driver-adapter argument mapping while
+  // retaining native PostgreSQL parameterization. This isolates the adapter
+  // from the database, schema, and input value in the diagnostic result.
+  const nativePool = new Pool({ connectionString: process.env.DATABASE_URL });
+  let nodePg: RawEnrollment[];
+  try {
+    const result = await nativePool.query<RawEnrollment>(
+      `SELECT "id", "userId", "courseId", "status"::text, "progress", "enrolledAt"
+       FROM "Enrollment"
+       WHERE "userId" = $1
+       ORDER BY "enrolledAt" DESC`,
+      [user.id]
+    );
+    nodePg = result.rows;
+  } finally {
+    await nativePool.end();
+  }
+
   const counts = {
     relationCount: user._count.enrollments,
     nestedRows: user.enrollments.length,
     directRows: direct.length,
     relationalRows: relational.length,
     rawRows: raw.length,
+    nodePgRows: nodePg.length,
   };
 
   return noStoreJson({
@@ -119,6 +139,7 @@ export async function GET(request: Request) {
       relational,
       raw,
       allRawOwners,
+      nodePg,
     },
   });
 }

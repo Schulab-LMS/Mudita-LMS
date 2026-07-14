@@ -5,6 +5,8 @@ const mocks = vi.hoisted(() => ({
   userFindUnique: vi.fn(),
   enrollmentFindMany: vi.fn(),
   queryRaw: vi.fn(),
+  pgQuery: vi.fn(),
+  pgEnd: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({ auth: mocks.auth }));
@@ -14,6 +16,12 @@ vi.mock("@/lib/db", () => ({
     enrollment: { findMany: mocks.enrollmentFindMany },
     $queryRaw: mocks.queryRaw,
   },
+}));
+vi.mock("pg", () => ({
+  Pool: vi.fn(() => ({
+    query: mocks.pgQuery,
+    end: mocks.pgEnd,
+  })),
 }));
 
 import { GET } from "./route";
@@ -77,6 +85,8 @@ describe("admin enrollment diagnostics", () => {
           courseTitle: "Wonder Lab",
         },
       ]);
+    mocks.pgQuery.mockResolvedValue({ rows: [row] });
+    mocks.pgEnd.mockResolvedValue(undefined);
 
     const response = await GET(
       new Request("https://example.test/api/admin/diagnostics/enrollments?email=AISHA@example.com")
@@ -91,9 +101,12 @@ describe("admin enrollment diagnostics", () => {
       directRows: 1,
       relationalRows: 1,
       rawRows: 1,
+      nodePgRows: 1,
     });
     expect(mocks.enrollmentFindMany).toHaveBeenCalledTimes(2);
     expect(mocks.queryRaw).toHaveBeenCalledTimes(2);
     expect(body.rows.allRawOwners).toHaveLength(1);
+    expect(body.rows.nodePg).toHaveLength(1);
+    expect(mocks.pgEnd).toHaveBeenCalledOnce();
   });
 });
