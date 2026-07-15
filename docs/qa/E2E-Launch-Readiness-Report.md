@@ -39,6 +39,17 @@ However, testing surfaced **2 High**, **3 Medium**, and **5 Low** severity defec
 
 ---
 
+## 1a. Fixes applied in this PR ✅
+
+Both **High** blockers are fixed in this PR (verified locally); the Medium/Low items remain open for triage.
+
+- **D2 — student route role guard (FIXED).** Added `src/app/[locale]/(dashboard)/student/layout.tsx` mirroring the parent/tutor/admin guards. Verified: non‑students now redirect to their own dashboard; unauthenticated hits redirect cleanly to `/login` (the "Rendered more hooks" runtime error is gone); real students and the admin "Preview as Student" feature still work.
+- **D1 — migration baseline (FIXED).** Squashed the 27 incremental migrations into a single idempotent baseline `prisma/migrations/00000000000000_init`. Verified on a fresh empty DB: `prisma migrate deploy` builds the full schema (incl. the `vector` extension, HNSW index, and 6 CHECK constraints that `schema.prisma` can't express) and `npm run db:seed` succeeds. The baseline is **idempotent** — a safe no‑op on the already‑provisioned production DB. Existing environments can optionally run `npx prisma migrate resolve --applied 00000000000000_init` for a clean history, but it is not required for safety (a deploy without it applies the baseline as a no‑op and tolerates the orphaned migration records).
+
+Post‑fix verdict: the two launch blockers are resolved; remaining open items are **D3/D4/D5 (Medium)** and **D6–D10 (Low)**.
+
+---
+
 ## 2. Coverage
 
 | Area | Coverage | Result |
@@ -58,7 +69,7 @@ However, testing surfaced **2 High**, **3 Medium**, and **5 Low** severity defec
 | i18n (en/ar/de) + RTL | homepage + dashboard | ⚠️ chrome gaps (D8) |
 | Responsive (390px mobile) | homepage + dashboard | ⚠️ dashboard overflow (D5) |
 | Notifications | student notifications | ✅ Pass |
-| Deploy/DB provisioning | migrations from scratch | ❌ Fails (D1) |
+| Deploy/DB provisioning | migrations from scratch | ✅ Fixed in this PR (D1) |
 
 ---
 
@@ -66,8 +77,8 @@ However, testing surfaced **2 High**, **3 Medium**, and **5 Low** severity defec
 
 > Severity scale: **High** = blocks launch / security‑correctness / no workaround; **Medium** = broken feature with workaround or subset impact; **Low** = cosmetic, SEO, or edge; **Observation** = confirm‑intent / non‑defect note.
 
-### 🔴 D1 — `prisma migrate deploy` cannot initialize a fresh database (no baseline migration)
-- **Severity:** High · **Area:** Deployment / DevOps / Disaster‑recovery
+### 🔴 D1 — `prisma migrate deploy` cannot initialize a fresh database (no baseline migration) — ✅ FIXED in this PR
+- **Severity:** High · **Area:** Deployment / DevOps / Disaster‑recovery · **Status:** Fixed (see §1a)
 - **Steps to reproduce:** Point `DATABASE_URL` at an empty Postgres and run `npx prisma migrate deploy` (exactly what `.github/workflows/deploy.yml:234` runs on deploy).
 - **Expected:** Migrations build the full schema on an empty DB.
 - **Actual:** Fails on the very first migration:
@@ -78,8 +89,8 @@ However, testing surfaced **2 High**, **3 Medium**, and **5 Low** severity defec
   `mkdir -p prisma/migrations/00000000000000_init && npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/00000000000000_init/migration.sql`, then `prisma migrate resolve --applied 00000000000000_init` against prod. Add a CI check that `migrate deploy` succeeds against a throwaway empty DB.
 - **Evidence:** reproduced during environment setup; `prisma/migrations/` listing.
 
-### 🔴 D2 — Student area enforces authentication but **not role**; unauthenticated hit throws a React error
-- **Severity:** High · **Area:** RBAC / correctness
+### 🔴 D2 — Student area enforces authentication but **not role**; unauthenticated hit throws a React error — ✅ FIXED in this PR
+- **Severity:** High · **Area:** RBAC / correctness · **Status:** Fixed (see §1a)
 - **Steps to reproduce:**
   1. Log in as **tutor** (`marcus`), **parent** (`sara`), or **admin** → navigate to `/en/student` (or `/en/student/certificates`). → the **student dashboard renders** ("Welcome back, Dr.! 🚀" / "…Sara! 🚀" / "…Admin! 🚀").
   2. In a fresh, **unauthenticated** browser → `GET /en/student`.
@@ -192,11 +203,11 @@ However, testing surfaced **2 High**, **3 Medium**, and **5 Low** severity defec
 
 ## 5. Launch‑readiness assessment
 
-**Overall: 🟠 Conditional Go.** The application is feature‑complete for a beta and the critical business flows (learn, enroll, consent, book, admin) work. Nothing catastrophic (no data loss, no cross‑user data leak, no auth bypass) was found.
+**Overall: 🟢 Go (blockers fixed).** The application is feature‑complete for a beta and the critical business flows (learn, enroll, consent, book, admin) work. Nothing catastrophic (no data loss, no cross‑user data leak, no auth bypass) was found. **Both High‑severity blockers (D1, D2) are fixed in this PR** (see §1a); the remaining items are Medium/Low polish.
 
-**Must‑fix before public launch (blockers):**
-1. **D1** — add a baseline migration so the schema can be provisioned/restored from scratch (DR + new‑env risk).
-2. **D2** — add the `student/layout.tsx` role guard (RBAC consistency + kills the runtime hooks error on a public route).
+**Must‑fix before public launch (blockers) — ✅ DONE:**
+1. ~~**D1** — add a baseline migration so the schema can be provisioned/restored from scratch (DR + new‑env risk).~~ **Fixed:** squashed idempotent baseline `00000000000000_init`; fresh `migrate deploy` + seed verified.
+2. ~~**D2** — add the `student/layout.tsx` role guard (RBAC consistency + kills the runtime hooks error on a public route).~~ **Fixed:** guard added and verified.
 
 **Should‑fix (strongly recommended, quick):**
 3. **D3** — remove or implement the parent "Orders" link (no 404 in shipped nav).
