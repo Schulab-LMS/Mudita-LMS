@@ -95,6 +95,7 @@ model User {
   activitySubmissions        ActivitySubmission[]        @relation("StudentSubmissions")
   tutorAssignmentTargets     TutorAssignment[]           @relation("TutorAssignmentStudent")
   tutorAssignmentSubmissions TutorAssignmentSubmission[] @relation("TutorAssignmentSubmissionStudent")
+  tutorQuizAttempts          TutorQuizAttempt[]          @relation("TutorQuizAttemptStudent")
   studentAvailability        StudentAvailability[]
   lessonNotes                LessonNote[]                @relation("LessonNotes")
   lessonQuestions            LessonQuestion[]            @relation("LessonQuestionsAsked")
@@ -948,14 +949,17 @@ model TutorAssignment {
   status       TutorAssignmentStatus @default(PUBLISHED)
   dueAt        DateTime?
   maxPoints    Int                   @default(100)
+  passingScore Int?
   createdAt    DateTime              @default(now())
   updatedAt    DateTime              @updatedAt
 
-  tutor       TutorProfile                @relation(fields: [tutorId], references: [id], onDelete: Cascade)
-  student     User                        @relation("TutorAssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
-  course      Course                      @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lesson      Lesson?                     @relation(fields: [lessonId], references: [id], onDelete: SetNull)
-  submissions TutorAssignmentSubmission[]
+  tutor         TutorProfile                @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  student       User                        @relation("TutorAssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  course        Course                      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lesson        Lesson?                     @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  submissions   TutorAssignmentSubmission[]
+  quizQuestions TutorQuizQuestion[]
+  quizAttempts  TutorQuizAttempt[]
 
   @@index([tutorId, status])
   @@index([studentId, status])
@@ -981,6 +985,52 @@ model TutorAssignmentSubmission {
 
   @@unique([assignmentId, studentId])
   @@index([studentId, status])
+}
+
+model TutorQuizQuestion {
+  id           String       @id @default(cuid())
+  assignmentId String
+  text         String       @db.Text
+  type         QuestionType @default(MULTIPLE_CHOICE)
+  points       Int          @default(1)
+  order        Int
+  explanation  String?      @db.Text
+
+  assignment TutorAssignment   @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  answers    TutorQuizAnswer[]
+
+  @@unique([assignmentId, order])
+  @@index([assignmentId])
+}
+
+model TutorQuizAnswer {
+  id         String  @id @default(cuid())
+  questionId String
+  text       String  @db.Text
+  isCorrect  Boolean @default(false)
+  order      Int
+
+  question TutorQuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+model TutorQuizAttempt {
+  id           String   @id @default(cuid())
+  assignmentId String
+  studentId    String
+  score        Int
+  earnedPoints Int
+  totalPoints  Int
+  passed       Boolean
+  answers      Json
+  submittedAt  DateTime @default(now())
+
+  assignment TutorAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    User            @relation("TutorQuizAttemptStudent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([assignmentId, submittedAt])
+  @@index([studentId, submittedAt])
 }
 
 // A learner's private, personal note for a lesson. One row per (user, lesson);

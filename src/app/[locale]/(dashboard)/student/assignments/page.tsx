@@ -4,6 +4,7 @@ import { getStudentAssignments } from "@/services/tutor-assignment.service";
 import { PageHeader } from "@/components/ui/page-header";
 import { ClipboardList } from "lucide-react";
 import { AssignmentSubmissionForm } from "./assignment-submission-form";
+import { Link } from "@/i18n/navigation";
 
 export const metadata = { title: "Assignments" };
 
@@ -22,7 +23,8 @@ export default async function StudentAssignmentsPage() {
         <div className="space-y-5">
           {assignments.map((assignment) => {
             const submission = assignment.submissions[0] ?? null;
-            const overdue = Boolean(assignment.dueAt && assignment.dueAt < new Date() && !submission);
+            const quizAttempt = assignment.quizAttempts[0] ?? null;
+            const overdue = Boolean(assignment.dueAt && assignment.dueAt < new Date() && !submission && !quizAttempt);
             return (
               <article key={assignment.id} className="card-premium space-y-5 p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -32,6 +34,7 @@ export default async function StudentAssignmentsPage() {
                       {assignment.status === "CLOSED" && <span className="chip chip-accent">closed</span>}
                       {overdue && <span className="chip chip-accent">overdue</span>}
                       {submission && <span className={submission.status === "REVIEWED" ? "chip chip-success" : "chip chip-neutral"}>{submission.status.toLowerCase()}</span>}
+                      {quizAttempt && <span className={quizAttempt.passed ? "chip chip-success" : "chip chip-accent"}>{quizAttempt.score}% · {quizAttempt.passed ? "passed" : "retry"}</span>}
                     </div>
                     <h2 className="text-lg font-semibold">{assignment.title}</h2>
                     <p className="text-xs text-muted-foreground">{assignment.course.title} · {assignment.tutor.user.name}</p>
@@ -50,10 +53,15 @@ export default async function StudentAssignmentsPage() {
                 )}
                 {assignment.status === "CLOSED" && (
                   <p className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
-                    This assignment is closed. Your existing submission and feedback remain available, but new submissions are not accepted.
+                    This {assignment.kind === "QUIZ" ? "quiz" : "assignment"} is closed. Existing results remain available, but new submissions are not accepted.
                   </p>
                 )}
-                {assignment.status === "PUBLISHED" && (
+                {assignment.kind === "QUIZ" && assignment.status === "PUBLISHED" && (
+                  <Link href={`/student/assignments/${assignment.id}/quiz`} className="inline-flex h-10 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground">
+                    {quizAttempt ? "Retake quiz" : "Take quiz"}
+                  </Link>
+                )}
+                {assignment.kind !== "QUIZ" && assignment.status === "PUBLISHED" && (
                   <AssignmentSubmissionForm assignmentId={assignment.id} existingContent={submission?.content ?? null} />
                 )}
               </article>

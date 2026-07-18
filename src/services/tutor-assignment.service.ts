@@ -18,6 +18,37 @@ const assignmentInclude = {
       updatedAt: true,
     },
   },
+  quizAttempts: {
+    orderBy: { submittedAt: "desc" as const },
+    take: 1,
+    select: {
+      id: true,
+      score: true,
+      earnedPoints: true,
+      totalPoints: true,
+      passed: true,
+      submittedAt: true,
+    },
+  },
+} as const;
+
+const tutorAssignmentInclude = {
+  ...assignmentInclude,
+  quizAttempts: {
+    orderBy: { submittedAt: "desc" as const },
+    select: {
+      id: true,
+      score: true,
+      earnedPoints: true,
+      totalPoints: true,
+      passed: true,
+      submittedAt: true,
+    },
+  },
+  quizQuestions: {
+    orderBy: { order: "asc" as const },
+    include: { answers: { orderBy: { order: "asc" as const } } },
+  },
 } as const;
 
 export async function getTutorAssignmentOptions(userId: string) {
@@ -107,7 +138,7 @@ export async function getTutorAssignmentForReview(userId: string, assignmentId: 
       tutor: { userId },
       course: { tutorCourseAssignments: { some: { tutor: { userId } } } },
     },
-    include: assignmentInclude,
+    include: tutorAssignmentInclude,
   });
 }
 
@@ -116,5 +147,52 @@ export async function getStudentAssignments(studentId: string) {
     where: { studentId, status: { in: ["PUBLISHED", "CLOSED"] } },
     orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
     include: assignmentInclude,
+  });
+}
+
+export async function getStudentTutorQuiz(studentId: string, assignmentId: string) {
+  return db.tutorAssignment.findFirst({
+    where: {
+      id: assignmentId,
+      studentId,
+      kind: "QUIZ",
+      status: { in: ["PUBLISHED", "CLOSED"] },
+    },
+    select: {
+      id: true,
+      title: true,
+      instructions: true,
+      status: true,
+      passingScore: true,
+      dueAt: true,
+      course: { select: { title: true } },
+      tutor: { select: { user: { select: { name: true } } } },
+      quizQuestions: {
+        orderBy: { order: "asc" },
+        select: {
+          id: true,
+          text: true,
+          type: true,
+          points: true,
+          order: true,
+          answers: {
+            orderBy: { order: "asc" },
+            select: { id: true, text: true, order: true },
+          },
+        },
+      },
+      quizAttempts: {
+        where: { studentId },
+        orderBy: { submittedAt: "desc" },
+        select: {
+          id: true,
+          score: true,
+          earnedPoints: true,
+          totalPoints: true,
+          passed: true,
+          submittedAt: true,
+        },
+      },
+    },
   });
 }

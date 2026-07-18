@@ -151,13 +151,18 @@ export async function updateTutorAssignment(input: UpdateTutorAssignmentInput) {
       id: true,
       title: true,
       studentId: true,
+      kind: true,
       status: true,
       submissions: { select: { id: true }, take: 1 },
+      quizAttempts: { select: { id: true }, take: 1 },
     },
   });
   if (!assignment) return { success: false, error: "Assignment not found" };
-  if (assignment.submissions.length > 0) {
+  if (assignment.submissions.length > 0 || assignment.quizAttempts.length > 0) {
     return { success: false, error: "Assignment terms cannot be edited after work has been submitted" };
+  }
+  if (assignment.kind === "QUIZ" && data.kind !== "QUIZ") {
+    return { success: false, error: "A structured quiz cannot be changed into another assignment type" };
   }
 
   const dueAt = parseDueAt(data.dueAt);
@@ -242,10 +247,10 @@ export async function deleteTutorAssignment(input: z.input<typeof deleteSchema>)
       tutor: { userId: session.user.id },
       course: { tutorCourseAssignments: { some: { tutor: { userId: session.user.id } } } },
     },
-    select: { id: true, title: true, studentId: true, _count: { select: { submissions: true } } },
+    select: { id: true, title: true, studentId: true, _count: { select: { submissions: true, quizAttempts: true } } },
   });
   if (!assignment) return { success: false, error: "Assignment not found" };
-  if (assignment._count.submissions > 0) {
+  if (assignment._count.submissions > 0 || assignment._count.quizAttempts > 0) {
     return { success: false, error: "Assignments with submitted work cannot be deleted; close the assignment instead" };
   }
 
@@ -255,6 +260,7 @@ export async function deleteTutorAssignment(input: z.input<typeof deleteSchema>)
       tutor: { userId: session.user.id },
       course: { tutorCourseAssignments: { some: { tutor: { userId: session.user.id } } } },
       submissions: { none: {} },
+      quizAttempts: { none: {} },
     },
   });
   if (deleted.count !== 1) return { success: false, error: "Assignment changed before it could be deleted" };
@@ -286,6 +292,7 @@ export async function submitTutorAssignment(input: z.input<typeof submitSchema>)
     where: {
       id: parsed.data.assignmentId,
       studentId: session.user.id,
+      kind: { not: "QUIZ" },
       status: "PUBLISHED",
     },
     select: { id: true, studentId: true, title: true, tutor: { select: { userId: true } } },

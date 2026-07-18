@@ -131,7 +131,7 @@ export function AssignmentLifecyclePanel({ assignment, hasSubmission }: Assignme
             </label>
             <label className="space-y-1.5 text-sm font-medium">
               Type
-              <select name="kind" defaultValue={assignment.kind} className="input-pretty w-full">
+              <select name="kind" defaultValue={assignment.kind} disabled={assignment.kind === "QUIZ"} className="input-pretty w-full disabled:opacity-60">
                 <option value="ASSIGNMENT">Assignment</option>
                 <option value="QUIZ">Quiz / questions</option>
                 <option value="PROJECT">Project</option>

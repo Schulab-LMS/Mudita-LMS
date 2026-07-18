@@ -60,9 +60,14 @@ export default async function TutorTeachingPage() {
         breadcrumbs={[{ label: "Tutor", href: "/tutor" }, { label: "Teaching" }]}
         icon={<GraduationCap className="h-5 w-5" />}
         actions={
-          <Link href="/tutor/teaching/assignments/new" className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">
-            <Plus className="h-4 w-4" aria-hidden /> New assignment
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/tutor/teaching/quizzes/new" className="inline-flex h-10 items-center gap-2 rounded-lg border border-input px-4 text-sm font-semibold">
+              New quiz
+            </Link>
+            <Link href="/tutor/teaching/assignments/new" className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">
+              <Plus className="h-4 w-4" aria-hidden /> New assignment
+            </Link>
+          </div>
         }
       />
 
@@ -124,7 +129,10 @@ export default async function TutorTeachingPage() {
             <h2 className="font-semibold">Tutor assignments</h2>
             <p className="text-xs text-muted-foreground">Published tasks, submissions, grades, and revision requests.</p>
           </div>
-          <Link href="/tutor/teaching/assignments/new" className="text-xs font-semibold text-primary hover:underline">Create assignment</Link>
+          <div className="flex gap-3">
+            <Link href="/tutor/teaching/quizzes/new" className="text-xs font-semibold text-primary hover:underline">Create quiz</Link>
+            <Link href="/tutor/teaching/assignments/new" className="text-xs font-semibold text-primary hover:underline">Create assignment</Link>
+          </div>
         </div>
         {assignments.length === 0 ? (
           <p className="p-5 text-sm text-muted-foreground">No tutor-authored assignments yet.</p>
@@ -132,6 +140,7 @@ export default async function TutorTeachingPage() {
           <ul className="divide-y divide-border">
             {assignments.slice(0, 12).map((assignment) => {
               const submission = assignment.submissions[0] ?? null;
+              const quizAttempt = assignment.quizAttempts[0] ?? null;
               return (
                 <li key={assignment.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div className="min-w-0">
@@ -145,11 +154,11 @@ export default async function TutorTeachingPage() {
                     <span className={assignment.status === "CLOSED" ? "chip chip-accent" : "chip chip-success"}>
                       {assignment.status.toLowerCase()}
                     </span>
-                    <span className={submission?.status === "REVIEWED" ? "chip chip-success" : submission ? "chip chip-accent" : "chip chip-neutral"}>
-                      {submission?.status.toLowerCase() ?? "not submitted"}
+                    <span className={quizAttempt?.passed || submission?.status === "REVIEWED" ? "chip chip-success" : quizAttempt || submission ? "chip chip-accent" : "chip chip-neutral"}>
+                      {quizAttempt ? `${quizAttempt.score}% auto-graded` : submission?.status.toLowerCase() ?? "not submitted"}
                     </span>
                     <Link href={`/tutor/teaching/assignments/${assignment.id}`} className="text-xs font-semibold text-primary hover:underline">
-                      {submission ? "Review" : "Open"}
+                      {submission || quizAttempt ? "Review" : "Open"}
                     </Link>
                   </div>
                 </li>

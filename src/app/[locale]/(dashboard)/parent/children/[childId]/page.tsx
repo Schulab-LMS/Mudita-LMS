@@ -217,6 +217,7 @@ export default async function ChildDetailPage({
         ) : (
           tutorAssignments.map((assignment) => {
             const submission = assignment.submissions[0] ?? null;
+            const quizAttempt = assignment.quizAttempts[0] ?? null;
             return (
               <article key={assignment.id} className="card-premium p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -226,8 +227,9 @@ export default async function ChildDetailPage({
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {assignment.status === "CLOSED" && <span className="chip chip-accent">closed</span>}
+                    {quizAttempt && <span className={quizAttempt.passed ? "chip chip-success" : "chip chip-accent"}>{quizAttempt.score}% · {quizAttempt.passed ? "passed" : "not passed"}</span>}
                     <span className={submission?.status === "REVIEWED" ? "chip chip-success" : submission ? "chip chip-accent" : "chip chip-neutral"}>
-                      {submission?.status.toLowerCase() ?? "not submitted"}
+                      {submission?.status.toLowerCase() ?? (quizAttempt ? "auto-graded" : "not submitted")}
                     </span>
                   </div>
                 </div>
@@ -238,6 +240,12 @@ export default async function ChildDetailPage({
                       Tutor feedback{submission.points != null ? ` · ${submission.points}/${assignment.maxPoints}` : ""}
                     </p>
                     <p className="mt-1 whitespace-pre-wrap text-sm">{submission.feedback}</p>
+                  </div>
+                )}
+                {quizAttempt && (
+                  <div className="mt-4 rounded-xl border border-blue-300 bg-blue-50/60 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                    <p className="text-xs font-semibold text-blue-800 dark:text-blue-300">Automatic quiz result · {quizAttempt.earnedPoints}/{quizAttempt.totalPoints} points</p>
+                    <p className="mt-1 text-sm">Score: {quizAttempt.score}% · {quizAttempt.passed ? "Passed" : "Not passed yet"}</p>
                   </div>
                 )}
               </article>

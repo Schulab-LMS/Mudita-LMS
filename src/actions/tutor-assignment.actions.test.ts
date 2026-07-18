@@ -176,11 +176,31 @@ describe("tutor assignment authorization and lifecycle", () => {
       id: "assignment_1",
       title: "Build a rover",
       studentId: "student_1",
+      kind: "PROJECT",
       status: "PUBLISHED",
       submissions: [{ id: "submission_1" }],
+      quizAttempts: [],
     });
 
     const result = await updateTutorAssignment(validUpdate);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/cannot be edited after work has been submitted/i);
+    expect(mocks.assignmentUpdate).not.toHaveBeenCalled();
+  });
+
+  it("preserves quiz terms by rejecting edits after an automatic attempt", async () => {
+    mocks.assignmentFindFirst.mockResolvedValue({
+      id: "assignment_1",
+      title: "Water cycle quiz",
+      studentId: "student_1",
+      kind: "QUIZ",
+      status: "PUBLISHED",
+      submissions: [],
+      quizAttempts: [{ id: "attempt_1" }],
+    });
+
+    const result = await updateTutorAssignment({ ...validUpdate, kind: "QUIZ" });
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/cannot be edited after work has been submitted/i);
@@ -192,8 +212,10 @@ describe("tutor assignment authorization and lifecycle", () => {
       id: "assignment_1",
       title: "Build a rover",
       studentId: "student_1",
+      kind: "PROJECT",
       status: "PUBLISHED",
       submissions: [],
+      quizAttempts: [],
     });
     mocks.assignmentUpdate.mockResolvedValue({});
 
@@ -243,7 +265,22 @@ describe("tutor assignment authorization and lifecycle", () => {
       id: "assignment_1",
       title: "Build a rover",
       studentId: "student_1",
-      _count: { submissions: 1 },
+      _count: { submissions: 1, quizAttempts: 0 },
+    });
+
+    const result = await deleteTutorAssignment({ assignmentId: "assignment_1" });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/cannot be deleted/i);
+    expect(mocks.assignmentDeleteMany).not.toHaveBeenCalled();
+  });
+
+  it("does not delete a quiz that has an automatic attempt", async () => {
+    mocks.assignmentFindFirst.mockResolvedValue({
+      id: "assignment_1",
+      title: "Water cycle quiz",
+      studentId: "student_1",
+      _count: { submissions: 0, quizAttempts: 1 },
     });
 
     const result = await deleteTutorAssignment({ assignmentId: "assignment_1" });
@@ -267,7 +304,7 @@ describe("tutor assignment authorization and lifecycle", () => {
       id: "assignment_1",
       title: "Build a rover",
       studentId: "student_1",
-      _count: { submissions: 0 },
+      _count: { submissions: 0, quizAttempts: 0 },
     });
     mocks.assignmentDeleteMany.mockResolvedValue({ count: 1 });
 
@@ -290,6 +327,19 @@ describe("tutor assignment authorization and lifecycle", () => {
     expect(result.success).toBe(false);
     expect(mocks.assignmentFindFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ studentId: "student_2", status: "PUBLISHED" }),
+    }));
+    expect(mocks.submissionUpsert).not.toHaveBeenCalled();
+  });
+
+  it("does not let a student submit a quiz through the text-assignment action", async () => {
+    mocks.auth.mockResolvedValue({ user: { id: "student_1", role: "STUDENT" } });
+    mocks.assignmentFindFirst.mockResolvedValue(null);
+
+    const result = await submitTutorAssignment({ assignmentId: "quiz_1", content: "bypass" });
+
+    expect(result.success).toBe(false);
+    expect(mocks.assignmentFindFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ kind: { not: "QUIZ" } }),
     }));
     expect(mocks.submissionUpsert).not.toHaveBeenCalled();
   });
